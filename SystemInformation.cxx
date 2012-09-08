@@ -307,7 +307,7 @@ public:
   enum Manufacturer
     {
     AMD, Intel, NSC, UMC, Cyrix, NexGen, IDT, Rise, Transmeta, Sun, IBM,
-    Motorola, UnknownManufacturer
+    Motorola, HP, UnknownManufacturer
     };
 
 protected:
@@ -346,7 +346,7 @@ protected:
   static void Delay (unsigned int);
   static void DelayOverhead (unsigned int);
 
-  void FindManufacturer();
+  void FindManufacturer(const kwsys_stl::string &family = "");
 
   // For Mac
   bool ParseSysCtl();
@@ -1144,6 +1144,7 @@ void SystemInformationImplementation::RunCPUCheck()
     {
     // Retrieve the CPU details.
     RetrieveCPUIdentity();
+    this->FindManufacturer();
     RetrieveCPUFeatures();
     }
 
@@ -1415,6 +1416,8 @@ const char * SystemInformationImplementation::GetVendorID()
       return "IBM";
     case Motorola:
       return "Motorola";
+    case HP:
+      return "Hewlett-Packard";
     default:
       return "Unknown Manufacturer";
     }
@@ -1755,7 +1758,7 @@ bool SystemInformationImplementation::RetrieveCPUFeatures()
 
 
 /** Find the manufacturer given the vendor id */
-void SystemInformationImplementation::FindManufacturer()
+void SystemInformationImplementation::FindManufacturer(const kwsys_stl::string& family)
 {
   if (this->ChipID.Vendor == "GenuineIntel")       this->ChipManufacturer = Intel;        // Intel Corp.
   else if (this->ChipID.Vendor == "UMC UMC UMC ")  this->ChipManufacturer = UMC;          // United Microelectronics Corp.
@@ -1771,6 +1774,7 @@ void SystemInformationImplementation::FindManufacturer()
   else if (this->ChipID.Vendor == "Sun")           this->ChipManufacturer = Sun;          // Sun Microelectronics
   else if (this->ChipID.Vendor == "IBM")           this->ChipManufacturer = IBM;          // IBM Microelectronics
   else if (this->ChipID.Vendor == "Motorola")      this->ChipManufacturer = Motorola;          // Motorola Microelectronics
+  else if (family.substr(0, 7) == "PA-RISC")       this->ChipManufacturer = HP;           // Hewlett-Packard
   else                                             this->ChipManufacturer = UnknownManufacturer;  // Unknown manufacturer
 }
 
@@ -1835,8 +1839,6 @@ bool SystemInformationImplementation::RetrieveCPUIdentity()
   memcpy (&(vbuf[8]), &(localCPUVendor[2]), sizeof (int));
   vbuf[12] = '\0';
   this->ChipID.Vendor = vbuf;
-
-  this->FindManufacturer();
 
   // Retrieve the family of CPU present.
   this->ChipID.ExtendedFamily =    ((localCPUSignature & 0x0FF00000) >> 20);  // Bits 27..20 Used
@@ -3097,11 +3099,25 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   this->CPUSpeedInMHz = static_cast<float>(atof(CPUSpeed.c_str()));
 
   // Chip family
-  this->ChipID.Family = atoi(this->ExtractValueFromCpuInfoFile(buffer,"cpu family").c_str());
+  const kwsys_stl::string familyStr =
+    this->ExtractValueFromCpuInfoFile(buffer,"cpu family");
+  this->ChipID.Family = atoi(familyStr.c_str());
 
   // Chip Vendor
   this->ChipID.Vendor = this->ExtractValueFromCpuInfoFile(buffer,"vendor_id");
-  this->FindManufacturer();
+  this->FindManufacturer(familyStr);
+
+  // second try for setting family
+  if (this->ChipID.Family == 0 && this->ChipManufacturer == HP)
+    {
+    if (familyStr == "PA-RISC 1.1a")
+      this->ChipID.Family = 0x11a;
+    else if (familyStr == "PA-RISC 2.0")
+      this->ChipID.Family = 0x200;
+    // If you really get CMake to work on a machine not belonging to
+    // any of those families I owe you a dinner if you get it to
+    // contribute nightly builds regularly.
+    }
 
   // Chip Model
   this->ChipID.Model = atoi(this->ExtractValueFromCpuInfoFile(buffer,"model").c_str());
