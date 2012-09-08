@@ -1670,7 +1670,7 @@ bool SystemInformationImplementation::RetrieveCPUFeatures()
 #endif
       ; <<CPUID>>
       ; eax = 1 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
-      ;        ebx: 31..24 - default APIC ID, 23..16 - logical processsor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
+      ;        ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
       ;        edx: CPU feature flags
       mov eax,1
       CPUID_INSTRUCTION
@@ -1809,7 +1809,7 @@ bool SystemInformationImplementation::RetrieveCPUIdentity()
 
       ; <<CPUID>>
       ; eax = 1 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
-      ;        ebx: 31..24 - default APIC ID, 23..16 - logical processsor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
+      ;        ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
       ;        edx: CPU feature flags
       mov eax,1
       CPUID_INSTRUCTION
@@ -2436,7 +2436,7 @@ bool SystemInformationImplementation::RetrieveExtendedCPUFeatures()
 #endif
       ; <<CPUID>>
       ; eax = 0x80000001 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
-      ;             ebx: 31..24 - default APIC ID, 23..16 - logical processsor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
+      ;             ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
       ;             edx: CPU feature flags
       mov eax,0x80000001
       CPUID_INSTRUCTION
@@ -3073,7 +3073,7 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
     this->NumberOfLogicalCPU = atoi(cpucount.c_str());
 #endif
   // gotta have one, and if this is 0 then we get a / by 0n
-  // beter to have a bad answer than a crash
+  // better to have a bad answer than a crash
   if(this->NumberOfPhysicalCPU <= 0)
     {
     this->NumberOfPhysicalCPU = 1;
@@ -3082,7 +3082,7 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   this->Features.ExtendedFeatures.LogicalProcessorsPerPhysical=
       this->NumberOfLogicalCPU/this->NumberOfPhysicalCPU;
 
-  // CPU speed (checking only the first proc
+  // CPU speed (checking only the first processor)
   kwsys_stl::string CPUSpeed = this->ExtractValueFromCpuInfoFile(buffer,"cpu MHz");
   this->CPUSpeedInMHz = static_cast<float>(atof(CPUSpeed.c_str()));
 
