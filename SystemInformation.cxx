@@ -3101,13 +3101,29 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   this->ChipID.ModelName = this->ExtractValueFromCpuInfoFile(buffer,"model name").c_str();
 
   // L1 Cache size
-  kwsys_stl::string cacheSize = this->ExtractValueFromCpuInfoFile(buffer,"cache size");
-  pos = cacheSize.find(" KB");
-  if(pos!=cacheSize.npos)
+  // Different architectures may show different names for the caches.
+  // Sum up everything we find.
+  kwsys_stl::vector<const char*> cachename;
+  cachename.clear();
+
+  cachename.push_back("cache size"); // e.g. x86
+  cachename.push_back("I-cache"); // e.g. PA-RISC
+  cachename.push_back("D-cache"); // e.g. PA-RISC
+
+  this->Features.L1CacheSize = 0;
+  for (size_t index = 0; index < cachename.size(); index ++)
     {
-    cacheSize = cacheSize.substr(0,pos);
+    kwsys_stl::string cacheSize = this->ExtractValueFromCpuInfoFile(buffer,cachename[index]);
+    if (!cacheSize.empty())
+      {
+      pos = cacheSize.find(" KB");
+      if(pos!=cacheSize.npos)
+        {
+        cacheSize = cacheSize.substr(0,pos);
+        }
+      this->Features.L1CacheSize += atoi(cacheSize.c_str());
+      }
     }
-  this->Features.L1CacheSize = atoi(cacheSize.c_str());
   return 1;
 }
 
