@@ -842,6 +842,16 @@ ENDIF(KWSYS_ENABLE_C AND KWSYS_C_SRCS)
 # line to configure the namespace in the C and C++ source files.
 ADD_DEFINITIONS("-DKWSYS_NAMESPACE=${KWSYS_NAMESPACE}")
 
+# Disable deprecation warnings for standard C functions.
+IF(MSVC OR (WIN32 AND "${CMAKE_C_COMPILER_ID}" MATCHES "^(Intel)$"))
+  ADD_DEFINITIONS(
+    -D_CRT_NONSTDC_NO_DEPRECATE
+    -D_CRT_SECURE_NO_DEPRECATE
+    -D_CRT_SECURE_NO_WARNINGS
+    -D_SCL_SECURE_NO_DEPRECATE
+    )
+ENDIF()
+
 IF(KWSYS_USE_String)
   # Activate code in "String.c".  See the comment in the source.
   SET_SOURCE_FILES_PROPERTIES(String.c PROPERTIES
