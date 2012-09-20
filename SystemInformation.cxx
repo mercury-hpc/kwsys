@@ -108,21 +108,13 @@ typedef int siginfo_t;
 namespace KWSYS_NAMESPACE
 {
 
-// Create longlong
-#if KWSYS_USE_LONG_LONG
-  typedef long long LongLong;
-#elif KWSYS_USE___INT64
-  typedef __int64 LongLong;
-#else
-# error "No Long Long"
-#endif
-
 //  Define SystemInformationImplementation class
 typedef  void (*DELAY_FUNC)(unsigned int uiMS);
 
 class SystemInformationImplementation
 {
 public:
+  typedef SystemInformation::LongLong LongLong;
   SystemInformationImplementation ();
   ~SystemInformationImplementation ();
 
@@ -162,11 +154,11 @@ public:
   size_t GetTotalPhysicalMemory();
   size_t GetAvailablePhysicalMemory();
 
-  long long GetProcessId();
+  LongLong GetProcessId();
 
   // Retrieve memory information in kib
-  long long GetMemoryTotal();
-  long long GetMemoryUsed();
+  LongLong GetMemoryTotal();
+  LongLong GetMemoryUsed();
 
   // enable/disable stack trace signal handler.
   static
@@ -562,17 +554,17 @@ kwsys_stl::string SystemInformation::GetMemoryDescription()
 }
 
 // Get total system RAM in units of KiB.
-long long SystemInformation::GetMemoryTotal()
+SystemInformation::LongLong SystemInformation::GetMemoryTotal()
 {
   return this->Implementation->GetMemoryTotal();
 }
 
-long long SystemInformation::GetMemoryUsed()
+SystemInformation::LongLong SystemInformation::GetMemoryUsed()
 {
   return this->Implementation->GetMemoryUsed();
 }
 
-long long SystemInformation::GetProcessId()
+SystemInformation::LongLong SystemInformation::GetProcessId()
 {
   return this->Implementation->GetProcessId();
 }
@@ -2881,9 +2873,10 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
 /**
 Get total system RAM in units of KiB.
 */
-long long SystemInformationImplementation::GetMemoryTotal()
+SystemInformation::LongLong
+SystemInformationImplementation::GetMemoryTotal()
 {
-  long long memTotal=0;
+  LongLong memTotal=0;
 
 #if defined(_WIN32) && defined(_MSC_VER)
   MEMORYSTATUSEX statex;
@@ -2914,9 +2907,10 @@ long long SystemInformationImplementation::GetMemoryTotal()
 Get system RAM used by the process associated with the given
 process id in units of KiB.
 */
-long long SystemInformationImplementation::GetMemoryUsed()
+SystemInformation::LongLong
+SystemInformationImplementation::GetMemoryUsed()
 {
-  long long memUsed=0;
+  LongLong memUsed=0;
 
 #if defined(_WIN32) && defined(_MSC_VER)
   long pid=GetCurrentProcessId();
@@ -2972,9 +2966,10 @@ long long SystemInformationImplementation::GetMemoryUsed()
 /**
 Get the process id of the running process.
 */
-long long SystemInformationImplementation::GetProcessId()
+SystemInformation::LongLong
+SystemInformationImplementation::GetProcessId()
 {
-  long long pid=-1;
+  LongLong pid=-1;
 
 #if defined(_WIN32) && defined(_MSC_VER)
   pid=GetCurrentProcessId();
@@ -3252,7 +3247,8 @@ size_t SystemInformationImplementation::GetAvailablePhysicalMemory()
 }
 
 /** Get Cycle differences */
-LongLong SystemInformationImplementation::GetCyclesDifference (DELAY_FUNC DelayFunction,
+SystemInformation::LongLong
+SystemInformationImplementation::GetCyclesDifference (DELAY_FUNC DelayFunction,
                                                   unsigned int uiParameter)
 {
 #if USE_ASM_INSTRUCTIONS

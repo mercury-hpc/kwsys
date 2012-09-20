@@ -565,12 +565,6 @@ IF(KWSYS_USE_SystemTools)
     COMPILE_FLAGS "-DKWSYS_CXX_HAS_SETENV=${KWSYS_CXX_HAS_SETENV} -DKWSYS_CXX_HAS_UNSETENV=${KWSYS_CXX_HAS_UNSETENV} -DKWSYS_CXX_HAS_ENVIRON_IN_STDLIB_H=${KWSYS_CXX_HAS_ENVIRON_IN_STDLIB_H}")
 ENDIF()
 
-IF(KWSYS_USE_SystemInformation)
-  SET_PROPERTY(SOURCE SystemInformation.cxx PROPERTY
-    COMPILE_DEFINITIONS KWSYS_USE_LONG_LONG=${KWSYS_USE_LONG_LONG}
-                        KWSYS_USE___INT64=${KWSYS_USE___INT64})
-ENDIF()
-
 #-----------------------------------------------------------------------------
 # Choose a directory for the generated headers.
 IF(NOT KWSYS_HEADER_ROOT)
