@@ -49,33 +49,31 @@
 # include "kwsys_ios_fstream.h.in"
 #endif
 
-#ifndef WIN32
-# include <sys/utsname.h> // int uname(struct utsname *buf);
-#endif
-
 #if defined(_WIN32)
 # include <windows.h>
 # include <psapi.h>
-#if !defined(siginfo_t)
+# if !defined(siginfo_t)
 typedef int siginfo_t;
-#endif
+# endif
+#else
+# include <sys/types.h>
+# include <sys/time.h>
+# include <sys/utsname.h> // int uname(struct utsname *buf);
+# include <unistd.h>
+# include <signal.h>
+# include <fcntl.h>
+# include <errno.h> // extern int errno;
 #endif
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
-#include <sys/types.h>
 #include <mach/vm_statistics.h>
 #include <mach/host_info.h>
 #include <mach/mach.h>
 #include <mach/mach_types.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
 #include <fenv.h>
-#include <signal.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <sys/types.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #if defined(__GNUG__)
@@ -84,17 +82,9 @@ typedef int siginfo_t;
 #endif
 
 #ifdef __linux
-# include <sys/types.h>
-# include <unistd.h>
-# include <fcntl.h>
-# include <ctype.h> // int isdigit(int c);
-# include <errno.h> // extern int errno;
-# include <sys/time.h>
 # include <fenv.h>
-# include <signal.h>
 # include <sys/socket.h>
 # include <netdb.h>
-# include <sys/types.h>
 # include <ifaddrs.h>
 # include <netinet/in.h>
 #if defined(__GNUG__)
@@ -113,6 +103,7 @@ typedef int siginfo_t;
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h> // int isdigit(int c);
 
 namespace KWSYS_NAMESPACE
 {
@@ -1040,12 +1031,11 @@ const char* SystemInformationImplementation::GetHostname()
 int SystemInformationImplementation::GetFullyQualifiedDomainName(
       kwsys_stl::string &fqdn)
 {
-  int ierr=0;
-
   // in the event of absolute failure return localhost.
   fqdn="localhost";
 
-#if defined(_WIN32) && defined(_MSC_VER)
+#if defined(_WIN32)
+  int ierr=0;
   // TODO - a more robust implementation for windows, see comments
   // in unix implementation.
   WSADATA wsaData;
@@ -1074,19 +1064,14 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
   WSACleanup();
   return 0;
 
-#elif defined(__CYGWIN__) || defined(__MINGW32__)
-  // TODO - an implementation for cygwin and mingw
-  return -1;
-
-#elif defined(_AIX)
-  return -1;
-#else
+#elif defined(__linux) || defined(__APPLE__)
   // gethostname typical returns an alias for loopback interface
   // we want the fully qualified domain name. Because there are
   // any number of interfaces on this system we look for the
   // first of these that contains the name returned by gethostname
   // and is longer. failing that we return gethostname.
 
+  int ierr=0;
   char base[NI_MAXHOST];
   ierr=gethostname(base,NI_MAXHOST);
   if (ierr)
@@ -1143,6 +1128,9 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
   freeifaddrs(ifas);
 
   return ierr;
+#else
+  /* TODO: Implement on more platforms.  */
+  return -1;
 #endif
 }
 
