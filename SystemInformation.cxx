@@ -10,6 +10,9 @@
   See the License for more information.
 ============================================================================*/
 #ifdef _WIN32
+# if !defined(_WIN32_WINNT) && !(defined(_MSC_VER) && _MSC_VER < 1300)
+#  define _WIN32_WINNT 0x0501
+# endif
 # include <winsock.h> // WSADATA, include before sys/types.h
 #endif
 
@@ -51,7 +54,9 @@
 
 #if defined(_WIN32)
 # include <windows.h>
-# include <psapi.h>
+# if defined(KWSYS_SYS_HAS_PSAPI)
+#  include <psapi.h>
+# endif
 # if !defined(siginfo_t)
 typedef int siginfo_t;
 # endif
@@ -2878,11 +2883,18 @@ SystemInformationImplementation::GetMemoryTotal()
 {
   LongLong memTotal=0;
 
-#if defined(_WIN32) && defined(_MSC_VER)
+#if defined(_WIN32)
+# if defined(_MSC_VER) && _MSC_VER < 1300
+  MEMORYSTATUS stat;
+  stat.dwLength = sizeof(stat);
+  GlobalMemoryStatus(&stat);
+  memTotal=stat.dwTotalPhys/1024;
+# else
   MEMORYSTATUSEX statex;
   statex.dwLength=sizeof(statex);
   GlobalMemoryStatusEx(&statex);
   memTotal=statex.ullTotalPhys/1024;
+# endif
 #elif defined(__linux)
   int ierr=GetFieldFromFile("/proc/meminfo","MemTotal:",memTotal);
   if (ierr)
@@ -2912,7 +2924,7 @@ SystemInformationImplementation::GetMemoryUsed()
 {
   LongLong memUsed=0;
 
-#if defined(_WIN32) && defined(_MSC_VER)
+#if defined(_WIN32) && defined(KWSYS_SYS_HAS_PSAPI)
   long pid=GetCurrentProcessId();
 
   HANDLE hProc;
@@ -2971,7 +2983,7 @@ SystemInformationImplementation::GetProcessId()
 {
   LongLong pid=-1;
 
-#if defined(_WIN32) && defined(_MSC_VER)
+#if defined(_WIN32)
   pid=GetCurrentProcessId();
 #elif defined(__linux) || defined(__APPLE__)
   pid=getpid();
@@ -3050,13 +3062,13 @@ int SystemInformationImplementation::QueryMemory()
 #ifdef __CYGWIN__
   return 0;
 #elif defined(_WIN32)
-#if  _MSC_VER < 1300
+# if defined(_MSC_VER) && _MSC_VER < 1300
   MEMORYSTATUS ms;
   unsigned long tv, tp, av, ap;
   ms.dwLength = sizeof(ms);
   GlobalMemoryStatus(&ms);
-  #define MEM_VAL(value) dw##value
-#else
+#  define MEM_VAL(value) dw##value
+# else
   MEMORYSTATUSEX ms;
   DWORDLONG tv, tp, av, ap;
   ms.dwLength = sizeof(ms);
@@ -3064,8 +3076,8 @@ int SystemInformationImplementation::QueryMemory()
   {
     return 0;
   }
-#define MEM_VAL(value) ull##value
-#endif
+#  define MEM_VAL(value) ull##value
+# endif
   tv = ms.MEM_VAL(TotalVirtual);
   tp = ms.MEM_VAL(TotalPhys);
   av = ms.MEM_VAL(AvailVirtual);

@@ -565,6 +565,23 @@ IF(KWSYS_USE_SystemTools)
     COMPILE_FLAGS "-DKWSYS_CXX_HAS_SETENV=${KWSYS_CXX_HAS_SETENV} -DKWSYS_CXX_HAS_UNSETENV=${KWSYS_CXX_HAS_UNSETENV} -DKWSYS_CXX_HAS_ENVIRON_IN_STDLIB_H=${KWSYS_CXX_HAS_ENVIRON_IN_STDLIB_H}")
 ENDIF()
 
+IF(KWSYS_USE_SystemInformation)
+  IF(WIN32)
+    INCLUDE(CheckSymbolExists)
+    SET(CMAKE_REQUIRED_LIBRARIES Psapi)
+    CHECK_SYMBOL_EXISTS(GetProcessMemoryInfo "windows.h;psapi.h" KWSYS_SYS_HAS_PSAPI)
+    UNSET(CMAKE_REQUIRED_LIBRARIES)
+    IF(KWSYS_SYS_HAS_PSAPI)
+      SET_PROPERTY(SOURCE SystemInformation.cxx APPEND PROPERTY
+	COMPILE_DEFINITIONS KWSYS_SYS_HAS_PSAPI=1)
+      IF(MSVC70 OR MSVC71)
+	# Suppress LNK4089: all references to 'PSAPI.DLL' discarded by /OPT:REF
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /IGNORE:4089")
+      ENDIF()
+    ENDIF()
+  ENDIF()
+ENDIF()
+
 #-----------------------------------------------------------------------------
 # Choose a directory for the generated headers.
 IF(NOT KWSYS_HEADER_ROOT)
@@ -799,7 +816,9 @@ IF(KWSYS_C_SRCS OR KWSYS_CXX_SRCS)
 
   IF(KWSYS_USE_SystemInformation AND WIN32)
     TARGET_LINK_LIBRARIES(${KWSYS_NAMESPACE} ws2_32)
-    TARGET_LINK_LIBRARIES(${KWSYS_NAMESPACE} Psapi)
+    IF(KWSYS_SYS_HAS_PSAPI)
+      TARGET_LINK_LIBRARIES(${KWSYS_NAMESPACE} Psapi)
+    ENDIF()
   ENDIF(KWSYS_USE_SystemInformation AND WIN32)
 
   # Apply user-defined target properties to the library.
