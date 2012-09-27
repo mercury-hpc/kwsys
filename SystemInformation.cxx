@@ -81,9 +81,10 @@ typedef int siginfo_t;
 #include <netdb.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
-#if defined(__GNUG__)
-#include <execinfo.h>
-#endif
+# if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__-0 >= 1050
+#  include <execinfo.h>
+#  define KWSYS_SYSTEMINFORMATION_HAVE_BACKTRACE
+# endif
 #endif
 
 #ifdef __linux
@@ -92,9 +93,10 @@ typedef int siginfo_t;
 # include <netdb.h>
 # include <ifaddrs.h>
 # include <netinet/in.h>
-#if defined(__GNUG__)
-#include <execinfo.h>
-#endif
+# if defined(__GNUG__)
+#  include <execinfo.h>
+#  define KWSYS_SYSTEMINFORMATION_HAVE_BACKTRACE
+# endif
 #elif defined( __hpux )
 # include <sys/param.h>
 # include <sys/pstat.h>
@@ -882,7 +884,7 @@ void StacktraceSignalHandler(
     }
   kwsys_ios::cerr << kwsys_ios::endl;
 
-#if defined(__GNUG__)
+#if defined(KWSYS_SYSTEMINFORMATION_HAVE_BACKTRACE)
   kwsys_ios::cerr << "Stack:" << kwsys_ios::endl;
   void *stack[128];
   int n=backtrace(stack,128);
