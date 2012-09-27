@@ -79,7 +79,6 @@ typedef int siginfo_t;
 #include <fenv.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <ifaddrs.h>
 #include <netinet/in.h>
 # if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__-0 >= 1050
 #  include <execinfo.h>
@@ -91,7 +90,6 @@ typedef int siginfo_t;
 # include <fenv.h>
 # include <sys/socket.h>
 # include <netdb.h>
-# include <ifaddrs.h>
 # include <netinet/in.h>
 # if defined(__GNUG__)
 #  include <execinfo.h>
@@ -100,6 +98,10 @@ typedef int siginfo_t;
 #elif defined( __hpux )
 # include <sys/param.h>
 # include <sys/pstat.h>
+#endif
+
+#if defined(KWSYS_SYS_HAS_IFADDRS_H)
+# include <ifaddrs.h>
 #endif
 
 #ifdef __HAIKU__
@@ -1083,7 +1085,7 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
   WSACleanup();
   return 0;
 
-#elif defined(__linux) || defined(__APPLE__)
+#elif defined(KWSYS_SYS_HAS_IFADDRS_H)
   // gethostname typical returns an alias for loopback interface
   // we want the fully qualified domain name. Because there are
   // any number of interfaces on this system we look for the
