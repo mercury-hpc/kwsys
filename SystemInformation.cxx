@@ -751,13 +751,17 @@ void StacktraceSignalHandler(
       kwsys_ios::cerr << "Caught SIGFPE ";
       switch (sigInfo->si_code)
         {
+# if defined(FPE_INTDIV)
         case FPE_INTDIV:
           kwsys_ios::cerr << "integer division by zero";
           break;
+# endif
 
+# if defined(FPE_INTOVF)
         case FPE_INTOVF:
           kwsys_ios::cerr << "integer overflow";
           break;
+# endif
 
         case FPE_FLTDIV:
           kwsys_ios::cerr << "floating point divide by zero";
@@ -779,9 +783,11 @@ void StacktraceSignalHandler(
           kwsys_ios::cerr << "floating point invalid operation";
           break;
 
+#if defined(FPE_FLTSUB)
         case FPE_FLTSUB:
           kwsys_ios::cerr << "floating point subscript out of range";
           break;
+#endif
 
         default:
           kwsys_ios::cerr << "code " << sigInfo->si_code;
@@ -823,13 +829,17 @@ void StacktraceSignalHandler(
           kwsys_ios::cerr << "invalid address alignment";
           break;
 
+# if defined(BUS_ADRERR)
         case BUS_ADRERR:
           kwsys_ios::cerr << "non-exestent physical address";
           break;
+# endif
 
+# if defined(BUS_OBJERR)
         case BUS_OBJERR:
           kwsys_ios::cerr << "object specific hardware error";
           break;
+# endif
 
         default:
           kwsys_ios::cerr << "code " << sigInfo->si_code;
@@ -845,13 +855,17 @@ void StacktraceSignalHandler(
           kwsys_ios::cerr << "illegal opcode";
           break;
 
+# if defined(ILL_ILLOPN)
         case ILL_ILLOPN:
           kwsys_ios::cerr << "illegal operand";
           break;
+# endif
 
+# if defined(ILL_ILLADR)
         case ILL_ILLADR:
           kwsys_ios::cerr << "illegal addressing mode.";
           break;
+# endif
 
         case ILL_ILLTRP:
           kwsys_ios::cerr << "illegal trap";
@@ -860,17 +874,23 @@ void StacktraceSignalHandler(
           kwsys_ios::cerr << "privileged opcode";
           break;
 
+# if defined(ILL_PRVREG)
         case ILL_PRVREG:
           kwsys_ios::cerr << "privileged register";
           break;
+# endif
 
+# if defined(ILL_COPROC)
         case ILL_COPROC:
           kwsys_ios::cerr << "co-processor error";
           break;
+# endif
 
+# if defined(ILL_BADSTK)
         case ILL_BADSTK:
           kwsys_ios::cerr << "internal stack error";
           break;
+# endif
 
         default:
           kwsys_ios::cerr << "code " << sigInfo->si_code;
