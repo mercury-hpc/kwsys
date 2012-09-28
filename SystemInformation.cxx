@@ -117,6 +117,8 @@ typedef int siginfo_t;
 namespace KWSYS_NAMESPACE
 {
 
+extern "C" { typedef void (*SigAction)(int,siginfo_t*,void*); }
+
 //  Define SystemInformationImplementation class
 typedef  void (*DELAY_FUNC)(unsigned int uiMS);
 
@@ -3044,7 +3046,7 @@ void SystemInformationImplementation::SetStackTraceOnError(int enable)
 
     // install ours
     struct sigaction sa;
-    sa.sa_sigaction=&StacktraceSignalHandler;
+    sa.sa_sigaction=(SigAction)StacktraceSignalHandler;
     sa.sa_flags=SA_SIGINFO|SA_RESTART;
     sigemptyset(&sa.sa_mask);
 
