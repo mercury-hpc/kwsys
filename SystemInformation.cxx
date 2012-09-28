@@ -1056,7 +1056,7 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
   fqdn="localhost";
 
 #if defined(_WIN32)
-  int ierr=0;
+  int ierr;
   // TODO - a more robust implementation for windows, see comments
   // in unix implementation.
   WSADATA wsaData;
@@ -2905,26 +2905,26 @@ Get total system RAM in units of KiB.
 SystemInformation::LongLong
 SystemInformationImplementation::GetMemoryTotal()
 {
-  LongLong memTotal=0;
-
 #if defined(_WIN32)
 # if defined(_MSC_VER) && _MSC_VER < 1300
   MEMORYSTATUS stat;
   stat.dwLength = sizeof(stat);
   GlobalMemoryStatus(&stat);
-  memTotal=stat.dwTotalPhys/1024;
+  return stat.dwTotalPhys/1024;
 # else
   MEMORYSTATUSEX statex;
   statex.dwLength=sizeof(statex);
   GlobalMemoryStatusEx(&statex);
-  memTotal=statex.ullTotalPhys/1024;
+  return statex.ullTotalPhys/1024;
 # endif
 #elif defined(__linux)
+  LongLong memTotal=0;
   int ierr=GetFieldFromFile("/proc/meminfo","MemTotal:",memTotal);
   if (ierr)
     {
     return -1;
     }
+  return memTotal;
 #elif defined(__APPLE__)
   uint64_t mem;
   size_t len = sizeof(mem);
@@ -2933,10 +2933,10 @@ SystemInformationImplementation::GetMemoryTotal()
     {
     return -1;
     }
-  memTotal=mem/1024;
+  return mem/1024;
+#else
+  return 0;
 #endif
-
-  return memTotal;
 }
 
 /**
@@ -2946,8 +2946,6 @@ process id in units of KiB.
 SystemInformation::LongLong
 SystemInformationImplementation::GetMemoryUsed()
 {
-  LongLong memUsed=0;
-
 #if defined(_WIN32) && defined(KWSYS_SYS_HAS_PSAPI)
   long pid=GetCurrentProcessId();
 
@@ -2963,19 +2961,20 @@ SystemInformationImplementation::GetMemoryUsed()
 
   PROCESS_MEMORY_COUNTERS pmc;
   int ok=GetProcessMemoryInfo(hProc,&pmc,sizeof(pmc));
+  CloseHandle(hProc);
   if (!ok)
     {
     return -2;
     }
-  memUsed=pmc.WorkingSetSize/1024;
-
-  CloseHandle(hProc);
+  return pmc.WorkingSetSize/1024;
 #elif defined(__linux)
+  LongLong memUsed=0;
   int ierr=GetFieldFromFile("/proc/self/status","VmRSS:",memUsed);
   if (ierr)
     {
     return -1;
     }
+  return memUsed;
 #elif defined(__APPLE__)
   pid_t pid=getpid();
   kwsys_stl::ostringstream oss;
@@ -2993,10 +2992,12 @@ SystemInformationImplementation::GetMemoryUsed()
     }
   pclose(f);
   kwsys_stl::istringstream iss(oss.str());
+  LongLong memUsed=0;
   iss >> memUsed;
-#endif
-
   return memUsed;
+#else
+  return 0;
+#endif
 }
 
 /**
@@ -3005,15 +3006,13 @@ Get the process id of the running process.
 SystemInformation::LongLong
 SystemInformationImplementation::GetProcessId()
 {
-  LongLong pid=-1;
-
 #if defined(_WIN32)
-  pid=GetCurrentProcessId();
+  return GetCurrentProcessId();
 #elif defined(__linux) || defined(__APPLE__)
-  pid=getpid();
+  return getpid();
+#else
+  return -1;
 #endif
-
-  return pid;
 }
 
 /**
