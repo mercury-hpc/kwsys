@@ -4672,22 +4672,12 @@ int SystemInformationImplementation::CallSwVers(
       kwsys_stl::string &ver)
 {
 #ifdef __APPLE__
-  kwsys_ios::ostringstream oss;
-  oss << "sw_vers " << arg;
-  FILE *f=popen(oss.str().c_str(),"r");
-  if (f==0)
-    {
-    return -1;
-    }
-  oss.str("");
-  char buf[256]={'\0'};
-  while (fgets(buf, 256, f) != 0)
-    {
-    oss << buf;
-    }
-  pclose(f);
-  kwsys_ios::istringstream iss(oss.str());
-  iss >> ver;
+  kwsys_stl::vector<const char*> args;
+  args.push_back("sw_vers");
+  args.push_back(arg);
+  args.push_back(0);
+  ver = this->RunProcess(args);
+  this->TrimNewline(ver);
 #else
   // avoid C4100
   (void)arg;
