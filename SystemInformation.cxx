@@ -74,6 +74,18 @@ typedef int siginfo_t;
 # include <errno.h> // extern int errno;
 #endif
 
+#ifdef __FreeBSD__
+# include <sys/sysctl.h>
+# include <fenv.h>
+# include <sys/socket.h>
+# include <netdb.h>
+# include <netinet/in.h>
+# if defined(KWSYS_SYS_HAS_IFADDRS_H)
+#  include <ifaddrs.h>
+#  define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
+# endif
+#endif
+
 #ifdef __APPLE__
 # include <sys/sysctl.h>
 # include <mach/vm_statistics.h>
@@ -84,6 +96,10 @@ typedef int siginfo_t;
 # include <sys/socket.h>
 # include <netdb.h>
 # include <netinet/in.h>
+# if defined(KWSYS_SYS_HAS_IFADDRS_H)
+#  include <ifaddrs.h>
+#  define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
+# endif
 # if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__-0 >= 1050
 #  include <execinfo.h>
 #  define KWSYS_SYSTEMINFORMATION_HAVE_BACKTRACE
@@ -95,6 +111,12 @@ typedef int siginfo_t;
 # include <sys/socket.h>
 # include <netdb.h>
 # include <netinet/in.h>
+# if defined(KWSYS_SYS_HAS_IFADDRS_H)
+#  include <ifaddrs.h>
+#  if !defined(__LSB_VERSION__) /* LSB has no getifaddrs */
+#   define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
+#  endif
+# endif
 # if defined(__GNUG__)
 #  include <execinfo.h>
 #  if !(defined(__LSB_VERSION__) && __LSB_VERSION__ < 41)
@@ -111,10 +133,6 @@ typedef struct rlimit ResourceLimitType;
 #elif defined( __hpux )
 # include <sys/param.h>
 # include <sys/pstat.h>
-#endif
-
-#if defined(KWSYS_SYS_HAS_IFADDRS_H)
-# include <ifaddrs.h>
 #endif
 
 #ifdef __HAIKU__
@@ -1273,7 +1291,7 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
   WSACleanup();
   return 0;
 
-#elif defined(KWSYS_SYS_HAS_IFADDRS_H)
+#elif defined(KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN)
   // gethostname typical returns an alias for loopback interface
   // we want the fully qualified domain name. Because there are
   // any number of interfaces on this system we look for the
