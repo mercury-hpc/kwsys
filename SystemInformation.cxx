@@ -3099,8 +3099,12 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   this->CPUSpeedInMHz = static_cast<float>(atof(CPUSpeed.c_str()));
 
   // Chip family
-  const kwsys_stl::string familyStr =
+  kwsys_stl::string familyStr =
     this->ExtractValueFromCpuInfoFile(buffer,"cpu family");
+  if(familyStr.empty())
+    {
+    familyStr = this->ExtractValueFromCpuInfoFile(buffer,"CPU architecture");
+    }
   this->ChipID.Family = atoi(familyStr.c_str());
 
   // Chip Vendor
