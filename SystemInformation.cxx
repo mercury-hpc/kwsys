@@ -3136,6 +3136,14 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
       }
     }
 
+  // Chip revision
+  kwsys_stl::string cpurev = this->ExtractValueFromCpuInfoFile(buffer,"stepping");
+  if(cpurev.empty())
+    {
+    cpurev = this->ExtractValueFromCpuInfoFile(buffer,"CPU revision");
+    }
+  this->ChipID.Revision = atoi(cpurev.c_str());
+
   // Chip Model Name
   this->ChipID.ModelName = this->ExtractValueFromCpuInfoFile(buffer,"model name").c_str();
 
