@@ -3121,7 +3121,16 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
 
   // Chip Model
   this->ChipID.Model = atoi(this->ExtractValueFromCpuInfoFile(buffer,"model").c_str());
-  this->RetrieveClassicalCPUIdentity();
+  if(!this->RetrieveClassicalCPUIdentity())
+    {
+    // Some platforms (e.g. PA-RISC) tell us their CPU name here.
+    // Note: x86 does not.
+    kwsys_stl::string cpuname = this->ExtractValueFromCpuInfoFile(buffer,"cpu");
+    if(!cpuname.empty())
+      {
+      this->ChipID.ProcessorName = cpuname;
+      }
+    }
 
   // Chip Model Name
   this->ChipID.ModelName = this->ExtractValueFromCpuInfoFile(buffer,"model name").c_str();
