@@ -86,6 +86,15 @@ typedef int siginfo_t;
 # endif
 #endif
 
+#if defined(__OpenBSD__) || defined(__NetBSD__)
+# include <sys/param.h>
+# include <sys/sysctl.h>
+#endif
+
+#if defined(__DragonFly__)
+# include <sys/sysctl.h>
+#endif
+
 #ifdef __APPLE__
 # include <sys/sysctl.h>
 # include <mach/vm_statistics.h>
@@ -447,6 +456,10 @@ protected:
   //For QNX
   bool QueryQNXMemory();
   bool QueryQNXProcessor();
+
+  //For OpenBSD, FreeBSD, NetBSD, DragonFly
+  bool QueryBSDMemory();
+  bool QueryBSDProcessor();
 
   // Evaluate the memory information.
   int QueryMemory();
@@ -1257,6 +1270,8 @@ void SystemInformationImplementation::RunCPUCheck()
   this->QueryHaikuInfo();
 #elif defined(__QNX__)
   this->QueryQNXProcessor();
+#elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  this->QueryBSDProcessor();
 #else
   this->RetreiveInformationFromCpuInfoFile();
 #endif
@@ -1277,6 +1292,8 @@ void SystemInformationImplementation::RunMemoryCheck()
   this->QueryHaikuInfo();
 #elif defined(__QNX__)
   this->QueryQNXMemory();
+#elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  this->QueryBSDMemory();
 #else
   this->QueryMemory();
 #endif
@@ -4140,6 +4157,31 @@ bool SystemInformationImplementation::QueryQNXMemory()
   return false;
 }
 
+bool SystemInformationImplementation::QueryBSDMemory()
+{
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  int ctrl[2] = { CTL_HW, HW_PHYSMEM };
+#if defined(HW_PHYSMEM64)
+  int64_t k;
+  ctrl[1] = HW_PHYSMEM64;
+#else
+  int k;
+#endif
+  size_t sz = sizeof(k);
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->TotalPhysicalMemory = k>>10>>10;
+
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool SystemInformationImplementation::QueryQNXProcessor()
 {
 #if defined(__QNX__)
@@ -4186,6 +4228,38 @@ bool SystemInformationImplementation::QueryQNXProcessor()
     ++this->NumberOfPhysicalCPU;
     } while (pos != buffer.npos);
   this->NumberOfLogicalCPU = 1;
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool SystemInformationImplementation::QueryBSDProcessor()
+{
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  int k;
+  size_t sz = sizeof(k);
+  int ctrl[2] = { CTL_HW, HW_NCPU };
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->NumberOfPhysicalCPU = k;
+  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+#if defined(HW_CPUSPEED)
+  ctrl[1] = HW_CPUSPEED;
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->CPUSpeedInMHz = (float) k;
+#endif
 
   return true;
 #else
