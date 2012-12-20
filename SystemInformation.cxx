@@ -142,6 +142,9 @@ typedef struct rlimit ResourceLimitType;
 #elif defined( __hpux )
 # include <sys/param.h>
 # include <sys/pstat.h>
+# if defined(KWSYS_SYS_HAS_MPCTL_H)
+#  include <sys/mpctl.h>
+# endif
 #endif
 
 #ifdef __HAIKU__
@@ -460,6 +463,9 @@ protected:
   //For OpenBSD, FreeBSD, NetBSD, DragonFly
   bool QueryBSDMemory();
   bool QueryBSDProcessor();
+
+  //For HP-UX
+  bool QueryHPUXProcessor();
 
   // Evaluate the memory information.
   int QueryMemory();
@@ -1272,6 +1278,8 @@ void SystemInformationImplementation::RunCPUCheck()
   this->QueryQNXProcessor();
 #elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
   this->QueryBSDProcessor();
+#elif defined(__hpux)
+  this->QueryHPUXProcessor();
 #else
   this->RetreiveInformationFromCpuInfoFile();
 #endif
@@ -4262,6 +4270,28 @@ bool SystemInformationImplementation::QueryBSDProcessor()
 #endif
 
   return true;
+#else
+  return false;
+#endif
+}
+
+bool SystemInformationImplementation::QueryHPUXProcessor()
+{
+#if defined(__hpux)
+# if defined(KWSYS_SYS_HAS_MPCTL_H)
+  int c = mpctl(MPC_GETNUMSPUS_SYS, 0, 0);
+  if (c <= 0)
+    {
+    return false;
+    }
+
+  this->NumberOfPhysicalCPU = c;
+  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+  return true;
+# else
+  return false;
+# endif
 #else
   return false;
 #endif
