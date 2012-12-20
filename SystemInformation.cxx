@@ -432,7 +432,7 @@ protected:
   LongLong GetCyclesDifference(DELAY_FUNC, unsigned int);
 
   // For Linux and Cygwin, /proc/cpuinfo formats are slightly different
-  int RetreiveInformationFromCpuInfoFile();
+  bool RetreiveInformationFromCpuInfoFile();
   kwsys_stl::string ExtractValueFromCpuInfoFile(kwsys_stl::string buffer,
                                           const char* word, size_t init=0);
 
@@ -466,6 +466,8 @@ protected:
 
   //For HP-UX
   bool QueryHPUXProcessor();
+
+  bool QueryProcessor();
 
   // Evaluate the memory information.
   int QueryMemory();
@@ -1280,8 +1282,10 @@ void SystemInformationImplementation::RunCPUCheck()
   this->QueryBSDProcessor();
 #elif defined(__hpux)
   this->QueryHPUXProcessor();
-#else
+#elif defined(__linux) || defined(__CYGWIN__)
   this->RetreiveInformationFromCpuInfoFile();
+#else
+  this->QueryProcessor();
 #endif
 }
 
@@ -2785,7 +2789,7 @@ kwsys_stl::string SystemInformationImplementation::ExtractValueFromCpuInfoFile(k
 }
 
 /** Query for the cpu status */
-int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
+bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
 {
   this->NumberOfLogicalCPU = 0;
   this->NumberOfPhysicalCPU = 0;
@@ -2795,7 +2799,7 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   if ( !fd )
     {
     kwsys_ios::cout << "Problem opening /proc/cpuinfo" << kwsys_ios::endl;
-    return 0;
+    return false;
     }
 
   size_t fileSize = 0;
@@ -2934,7 +2938,30 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
       this->Features.L1CacheSize += atoi(cacheSize.c_str());
       }
     }
-  return 1;
+  return true;
+}
+
+bool SystemInformationImplementation::QueryProcessor()
+{
+#if defined(_SC_NPROC_ONLN) && !defined(_SC_NPROCESSORS_ONLN)
+// IRIX names this slightly different
+# define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
+#endif
+
+#ifdef _SC_NPROCESSORS_ONLN
+  long c = sysconf(_SC_NPROCESSORS_ONLN);
+  if (c <= 0)
+    {
+    return false;
+    }
+
+  this->NumberOfPhysicalCPU = c;
+  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+  return true;
+#else
+  return false;
+#endif
 }
 
 /**
