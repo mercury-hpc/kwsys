@@ -1815,6 +1815,7 @@ void SystemInformationImplementation::FindManufacturer(const kwsys_stl::string& 
   else if (this->ChipID.Vendor == "Geode By NSC")  this->ChipManufacturer = NSC;          // National Semiconductor
   else if (this->ChipID.Vendor == "Sun")           this->ChipManufacturer = Sun;          // Sun Microelectronics
   else if (this->ChipID.Vendor == "IBM")           this->ChipManufacturer = IBM;          // IBM Microelectronics
+  else if (this->ChipID.Vendor == "Hewlett-Packard") this->ChipManufacturer = HP;         // Hewlett-Packard
   else if (this->ChipID.Vendor == "Motorola")      this->ChipManufacturer = Motorola;          // Motorola Microelectronics
   else if (family.substr(0, 7) == "PA-RISC")       this->ChipManufacturer = HP;           // Hewlett-Packard
   else                                             this->ChipManufacturer = UnknownManufacturer;  // Unknown manufacturer
@@ -4287,6 +4288,34 @@ bool SystemInformationImplementation::QueryHPUXProcessor()
 
   this->NumberOfPhysicalCPU = c;
   this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+  long t = sysconf(_SC_CPU_VERSION);
+
+  if (t == -1)
+    {
+    return false;
+    }
+
+  switch (t)
+    {
+    case CPU_PA_RISC1_0:
+      this->ChipID.Vendor = "Hewlett-Packard";
+      this->ChipID.Family = 0x100;
+    case CPU_PA_RISC1_1:
+      this->ChipID.Vendor = "Hewlett-Packard";
+      this->ChipID.Family = 0x110;
+    case CPU_PA_RISC2_0:
+      this->ChipID.Vendor = "Hewlett-Packard";
+      this->ChipID.Family = 0x200;
+    case CPU_IA64_ARCHREV_0:
+      this->ChipID.Vendor = "GenuineIntel";
+      this->Features.HasIA64 = true;
+      break;
+    default:
+      return false;
+    }
+
+  this->FindManufacturer();
 
   return true;
 # else
