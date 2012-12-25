@@ -173,6 +173,69 @@ typedef struct rlimit ResourceLimitType;
 # endif
 #endif
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1300) && !defined(_WIN64)
+#define USE_ASM_INSTRUCTIONS 1
+#else
+#define USE_ASM_INSTRUCTIONS 0
+#endif
+
+#if USE_ASM_INSTRUCTIONS
+
+#define CPUID_AWARE_COMPILER
+#ifdef CPUID_AWARE_COMPILER
+#define CPUID_INSTRUCTION    cpuid
+#else
+#define CPUID_INSTRUCTION    _asm _emit 0x0f _asm _emit 0xa2
+#endif
+
+/**
+ * call CPUID instruction
+ *
+ * Will return false if the instruction failed.
+ */
+static bool call_cpuid(int select, int result[4])
+{
+  int tmp[4];
+  // Use SEH to determine CPUID presence
+  __try {
+    _asm {
+#ifdef CPUID_AWARE_COMPILER
+      ; we must push/pop the registers <<CPUID>> writes to, as the
+      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
+      ; these registers to change.
+      push eax
+      push ebx
+      push ecx
+      push edx
+#endif
+      ; <<CPUID>>
+      mov eax, select
+      CPUID_INSTRUCTION
+      mov tmp[0 * TYPE int], eax
+      mov tmp[1 * TYPE int], ebx
+      mov tmp[2 * TYPE int], ecx
+      mov tmp[3 * TYPE int], edx
+
+#ifdef CPUID_AWARE_COMPILER
+      pop edx
+      pop ecx
+      pop ebx
+      pop eax
+#endif
+      }
+    }
+  __except(1)
+    {
+    return false;
+    }
+
+  memcpy(result, tmp, sizeof(tmp));
+  // The cpuid instruction succeeded.
+  return true;
+}
+#endif
+
+
 namespace KWSYS_NAMESPACE
 {
 template<typename T>
@@ -695,23 +758,10 @@ void SystemInformation::RunMemoryCheck()
 // --------------------------------------------------------------
 // SystemInformationImplementation starts here
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1300) && !defined(_WIN64)
-#define USE_ASM_INSTRUCTIONS 1
-#else
-#define USE_ASM_INSTRUCTIONS 0
-#endif
-
 #define STORE_TLBCACHE_INFO(x,y)  x = (x < y) ? y : x
 #define TLBCACHE_INFO_UNITS      (15)
 #define CLASSICAL_CPU_FREQ_LOOP    10000000
 #define RDTSC_INSTRUCTION      _asm _emit 0x0f _asm _emit 0x31
-
-#define CPUID_AWARE_COMPILER
-#ifdef CPUID_AWARE_COMPILER
-  #define CPUID_INSTRUCTION    cpuid
-#else
-  #define CPUID_INSTRUCTION    _asm _emit 0x0f _asm _emit 0xa2
-#endif
 
 #define MMX_FEATURE            0x00000001
 #define MMX_PLUS_FEATURE       0x00000002
@@ -1613,39 +1663,8 @@ void SystemInformationImplementation::Delay(unsigned int uiMS)
 bool SystemInformationImplementation::DoesCPUSupportCPUID()
 {
 #if USE_ASM_INSTRUCTIONS
-  // Use SEH to determine CPUID presence
-    __try {
-        _asm {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-            mov eax, 0
-      CPUID_INSTRUCTION
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
-        }
-    }
-  __except(1)
-    {
-    // Stop the class from trying to use CPUID again!
-    return false;
-    }
-
-  // The cpuid instruction succeeded.
-  return true;
-
+  int dummy[4];
+  return call_cpuid(0, dummy);
 #else
   // Assume no cpuid instruction.
   return false;
@@ -1656,56 +1675,26 @@ bool SystemInformationImplementation::DoesCPUSupportCPUID()
 bool SystemInformationImplementation::RetrieveCPUFeatures()
 {
 #if USE_ASM_INSTRUCTIONS
-  int localCPUFeatures = 0;
-  int localCPUAdvanced = 0;
+  int cpuinfo[4] = { 0, 0, 0, 0 };
 
-  // Use assembly to detect CPUID information...
-  __try {
-    _asm {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 1 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
-      ;        ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
-      ;        edx: CPU feature flags
-      mov eax,1
-      CPUID_INSTRUCTION
-      mov localCPUFeatures, edx
-      mov localCPUAdvanced, ebx
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
-    }
-  }
-  __except(1)
+  if (!call_cpuid(1, cpuinfo))
     {
     return false;
     }
 
   // Retrieve the features of CPU present.
-  this->Features.HasFPU =     ((localCPUFeatures & 0x00000001) != 0);    // FPU Present --> Bit 0
-  this->Features.HasTSC =     ((localCPUFeatures & 0x00000010) != 0);    // TSC Present --> Bit 4
-  this->Features.HasAPIC =    ((localCPUFeatures & 0x00000200) != 0);    // APIC Present --> Bit 9
-  this->Features.HasMTRR =    ((localCPUFeatures & 0x00001000) != 0);    // MTRR Present --> Bit 12
-  this->Features.HasCMOV =    ((localCPUFeatures & 0x00008000) != 0);    // CMOV Present --> Bit 15
-  this->Features.HasSerial =  ((localCPUFeatures & 0x00040000) != 0);    // Serial Present --> Bit 18
-  this->Features.HasACPI =    ((localCPUFeatures & 0x00400000) != 0);    // ACPI Capable --> Bit 22
-  this->Features.HasMMX =     ((localCPUFeatures & 0x00800000) != 0);    // MMX Present --> Bit 23
-  this->Features.HasSSE =     ((localCPUFeatures & 0x02000000) != 0);    // SSE Present --> Bit 25
-  this->Features.HasSSE2 =    ((localCPUFeatures & 0x04000000) != 0);    // SSE2 Present --> Bit 26
-  this->Features.HasThermal = ((localCPUFeatures & 0x20000000) != 0);    // Thermal Monitor Present --> Bit 29
-  this->Features.HasIA64 =    ((localCPUFeatures & 0x40000000) != 0);    // IA64 Present --> Bit 30
+  this->Features.HasFPU =     ((cpuinfo[3] & 0x00000001) != 0);    // FPU Present --> Bit 0
+  this->Features.HasTSC =     ((cpuinfo[3] & 0x00000010) != 0);    // TSC Present --> Bit 4
+  this->Features.HasAPIC =    ((cpuinfo[3] & 0x00000200) != 0);    // APIC Present --> Bit 9
+  this->Features.HasMTRR =    ((cpuinfo[3] & 0x00001000) != 0);    // MTRR Present --> Bit 12
+  this->Features.HasCMOV =    ((cpuinfo[3] & 0x00008000) != 0);    // CMOV Present --> Bit 15
+  this->Features.HasSerial =  ((cpuinfo[3] & 0x00040000) != 0);    // Serial Present --> Bit 18
+  this->Features.HasACPI =    ((cpuinfo[3] & 0x00400000) != 0);    // ACPI Capable --> Bit 22
+  this->Features.HasMMX =     ((cpuinfo[3] & 0x00800000) != 0);    // MMX Present --> Bit 23
+  this->Features.HasSSE =     ((cpuinfo[3] & 0x02000000) != 0);    // SSE Present --> Bit 25
+  this->Features.HasSSE2 =    ((cpuinfo[3] & 0x04000000) != 0);    // SSE2 Present --> Bit 26
+  this->Features.HasThermal = ((cpuinfo[3] & 0x20000000) != 0);    // Thermal Monitor Present --> Bit 29
+  this->Features.HasIA64 =    ((cpuinfo[3] & 0x40000000) != 0);    // IA64 Present --> Bit 30
 
   // Retrieve extended SSE capabilities if SSE is available.
   if (this->Features.HasSSE) {
@@ -1739,13 +1728,13 @@ bool SystemInformationImplementation::RetrieveCPUFeatures()
   // Retrieve Intel specific extended features.
   if (this->ChipManufacturer == Intel)
     {
-    this->Features.ExtendedFeatures.SupportsHyperthreading =  ((localCPUFeatures &  0x10000000) != 0);  // Intel specific: Hyperthreading --> Bit 28
-    this->Features.ExtendedFeatures.LogicalProcessorsPerPhysical = (this->Features.ExtendedFeatures.SupportsHyperthreading) ? ((localCPUAdvanced & 0x00FF0000) >> 16) : 1;
+    this->Features.ExtendedFeatures.SupportsHyperthreading =  ((cpuinfo[3] &  0x10000000) != 0);  // Intel specific: Hyperthreading --> Bit 28
+    this->Features.ExtendedFeatures.LogicalProcessorsPerPhysical = (this->Features.ExtendedFeatures.SupportsHyperthreading) ? ((cpuinfo[1] & 0x00FF0000) >> 16) : 1;
 
     if ((this->Features.ExtendedFeatures.SupportsHyperthreading) && (this->Features.HasAPIC))
       {
       // Retrieve APIC information if there is one present.
-      this->Features.ExtendedFeatures.APIC_ID = ((localCPUAdvanced & 0xFF000000) >> 24);
+      this->Features.ExtendedFeatures.APIC_ID = ((cpuinfo[1] & 0xFF000000) >> 24);
       }
     }
 
@@ -1783,70 +1772,40 @@ void SystemInformationImplementation::FindManufacturer(const kwsys_stl::string& 
 bool SystemInformationImplementation::RetrieveCPUIdentity()
 {
 #if USE_ASM_INSTRUCTIONS
-  int localCPUVendor[3];
-  int localCPUSignature;
+  int localCPUVendor[4];
+  int localCPUSignature[4];
 
-  // Use assembly to detect CPUID information...
-  __try
+  if (!call_cpuid(0, localCPUVendor))
     {
-    _asm
-      {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 0 --> eax: maximum value of CPUID instruction.
-      ;        ebx: part 1 of 3; CPU signature.
-      ;        edx: part 2 of 3; CPU signature.
-      ;        ecx: part 3 of 3; CPU signature.
-      mov eax, 0
-      CPUID_INSTRUCTION
-      mov localCPUVendor[0 * TYPE int], ebx
-      mov localCPUVendor[1 * TYPE int], edx
-      mov localCPUVendor[2 * TYPE int], ecx
-
-      ; <<CPUID>>
-      ; eax = 1 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
-      ;        ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
-      ;        edx: CPU feature flags
-      mov eax,1
-      CPUID_INSTRUCTION
-      mov localCPUSignature, eax
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
+    return false;
     }
-  }
-  __except(1)
+  if (!call_cpuid(1, localCPUSignature))
     {
     return false;
     }
 
   // Process the returned information.
+  //    ; eax = 0 --> eax: maximum value of CPUID instruction.
+  //    ;        ebx: part 1 of 3; CPU signature.
+  //    ;        edx: part 2 of 3; CPU signature.
+  //    ;        ecx: part 3 of 3; CPU signature.
   char vbuf[13];
-  memcpy (&(vbuf[0]), &(localCPUVendor[0]), sizeof (int));
-  memcpy (&(vbuf[4]), &(localCPUVendor[1]), sizeof (int));
+  memcpy (&(vbuf[0]), &(localCPUVendor[1]), sizeof (int));
+  memcpy (&(vbuf[4]), &(localCPUVendor[3]), sizeof (int));
   memcpy (&(vbuf[8]), &(localCPUVendor[2]), sizeof (int));
   vbuf[12] = '\0';
   this->ChipID.Vendor = vbuf;
 
   // Retrieve the family of CPU present.
-  this->ChipID.ExtendedFamily =    ((localCPUSignature & 0x0FF00000) >> 20);  // Bits 27..20 Used
-  this->ChipID.ExtendedModel =    ((localCPUSignature & 0x000F0000) >> 16);  // Bits 19..16 Used
-  this->ChipID.Type =        ((localCPUSignature & 0x0000F000) >> 12);  // Bits 15..12 Used
-  this->ChipID.Family =        ((localCPUSignature & 0x00000F00) >> 8);    // Bits 11..8 Used
-  this->ChipID.Model =        ((localCPUSignature & 0x000000F0) >> 4);    // Bits 7..4 Used
-  this->ChipID.Revision =      ((localCPUSignature & 0x0000000F) >> 0);    // Bits 3..0 Used
+  //    ; eax = 1 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
+  //    ;        ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
+  //    ;        edx: CPU feature flags
+  this->ChipID.ExtendedFamily = ((localCPUSignature[0] & 0x0FF00000) >> 20);  // Bits 27..20 Used
+  this->ChipID.ExtendedModel =  ((localCPUSignature[0] & 0x000F0000) >> 16);  // Bits 19..16 Used
+  this->ChipID.Type =           ((localCPUSignature[0] & 0x0000F000) >> 12);  // Bits 15..12 Used
+  this->ChipID.Family =         ((localCPUSignature[0] & 0x00000F00) >> 8);    // Bits 11..8 Used
+  this->ChipID.Model =          ((localCPUSignature[0] & 0x000000F0) >> 4);    // Bits 7..4 Used
+  this->ChipID.Revision =       ((localCPUSignature[0] & 0x0000000F) >> 0);    // Bits 3..0 Used
 
   return true;
 
@@ -1866,41 +1825,7 @@ bool SystemInformationImplementation::RetrieveCPUCacheDetails()
   // Check to see if what we are about to do is supported...
   if (RetrieveCPUExtendedLevelSupport (0x80000005))
     {
-    // Use assembly to retrieve the L1 cache information ...
-    __try
-      {
-      _asm
-        {
-#ifdef CPUID_AWARE_COMPILER
-         ; we must push/pop the registers <<CPUID>> writes to, as the
-        ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-        ; these registers to change.
-        push eax
-        push ebx
-        push ecx
-        push edx
-#endif
-        ; <<CPUID>>
-        ; eax = 0x80000005 --> eax: L1 cache information - Part 1 of 4.
-        ;             ebx: L1 cache information - Part 2 of 4.
-        ;             edx: L1 cache information - Part 3 of 4.
-        ;              ecx: L1 cache information - Part 4 of 4.
-        mov eax, 0x80000005
-        CPUID_INSTRUCTION
-        mov L1Cache[0 * TYPE int], eax
-        mov L1Cache[1 * TYPE int], ebx
-        mov L1Cache[2 * TYPE int], ecx
-        mov L1Cache[3 * TYPE int], edx
-
-#ifdef CPUID_AWARE_COMPILER
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
-#endif
-        }
-      }
-    __except(1)
+    if (!call_cpuid(0x80000005, L1Cache))
       {
       return false;
       }
@@ -1917,41 +1842,7 @@ bool SystemInformationImplementation::RetrieveCPUCacheDetails()
   // Check to see if what we are about to do is supported...
   if (RetrieveCPUExtendedLevelSupport (0x80000006))
     {
-    // Use assembly to retrieve the L2 cache information ...
-    __try
-      {
-      _asm
-        {
-#ifdef CPUID_AWARE_COMPILER
-         ; we must push/pop the registers <<CPUID>> writes to, as the
-        ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-        ; these registers to change.
-        push eax
-        push ebx
-        push ecx
-        push edx
-#endif
-        ; <<CPUID>>
-        ; eax = 0x80000006 --> eax: L2 cache information - Part 1 of 4.
-        ;             ebx: L2 cache information - Part 2 of 4.
-        ;             edx: L2 cache information - Part 3 of 4.
-        ;              ecx: L2 cache information - Part 4 of 4.
-        mov eax, 0x80000006
-        CPUID_INSTRUCTION
-        mov L2Cache[0 * TYPE int], eax
-        mov L2Cache[1 * TYPE int], ebx
-        mov L2Cache[2 * TYPE int], ecx
-        mov L2Cache[3 * TYPE int], edx
-
-#ifdef CPUID_AWARE_COMPILER
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
-#endif
-        }
-      }
-    __except(1)
+    if (!call_cpuid(0x80000006, L2Cache))
       {
       return false;
       }
@@ -1985,39 +1876,7 @@ bool SystemInformationImplementation::RetrieveClassicalCPUCacheDetails()
 
 
   do {
-    // Use assembly to retrieve the L2 cache information ...
-    __try {
-      _asm {
-#ifdef CPUID_AWARE_COMPILER
-         ; we must push/pop the registers <<CPUID>> writes to, as the
-        ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-        ; these registers to change.
-        push eax
-        push ebx
-        push ecx
-        push edx
-#endif
-        ; <<CPUID>>
-        ; eax = 2 --> eax: TLB and cache information - Part 1 of 4.
-        ;        ebx: TLB and cache information - Part 2 of 4.
-        ;        ecx: TLB and cache information - Part 3 of 4.
-        ;        edx: TLB and cache information - Part 4 of 4.
-        mov eax, 2
-        CPUID_INSTRUCTION
-        mov TLBCacheData[0 * TYPE int], eax
-        mov TLBCacheData[1 * TYPE int], ebx
-        mov TLBCacheData[2 * TYPE int], ecx
-        mov TLBCacheData[3 * TYPE int], edx
-
-#ifdef CPUID_AWARE_COMPILER
-        pop edx
-        pop ecx
-        pop ebx
-        pop eax
-#endif
-        }
-      }
-    __except(1)
+    if (!call_cpuid(2, TLBCacheData))
       {
       return false;
       }
@@ -2312,7 +2171,7 @@ bool SystemInformationImplementation::RetrieveClassicalCPUClockSpeed()
 /** */
 bool SystemInformationImplementation::RetrieveCPUExtendedLevelSupport(int CPULevelToCheck)
 {
-  int MaxCPUExtendedLevel = 0;
+  int cpuinfo[4] = { 0, 0, 0, 0 };
 
   // The extended CPUID is supported by various vendors starting with the following CPU models:
   //
@@ -2356,34 +2215,7 @@ bool SystemInformationImplementation::RetrieveCPUExtendedLevelSupport(int CPULev
     }
 
 #if USE_ASM_INSTRUCTIONS
-
-  // Use assembly to detect CPUID information...
-  __try {
-    _asm {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 0x80000000 --> eax: maximum supported extended level
-      mov eax,0x80000000
-      CPUID_INSTRUCTION
-      mov MaxCPUExtendedLevel, eax
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
-    }
-  }
-  __except(1)
+  if (!call_cpuid(0x80000000, cpuinfo))
     {
     return false;
     }
@@ -2391,7 +2223,7 @@ bool SystemInformationImplementation::RetrieveCPUExtendedLevelSupport(int CPULev
 
   // Now we have to check the level wanted vs level returned...
   int nLevelWanted = (CPULevelToCheck & 0x7FFFFFFF);
-  int nLevelReturn = (MaxCPUExtendedLevel & 0x7FFFFFFF);
+  int nLevelReturn = (cpuinfo[0] & 0x7FFFFFFF);
 
   // Check to see if the level provided is supported...
   if (nLevelWanted > nLevelReturn)
@@ -2420,59 +2252,29 @@ bool SystemInformationImplementation::RetrieveExtendedCPUFeatures()
     }
 
 #if USE_ASM_INSTRUCTIONS
-  int localCPUExtendedFeatures = 0;
+  int localCPUExtendedFeatures[4] = { 0, 0, 0, 0 };
 
-  // Use assembly to detect CPUID information...
-  __try
-    {
-    _asm
-      {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 0x80000001 --> eax: CPU ID - bits 31..16 - unused, bits 15..12 - type, bits 11..8 - family, bits 7..4 - model, bits 3..0 - mask revision
-      ;             ebx: 31..24 - default APIC ID, 23..16 - logical processor ID, 15..8 - CFLUSH chunk size , 7..0 - brand ID
-      ;             edx: CPU feature flags
-      mov eax,0x80000001
-      CPUID_INSTRUCTION
-      mov localCPUExtendedFeatures, edx
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
-      }
-    }
-  __except(1)
+  if (!call_cpuid(0x80000001, localCPUExtendedFeatures))
     {
     return false;
     }
 
   // Retrieve the extended features of CPU present.
-  this->Features.ExtendedFeatures.Has3DNow = ((localCPUExtendedFeatures & 0x80000000) != 0);  // 3DNow Present --> Bit 31.
-  this->Features.ExtendedFeatures.Has3DNowPlus = ((localCPUExtendedFeatures & 0x40000000) != 0);  // 3DNow+ Present -- > Bit 30.
-  this->Features.ExtendedFeatures.HasSSEMMX = ((localCPUExtendedFeatures & 0x00400000) != 0);  // SSE MMX Present --> Bit 22.
-  this->Features.ExtendedFeatures.SupportsMP = ((localCPUExtendedFeatures & 0x00080000) != 0);  // MP Capable -- > Bit 19.
+  this->Features.ExtendedFeatures.Has3DNow =     ((localCPUExtendedFeatures[3] & 0x80000000) != 0);  // 3DNow Present --> Bit 31.
+  this->Features.ExtendedFeatures.Has3DNowPlus = ((localCPUExtendedFeatures[3] & 0x40000000) != 0);  // 3DNow+ Present -- > Bit 30.
+  this->Features.ExtendedFeatures.HasSSEMMX =    ((localCPUExtendedFeatures[3] & 0x00400000) != 0);  // SSE MMX Present --> Bit 22.
+  this->Features.ExtendedFeatures.SupportsMP =   ((localCPUExtendedFeatures[3] & 0x00080000) != 0);  // MP Capable -- > Bit 19.
 
   // Retrieve AMD specific extended features.
   if (this->ChipManufacturer == AMD)
     {
-    this->Features.ExtendedFeatures.HasMMXPlus = ((localCPUExtendedFeatures &  0x00400000) != 0);  // AMD specific: MMX-SSE --> Bit 22
+    this->Features.ExtendedFeatures.HasMMXPlus = ((localCPUExtendedFeatures[3] & 0x00400000) != 0);  // AMD specific: MMX-SSE --> Bit 22
     }
 
   // Retrieve Cyrix specific extended features.
   if (this->ChipManufacturer == Cyrix)
     {
-    this->Features.ExtendedFeatures.HasMMXPlus = ((localCPUExtendedFeatures &  0x01000000) != 0);  // Cyrix specific: Extended MMX --> Bit 24
+    this->Features.ExtendedFeatures.HasMMXPlus = ((localCPUExtendedFeatures[3] & 0x01000000) != 0);  // Cyrix specific: Extended MMX --> Bit 24
     }
 
   return true;
@@ -2493,50 +2295,19 @@ bool SystemInformationImplementation::RetrieveProcessorSerialNumber()
     }
 
 #if USE_ASM_INSTRUCTIONS
-  int SerialNumber[3];
+  int SerialNumber[4];
 
-    // Use assembly to detect CPUID information...
-  __try {
-    _asm {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 3 --> ebx: top 32 bits are the processor signature bits --> NB: Transmeta only ?!?
-      ;        ecx: middle 32 bits are the processor signature bits
-      ;        edx: bottom 32 bits are the processor signature bits
-      mov eax, 3
-      CPUID_INSTRUCTION
-      mov SerialNumber[0 * TYPE int], ebx
-      mov SerialNumber[1 * TYPE int], ecx
-      mov SerialNumber[2 * TYPE int], edx
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
-    }
-  }
-  __except(1)
+  if (!call_cpuid(3, SerialNumber))
     {
     return false;
     }
 
   // Process the returned information.
+  //    ; eax = 3 --> ebx: top 32 bits are the processor signature bits --> NB: Transmeta only ?!?
+  //    ;        ecx: middle 32 bits are the processor signature bits
+  //    ;        edx: bottom 32 bits are the processor signature bits
   char sn[128];
   sprintf (sn, "%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x",
-       ((SerialNumber[0] & 0xff000000) >> 24),
-       ((SerialNumber[0] & 0x00ff0000) >> 16),
-       ((SerialNumber[0] & 0x0000ff00) >> 8),
-       ((SerialNumber[0] & 0x000000ff) >> 0),
        ((SerialNumber[1] & 0xff000000) >> 24),
        ((SerialNumber[1] & 0x00ff0000) >> 16),
        ((SerialNumber[1] & 0x0000ff00) >> 8),
@@ -2544,7 +2315,11 @@ bool SystemInformationImplementation::RetrieveProcessorSerialNumber()
        ((SerialNumber[2] & 0xff000000) >> 24),
        ((SerialNumber[2] & 0x00ff0000) >> 16),
        ((SerialNumber[2] & 0x0000ff00) >> 8),
-       ((SerialNumber[2] & 0x000000ff) >> 0));
+       ((SerialNumber[2] & 0x000000ff) >> 0),
+       ((SerialNumber[3] & 0xff000000) >> 24),
+       ((SerialNumber[3] & 0x00ff0000) >> 16),
+       ((SerialNumber[3] & 0x0000ff00) >> 8),
+       ((SerialNumber[3] & 0x000000ff) >> 0));
   this->ChipID.SerialNumber = sn;
   return true;
 
@@ -2567,44 +2342,17 @@ bool SystemInformationImplementation::RetrieveCPUPowerManagement()
     }
 
 #if USE_ASM_INSTRUCTIONS
-  int localCPUPowerManagement = 0;
+  int localCPUPowerManagement[4] = { 0, 0, 0, 0 };
 
-
-  // Use assembly to detect CPUID information...
-  __try {
-    _asm {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 0x80000007 --> edx: get processor power management
-      mov eax,0x80000007
-      CPUID_INSTRUCTION
-      mov localCPUPowerManagement, edx
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
-    }
-  }
-  __except(1)
+  if (!call_cpuid(0x80000007, localCPUPowerManagement))
     {
     return false;
     }
 
   // Check for the power management capabilities of the CPU.
-  this->Features.ExtendedFeatures.PowerManagement.HasTempSenseDiode =  ((localCPUPowerManagement & 0x00000001) != 0);
-  this->Features.ExtendedFeatures.PowerManagement.HasFrequencyID =    ((localCPUPowerManagement & 0x00000002) != 0);
-  this->Features.ExtendedFeatures.PowerManagement.HasVoltageID =    ((localCPUPowerManagement & 0x00000004) != 0);
+  this->Features.ExtendedFeatures.PowerManagement.HasTempSenseDiode =  ((localCPUPowerManagement[3] & 0x00000001) != 0);
+  this->Features.ExtendedFeatures.PowerManagement.HasFrequencyID =     ((localCPUPowerManagement[3] & 0x00000002) != 0);
+  this->Features.ExtendedFeatures.PowerManagement.HasVoltageID =       ((localCPUPowerManagement[3] & 0x00000004) != 0);
 
   return true;
 
@@ -2637,54 +2385,15 @@ bool SystemInformationImplementation::RetrieveExtendedCPUIdentity()
 #if USE_ASM_INSTRUCTIONS
   int CPUExtendedIdentity[12];
 
-  // Use assembly to detect CPUID information...
-  __try {
-    _asm {
-#ifdef CPUID_AWARE_COMPILER
-       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
-      ; these registers to change.
-      push eax
-      push ebx
-      push ecx
-      push edx
-#endif
-      ; <<CPUID>>
-      ; eax = 0x80000002 --> eax, ebx, ecx, edx: get processor name string (part 1)
-      mov eax,0x80000002
-      CPUID_INSTRUCTION
-      mov CPUExtendedIdentity[0 * TYPE int], eax
-      mov CPUExtendedIdentity[1 * TYPE int], ebx
-      mov CPUExtendedIdentity[2 * TYPE int], ecx
-      mov CPUExtendedIdentity[3 * TYPE int], edx
-
-      ; <<CPUID>>
-      ; eax = 0x80000003 --> eax, ebx, ecx, edx: get processor name string (part 2)
-      mov eax,0x80000003
-      CPUID_INSTRUCTION
-      mov CPUExtendedIdentity[4 * TYPE int], eax
-      mov CPUExtendedIdentity[5 * TYPE int], ebx
-      mov CPUExtendedIdentity[6 * TYPE int], ecx
-      mov CPUExtendedIdentity[7 * TYPE int], edx
-
-      ; <<CPUID>>
-      ; eax = 0x80000004 --> eax, ebx, ecx, edx: get processor name string (part 3)
-      mov eax,0x80000004
-      CPUID_INSTRUCTION
-      mov CPUExtendedIdentity[8 * TYPE int], eax
-      mov CPUExtendedIdentity[9 * TYPE int], ebx
-      mov CPUExtendedIdentity[10 * TYPE int], ecx
-      mov CPUExtendedIdentity[11 * TYPE int], edx
-
-#ifdef CPUID_AWARE_COMPILER
-      pop edx
-      pop ecx
-      pop ebx
-      pop eax
-#endif
+  if (!call_cpuid(0x80000002, CPUExtendedIdentity))
+    {
+    return false;
     }
-  }
-  __except(1)
+  if (!call_cpuid(0x80000003, CPUExtendedIdentity + 4))
+    {
+    return false;
+    }
+  if (!call_cpuid(0x80000004, CPUExtendedIdentity + 8))
     {
     return false;
     }
@@ -3794,20 +3503,15 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
     }
   return static_cast<unsigned char>(cores_per_package);
 #else
-  unsigned int Regebx = 0;
+  int Regs[4] = { 0, 0, 0, 0 };
 #if USE_ASM_INSTRUCTIONS
   if (!this->IsHyperThreadingSupported())
     {
     return static_cast<unsigned char>(1);  // HT not supported
     }
-  __asm
-    {
-    mov eax, 1
-    cpuid
-    mov Regebx, ebx
-    }
+  call_cpuid(1, Regs);
 #endif
-  return static_cast<unsigned char> ((Regebx & NUM_LOGICAL_BITS) >> 16);
+  return static_cast<unsigned char> ((Regs[1] & NUM_LOGICAL_BITS) >> 16);
 #endif
 }
 
@@ -3816,39 +3520,29 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
 unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
 {
 #if USE_ASM_INSTRUCTIONS
-  unsigned int Regedx    = 0,
-             Regeax      = 0,
-             VendorId[3] = {0, 0, 0};
-  __try    // Verify cpuid instruction is supported
+  int Regs[4] = { 0, 0, 0, 0 },
+             VendorId[4] = { 0, 0, 0, 0 };
+  // Get vendor id string
+  if (!call_cpuid(0, VendorId))
     {
-      __asm
-      {
-        xor eax, eax          // call cpuid with eax = 0
-            cpuid                 // Get vendor id string
-        mov VendorId, ebx
-        mov VendorId + 4, edx
-        mov VendorId + 8, ecx
-
-        mov eax, 1            // call cpuid with eax = 1
-        cpuid
-        mov Regeax, eax      // eax contains family processor type
-        mov Regedx, edx      // edx has info about the availability of hyper-Threading
-      }
+    return false;
     }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  // eax contains family processor type
+  // edx has info about the availability of hyper-Threading
+  if (!call_cpuid(1, Regs))
     {
-    return(0);                   // cpuid is unavailable
+    return false;
     }
 
-  if (((Regeax & FAMILY_ID) == PENTIUM4_ID) || (Regeax & EXT_FAMILY_ID))
+  if (((Regs[0] & FAMILY_ID) == PENTIUM4_ID) || (Regs[0] & EXT_FAMILY_ID))
     {
-    if (VendorId[0] == 'uneG')
+    if (VendorId[1] == 'uneG')
       {
-      if (VendorId[1] == 'Ieni')
+      if (VendorId[3] == 'Ieni')
         {
         if (VendorId[2] == 'letn')
           {
-          return(Regedx & HT_BIT);    // Genuine Intel with hyper-Threading technology
+          return(Regs[3] & HT_BIT);    // Genuine Intel with hyper-Threading technology
           }
         }
       }
@@ -3862,22 +3556,17 @@ unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
 /** Return the APIC Id. Works only for windows. */
 unsigned char SystemInformationImplementation::GetAPICId()
 {
-  unsigned int Regebx = 0;
+  int Regs[4] = { 0, 0, 0, 0 };
 
 #if USE_ASM_INSTRUCTIONS
   if (!this->IsHyperThreadingSupported())
     {
     return static_cast<unsigned char>(-1);  // HT not supported
     } // Logical processor = 1
-  __asm
-    {
-    mov eax, 1
-    cpuid
-    mov Regebx, ebx
-    }
+  call_cpuid(1, Regs);
 #endif
 
-  return static_cast<unsigned char>((Regebx & INITIAL_APIC_ID_BITS) >> 24);
+  return static_cast<unsigned char>((Regs[1] & INITIAL_APIC_ID_BITS) >> 24);
 }
 
 
