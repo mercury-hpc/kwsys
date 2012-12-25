@@ -179,7 +179,20 @@ typedef struct rlimit ResourceLimitType;
 #define USE_ASM_INSTRUCTIONS 0
 #endif
 
-#if USE_ASM_INSTRUCTIONS
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#include <intrin.h>
+#define USE_CPUID_INTRINSICS 1
+#else
+#define USE_CPUID_INTRINSICS 0
+#endif
+
+#if USE_ASM_INSTRUCTIONS || USE_CPUID_INTRINSICS
+# define USE_CPUID 1
+#else
+# define USE_CPUID 0
+#endif
+
+#if USE_CPUID
 
 #define CPUID_AWARE_COMPILER
 #ifdef CPUID_AWARE_COMPILER
@@ -195,6 +208,10 @@ typedef struct rlimit ResourceLimitType;
  */
 static bool call_cpuid(int select, int result[4])
 {
+#if USE_CPUID_INTRINSICS
+  __cpuid(result, select);
+  return true;
+#else
   int tmp[4];
   // Use SEH to determine CPUID presence
   __try {
@@ -232,6 +249,7 @@ static bool call_cpuid(int select, int result[4])
   memcpy(result, tmp, sizeof(tmp));
   // The cpuid instruction succeeded.
   return true;
+#endif
 }
 #endif
 
@@ -1662,9 +1680,15 @@ void SystemInformationImplementation::Delay(unsigned int uiMS)
 
 bool SystemInformationImplementation::DoesCPUSupportCPUID()
 {
+#if USE_CPUID
+  int dummy[4] = { 0, 0, 0, 0 };
+
 #if USE_ASM_INSTRUCTIONS
-  int dummy[4];
   return call_cpuid(0, dummy);
+#else
+  call_cpuid(0, dummy);
+  return dummy[0] || dummy[1] || dummy[2] || dummy[3];
+#endif
 #else
   // Assume no cpuid instruction.
   return false;
@@ -1674,7 +1698,7 @@ bool SystemInformationImplementation::DoesCPUSupportCPUID()
 
 bool SystemInformationImplementation::RetrieveCPUFeatures()
 {
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int cpuinfo[4] = { 0, 0, 0, 0 };
 
   if (!call_cpuid(1, cpuinfo))
@@ -1696,6 +1720,7 @@ bool SystemInformationImplementation::RetrieveCPUFeatures()
   this->Features.HasThermal = ((cpuinfo[3] & 0x20000000) != 0);    // Thermal Monitor Present --> Bit 29
   this->Features.HasIA64 =    ((cpuinfo[3] & 0x40000000) != 0);    // IA64 Present --> Bit 30
 
+#if USE_ASM_INSTRUCTIONS
   // Retrieve extended SSE capabilities if SSE is available.
   if (this->Features.HasSSE) {
 
@@ -1724,6 +1749,9 @@ bool SystemInformationImplementation::RetrieveCPUFeatures()
     // Set the advanced SSE capabilities to not available.
     this->Features.HasSSEFP = false;
     }
+#else
+  this->Features.HasSSEFP = false;
+#endif
 
   // Retrieve Intel specific extended features.
   if (this->ChipManufacturer == Intel)
@@ -1771,7 +1799,7 @@ void SystemInformationImplementation::FindManufacturer(const kwsys_stl::string& 
 /** */
 bool SystemInformationImplementation::RetrieveCPUIdentity()
 {
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int localCPUVendor[4];
   int localCPUSignature[4];
 
@@ -1818,7 +1846,7 @@ bool SystemInformationImplementation::RetrieveCPUIdentity()
 /** */
 bool SystemInformationImplementation::RetrieveCPUCacheDetails()
 {
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int L1Cache[4] = { 0, 0, 0, 0 };
   int L2Cache[4] = { 0, 0, 0, 0 };
 
@@ -1868,7 +1896,7 @@ bool SystemInformationImplementation::RetrieveCPUCacheDetails()
 /** */
 bool SystemInformationImplementation::RetrieveClassicalCPUCacheDetails()
 {
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int TLBCode = -1, TLBData = -1, L1Code = -1, L1Data = -1, L1Trace = -1, L2Unified = -1, L3Unified = -1;
   int TLBCacheData[4] = { 0, 0, 0, 0 };
   int TLBPassCounter = 0;
@@ -2214,7 +2242,7 @@ bool SystemInformationImplementation::RetrieveCPUExtendedLevelSupport(int CPULev
       }
     }
 
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   if (!call_cpuid(0x80000000, cpuinfo))
     {
     return false;
@@ -2251,7 +2279,7 @@ bool SystemInformationImplementation::RetrieveExtendedCPUFeatures()
     return false;
     }
 
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int localCPUExtendedFeatures[4] = { 0, 0, 0, 0 };
 
   if (!call_cpuid(0x80000001, localCPUExtendedFeatures))
@@ -2294,7 +2322,7 @@ bool SystemInformationImplementation::RetrieveProcessorSerialNumber()
     return false;
     }
 
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int SerialNumber[4];
 
   if (!call_cpuid(3, SerialNumber))
@@ -2341,7 +2369,7 @@ bool SystemInformationImplementation::RetrieveCPUPowerManagement()
     return false;
     }
 
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int localCPUPowerManagement[4] = { 0, 0, 0, 0 };
 
   if (!call_cpuid(0x80000007, localCPUPowerManagement))
@@ -2382,7 +2410,7 @@ bool SystemInformationImplementation::RetrieveExtendedCPUIdentity()
   if (!RetrieveCPUExtendedLevelSupport(static_cast<int>(0x80000004)))
     return false;
 
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int CPUExtendedIdentity[12];
 
   if (!call_cpuid(0x80000002, CPUExtendedIdentity))
@@ -3504,7 +3532,7 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
   return static_cast<unsigned char>(cores_per_package);
 #else
   int Regs[4] = { 0, 0, 0, 0 };
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   if (!this->IsHyperThreadingSupported())
     {
     return static_cast<unsigned char>(1);  // HT not supported
@@ -3519,7 +3547,7 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
 /** Works only for windows */
 unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
 {
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   int Regs[4] = { 0, 0, 0, 0 },
              VendorId[4] = { 0, 0, 0, 0 };
   // Get vendor id string
@@ -3558,7 +3586,7 @@ unsigned char SystemInformationImplementation::GetAPICId()
 {
   int Regs[4] = { 0, 0, 0, 0 };
 
-#if USE_ASM_INSTRUCTIONS
+#if USE_CPUID
   if (!this->IsHyperThreadingSupported())
     {
     return static_cast<unsigned char>(-1);  // HT not supported
