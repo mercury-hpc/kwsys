@@ -4284,11 +4284,7 @@ bool SystemInformationImplementation::QuerySolarisInfo()
   this->NumberOfPhysicalCPU = static_cast<unsigned int>(
     atoi(this->ParseValueFromKStat("-n syste_misc -s ncpus").c_str()));
   this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
-
-  if(this->NumberOfPhysicalCPU!=0)
-    {
-    this->NumberOfLogicalCPU /= this->NumberOfPhysicalCPU;
-    }
+  this->Features.ExtendedFeatures.LogicalProcessorsPerPhysical = 1;
 
   this->CPUSpeedInMHz = static_cast<float>(atoi(this->ParseValueFromKStat("-s clock_MHz").c_str()));
 
@@ -4310,9 +4306,7 @@ bool SystemInformationImplementation::QuerySolarisInfo()
   char* tail;
   unsigned long totalMemory =
        strtoul(this->ParseValueFromKStat("-s physmem").c_str(),&tail,0);
-  this->TotalPhysicalMemory = totalMemory/1024;
-  this->TotalPhysicalMemory *= 8192;
-  this->TotalPhysicalMemory /= 1024;
+  this->TotalPhysicalMemory = totalMemory/128;
 
   // Undefined values (for now at least)
   this->TotalVirtualMemory = 0;
