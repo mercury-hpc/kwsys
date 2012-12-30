@@ -2940,6 +2940,55 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
       this->Features.L1CacheSize += atoi(cacheSize.c_str());
       }
     }
+
+  // processor feature flags (probably x86 specific)
+  kwsys_stl::string cpuflags = this->ExtractValueFromCpuInfoFile(buffer,"flags");
+  if(!cpurev.empty())
+    {
+    // now we can match every flags as space + flag + space
+    cpuflags = " " + cpuflags + " ";
+    if ((cpuflags.find(" fpu ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasFPU = true;
+      }
+    if ((cpuflags.find(" tsc ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasTSC = true;
+      }
+    if ((cpuflags.find(" mmx ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasMMX = true;
+      }
+    if ((cpuflags.find(" sse ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasSSE = true;
+      }
+    if ((cpuflags.find(" sse2 ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasSSE2 = true;
+      }
+    if ((cpuflags.find(" apic ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasAPIC = true;
+      }
+    if ((cpuflags.find(" cmov ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasCMOV = true;
+      }
+    if ((cpuflags.find(" mtrr ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasMTRR = true;
+      }
+    if ((cpuflags.find(" acpi ")!=kwsys_stl::string::npos))
+      {
+      this->Features.HasACPI = true;
+      }
+    if ((cpuflags.find(" 3dnow ")!=kwsys_stl::string::npos))
+      {
+      this->Features.ExtendedFeatures.Has3DNow = true;
+      }
+    }
+
   return true;
 }
 
