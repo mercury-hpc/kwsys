@@ -417,7 +417,7 @@ protected:
   unsigned char LogicalCPUPerPhysicalCPU();
   unsigned char GetAPICId();
   unsigned int IsHyperThreadingSupported();
-  LongLong GetCyclesDifference(DELAY_FUNC, unsigned int);
+  static LongLong GetCyclesDifference(DELAY_FUNC, unsigned int);
 
   // For Linux and Cygwin, /proc/cpuinfo formats are slightly different
   int RetreiveInformationFromCpuInfoFile();
@@ -2071,11 +2071,40 @@ bool SystemInformationImplementation::RetrieveCPUClockSpeed()
   bool retrieved = false;
 
 #if defined(_WIN32)
-  // First of all we check to see if the RDTSC (0x0F, 0x31) instruction is
-  // supported. If not, we fallback to trying to read this value from the
-  // registry:
-  //
-  if (!this->Features.HasTSC)
+  unsigned int uiRepetitions = 1;
+  unsigned int uiMSecPerRepetition = 50;
+  __int64  i64Total = 0;
+  __int64 i64Overhead = 0;
+
+  // Check if the TSC implementation works at all
+  if (this->Features.HasTSC &&
+      GetCyclesDifference(SystemInformationImplementation::Delay,
+                          uiMSecPerRepetition) > 0)
+    {
+    for (unsigned int nCounter = 0; nCounter < uiRepetitions; nCounter ++)
+      {
+      i64Total += GetCyclesDifference (SystemInformationImplementation::Delay,
+                                       uiMSecPerRepetition);
+      i64Overhead +=
+        GetCyclesDifference (SystemInformationImplementation::DelayOverhead,
+                             uiMSecPerRepetition);
+      }
+
+    // Calculate the MHz speed.
+    i64Total -= i64Overhead;
+    i64Total /= uiRepetitions;
+    i64Total /= uiMSecPerRepetition;
+    i64Total /= 1000;
+
+    // Save the CPU speed.
+    this->CPUSpeedInMHz = (float) i64Total;
+
+    retrieved = true;
+    }
+
+  // If RDTSC is not supported, we fallback to trying to read this value
+  // from the registry:
+  if (!retrieved)
     {
     HKEY hKey = NULL;
     LONG err = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
@@ -2100,34 +2129,7 @@ bool SystemInformationImplementation::RetrieveCPUClockSpeed()
       RegCloseKey(hKey);
       hKey = NULL;
       }
-
-    return retrieved;
     }
-
-  unsigned int uiRepetitions = 1;
-  unsigned int uiMSecPerRepetition = 50;
-  __int64  i64Total = 0;
-  __int64 i64Overhead = 0;
-
-  for (unsigned int nCounter = 0; nCounter < uiRepetitions; nCounter ++)
-    {
-    i64Total += GetCyclesDifference (SystemInformationImplementation::Delay,
-                                     uiMSecPerRepetition);
-    i64Overhead +=
-      GetCyclesDifference (SystemInformationImplementation::DelayOverhead,
-                           uiMSecPerRepetition);
-    }
-
-  // Calculate the MHz speed.
-  i64Total -= i64Overhead;
-  i64Total /= uiRepetitions;
-  i64Total /= uiMSecPerRepetition;
-  i64Total /= 1000;
-
-  // Save the CPU speed.
-  this->CPUSpeedInMHz = (float) i64Total;
-
-  retrieved = true;
 #endif
 
   return retrieved;
