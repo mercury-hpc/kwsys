@@ -4291,13 +4291,16 @@ bool SystemInformationImplementation::QuerySolarisInfo()
   // Chip family
   this->ChipID.Family = 0;
 
-  // Chip Vendor
-  this->ChipID.Vendor = "Sun";
-  this->FindManufacturer();
-
   // Chip Model
   this->ChipID.ProcessorName = this->ParseValueFromKStat("-s cpu_type");
   this->ChipID.Model = 0;
+
+  // Chip Vendor
+  if (this->ChipID.ProcessorName != "i386")
+    {
+    this->ChipID.Vendor = "Sun";
+    this->FindManufacturer();
+    }
 
   // Cache size
   this->Features.L1CacheSize = 0;
