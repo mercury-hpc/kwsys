@@ -622,25 +622,13 @@ bool SystemTools::MakeDirectory(const char* path)
     }
   SystemTools::ConvertToUnixSlashes(dir);
 
-  kwsys_stl::string::size_type pos = dir.find(':');
-  if(pos == kwsys_stl::string::npos)
-    {
-    pos = 0;
-    }
+  kwsys_stl::string::size_type pos = 0;
   kwsys_stl::string topdir;
   while((pos = dir.find('/', pos)) != kwsys_stl::string::npos)
     {
     topdir = dir.substr(0, pos);
     Mkdir(topdir.c_str());
     pos++;
-    }
-  if(dir[dir.size()-1] == '/')
-    {
-    topdir = dir.substr(0, dir.size());
-    }
-  else
-    {
-    topdir = dir;
     }
   if(Mkdir(topdir.c_str()) != 0)
     {
