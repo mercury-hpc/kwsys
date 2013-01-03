@@ -86,6 +86,15 @@ typedef int siginfo_t;
 # endif
 #endif
 
+#if defined(__OpenBSD__) || defined(__NetBSD__)
+# include <sys/param.h>
+# include <sys/sysctl.h>
+#endif
+
+#if defined(__DragonFly__)
+# include <sys/sysctl.h>
+#endif
+
 #ifdef __APPLE__
 # include <sys/sysctl.h>
 # include <mach/vm_statistics.h>
@@ -133,6 +142,9 @@ typedef struct rlimit ResourceLimitType;
 #elif defined( __hpux )
 # include <sys/param.h>
 # include <sys/pstat.h>
+# if defined(KWSYS_SYS_HAS_MPCTL_H)
+#  include <sys/mpctl.h>
+# endif
 #endif
 
 #ifdef __HAIKU__
@@ -420,7 +432,7 @@ protected:
   static LongLong GetCyclesDifference(DELAY_FUNC, unsigned int);
 
   // For Linux and Cygwin, /proc/cpuinfo formats are slightly different
-  int RetreiveInformationFromCpuInfoFile();
+  bool RetreiveInformationFromCpuInfoFile();
   kwsys_stl::string ExtractValueFromCpuInfoFile(kwsys_stl::string buffer,
                                           const char* word, size_t init=0);
 
@@ -447,6 +459,15 @@ protected:
   //For QNX
   bool QueryQNXMemory();
   bool QueryQNXProcessor();
+
+  //For OpenBSD, FreeBSD, NetBSD, DragonFly
+  bool QueryBSDMemory();
+  bool QueryBSDProcessor();
+
+  //For HP-UX
+  bool QueryHPUXProcessor();
+
+  bool QueryProcessor();
 
   // Evaluate the memory information.
   int QueryMemory();
@@ -1257,8 +1278,14 @@ void SystemInformationImplementation::RunCPUCheck()
   this->QueryHaikuInfo();
 #elif defined(__QNX__)
   this->QueryQNXProcessor();
-#else
+#elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  this->QueryBSDProcessor();
+#elif defined(__hpux)
+  this->QueryHPUXProcessor();
+#elif defined(__linux) || defined(__CYGWIN__)
   this->RetreiveInformationFromCpuInfoFile();
+#else
+  this->QueryProcessor();
 #endif
 }
 
@@ -1277,6 +1304,8 @@ void SystemInformationImplementation::RunMemoryCheck()
   this->QueryHaikuInfo();
 #elif defined(__QNX__)
   this->QueryQNXMemory();
+#elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  this->QueryBSDMemory();
 #else
   this->QueryMemory();
 #endif
@@ -1790,6 +1819,7 @@ void SystemInformationImplementation::FindManufacturer(const kwsys_stl::string& 
   else if (this->ChipID.Vendor == "Geode By NSC")  this->ChipManufacturer = NSC;          // National Semiconductor
   else if (this->ChipID.Vendor == "Sun")           this->ChipManufacturer = Sun;          // Sun Microelectronics
   else if (this->ChipID.Vendor == "IBM")           this->ChipManufacturer = IBM;          // IBM Microelectronics
+  else if (this->ChipID.Vendor == "Hewlett-Packard") this->ChipManufacturer = HP;         // Hewlett-Packard
   else if (this->ChipID.Vendor == "Motorola")      this->ChipManufacturer = Motorola;          // Motorola Microelectronics
   else if (family.substr(0, 7) == "PA-RISC")       this->ChipManufacturer = HP;           // Hewlett-Packard
   else                                             this->ChipManufacturer = UnknownManufacturer;  // Unknown manufacturer
@@ -2761,7 +2791,7 @@ kwsys_stl::string SystemInformationImplementation::ExtractValueFromCpuInfoFile(k
 }
 
 /** Query for the cpu status */
-int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
+bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
 {
   this->NumberOfLogicalCPU = 0;
   this->NumberOfPhysicalCPU = 0;
@@ -2771,7 +2801,7 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   if ( !fd )
     {
     kwsys_ios::cout << "Problem opening /proc/cpuinfo" << kwsys_ios::endl;
-    return 0;
+    return false;
     }
 
   size_t fileSize = 0;
@@ -2910,7 +2940,30 @@ int SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
       this->Features.L1CacheSize += atoi(cacheSize.c_str());
       }
     }
-  return 1;
+  return true;
+}
+
+bool SystemInformationImplementation::QueryProcessor()
+{
+#if defined(_SC_NPROC_ONLN) && !defined(_SC_NPROCESSORS_ONLN)
+// IRIX names this slightly different
+# define _SC_NPROCESSORS_ONLN _SC_NPROC_ONLN
+#endif
+
+#ifdef _SC_NPROCESSORS_ONLN
+  long c = sysconf(_SC_NPROCESSORS_ONLN);
+  if (c <= 0)
+    {
+    return false;
+    }
+
+  this->NumberOfPhysicalCPU = c;
+  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+  return true;
+#else
+  return false;
+#endif
 }
 
 /**
@@ -4142,6 +4195,31 @@ bool SystemInformationImplementation::QueryQNXMemory()
   return false;
 }
 
+bool SystemInformationImplementation::QueryBSDMemory()
+{
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  int ctrl[2] = { CTL_HW, HW_PHYSMEM };
+#if defined(HW_PHYSMEM64)
+  int64_t k;
+  ctrl[1] = HW_PHYSMEM64;
+#else
+  int k;
+#endif
+  size_t sz = sizeof(k);
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->TotalPhysicalMemory = k>>10>>10;
+
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool SystemInformationImplementation::QueryQNXProcessor()
 {
 #if defined(__QNX__)
@@ -4190,6 +4268,88 @@ bool SystemInformationImplementation::QueryQNXProcessor()
   this->NumberOfLogicalCPU = 1;
 
   return true;
+#else
+  return false;
+#endif
+}
+
+bool SystemInformationImplementation::QueryBSDProcessor()
+{
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+  int k;
+  size_t sz = sizeof(k);
+  int ctrl[2] = { CTL_HW, HW_NCPU };
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->NumberOfPhysicalCPU = k;
+  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+#if defined(HW_CPUSPEED)
+  ctrl[1] = HW_CPUSPEED;
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->CPUSpeedInMHz = (float) k;
+#endif
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool SystemInformationImplementation::QueryHPUXProcessor()
+{
+#if defined(__hpux)
+# if defined(KWSYS_SYS_HAS_MPCTL_H)
+  int c = mpctl(MPC_GETNUMSPUS_SYS, 0, 0);
+  if (c <= 0)
+    {
+    return false;
+    }
+
+  this->NumberOfPhysicalCPU = c;
+  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
+
+  long t = sysconf(_SC_CPU_VERSION);
+
+  if (t == -1)
+    {
+    return false;
+    }
+
+  switch (t)
+    {
+    case CPU_PA_RISC1_0:
+      this->ChipID.Vendor = "Hewlett-Packard";
+      this->ChipID.Family = 0x100;
+    case CPU_PA_RISC1_1:
+      this->ChipID.Vendor = "Hewlett-Packard";
+      this->ChipID.Family = 0x110;
+    case CPU_PA_RISC2_0:
+      this->ChipID.Vendor = "Hewlett-Packard";
+      this->ChipID.Family = 0x200;
+    case CPU_IA64_ARCHREV_0:
+      this->ChipID.Vendor = "GenuineIntel";
+      this->Features.HasIA64 = true;
+      break;
+    default:
+      return false;
+    }
+
+  this->FindManufacturer();
+
+  return true;
+# else
+  return false;
+# endif
 #else
   return false;
 #endif
