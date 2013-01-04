@@ -3514,7 +3514,15 @@ SystemInformation::LongLong
 SystemInformationImplementation::GetCyclesDifference (DELAY_FUNC DelayFunction,
                                                   unsigned int uiParameter)
 {
-#if USE_ASM_INSTRUCTIONS
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+  unsigned __int64 stamp1, stamp2;
+
+  stamp1 = __rdtsc();
+  DelayFunction(uiParameter);
+  stamp2 = __rdtsc();
+
+  return stamp2 - stamp1;
+#elif USE_ASM_INSTRUCTIONS
 
   unsigned int edx1, eax1;
   unsigned int edx2, eax2;
