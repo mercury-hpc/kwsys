@@ -3471,6 +3471,16 @@ int SystemInformationImplementation::QueryMemory()
       }
     }
   return 0;
+#elif defined(_AIX)
+  long c = sysconf(_SC_AIX_REALMEM);
+  if (c <= 0)
+  {
+    return 0;
+  }
+
+  this->TotalPhysicalMemory = c / 1024;
+
+  return 1;
 #else
   return 0;
 #endif
