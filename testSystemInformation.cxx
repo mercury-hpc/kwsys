@@ -47,6 +47,8 @@
 
 int testSystemInformation(int, char*[])
 {
+  kwsys_ios::cout << "CTEST_FULL_OUTPUT\n"; // avoid truncation
+
   kwsys::SystemInformation info;
   info.RunCPUCheck();
   info.RunOSCheck();
