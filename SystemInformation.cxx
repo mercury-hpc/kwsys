@@ -436,6 +436,8 @@ protected:
   kwsys_stl::string ExtractValueFromCpuInfoFile(kwsys_stl::string buffer,
                                           const char* word, size_t init=0);
 
+  bool QueryLinuxMemory();
+
   static void Delay (unsigned int);
   static void DelayOverhead (unsigned int);
 
@@ -1314,6 +1316,8 @@ void SystemInformationImplementation::RunMemoryCheck()
   this->QueryWindowsMemory();
 #elif defined(__hpux)
   this->QueryHPUXMemory();
+#elif defined(__linux)
+  this->QueryLinuxMemory();
 #else
   this->QueryMemory();
 #endif
@@ -3383,25 +3387,9 @@ bool SystemInformationImplementation::QueryWindowsMemory()
 #endif
 }
 
-/** Query for the memory status */
-int SystemInformationImplementation::QueryMemory()
+bool SystemInformationImplementation::QueryLinuxMemory()
 {
-  this->TotalVirtualMemory = 0;
-  this->TotalPhysicalMemory = 0;
-  this->AvailableVirtualMemory = 0;
-  this->AvailablePhysicalMemory = 0;
-#ifdef __CYGWIN__
-  // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
-  // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
-  // Therefore just use 4096 as the page size of Windows.
-  long m = sysconf(_SC_PHYS_PAGES);
-  if (m < 0)
-    {
-    return false;
-    }
-  this->TotalPhysicalMemory = m >> 8;
-  return 1;
-#elif defined(__linux)
+#if defined(__linux)
   unsigned long tv=0;
   unsigned long tp=0;
   unsigned long av=0;
@@ -3418,7 +3406,7 @@ int SystemInformationImplementation::QueryMemory()
   if( errorFlag!=0 )
     {
     kwsys_ios::cout << "Problem calling uname(): " << strerror(errno) << kwsys_ios::endl;
-    return 0;
+    return false;
     }
 
   if( unameInfo.release!=0 && strlen(unameInfo.release)>=3 )
@@ -3442,7 +3430,7 @@ int SystemInformationImplementation::QueryMemory()
   if ( !fd )
     {
     kwsys_ios::cout << "Problem opening /proc/meminfo" << kwsys_ios::endl;
-    return 0;
+    return false;
     }
 
   if( linuxMajor>=3 || ( (linuxMajor>=2) && (linuxMinor>=6) ) )
@@ -3481,7 +3469,7 @@ int SystemInformationImplementation::QueryMemory()
       {
       kwsys_ios::cout << "Problem parsing /proc/meminfo" << kwsys_ios::endl;
       fclose(fd);
-      return 0;
+      return false;
       }
     }
   else
@@ -3513,10 +3501,34 @@ int SystemInformationImplementation::QueryMemory()
       {
       kwsys_ios::cout << "Problem parsing /proc/meminfo" << kwsys_ios::endl;
       fclose(fd);
-      return 0;
+      return false;
       }
     }
   fclose( fd );
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+/** Query for the memory status */
+int SystemInformationImplementation::QueryMemory()
+{
+  this->TotalVirtualMemory = 0;
+  this->TotalPhysicalMemory = 0;
+  this->AvailableVirtualMemory = 0;
+  this->AvailablePhysicalMemory = 0;
+#ifdef __CYGWIN__
+  // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
+  // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
+  // Therefore just use 4096 as the page size of Windows.
+  long m = sysconf(_SC_PHYS_PAGES);
+  if (m < 0)
+    {
+    return false;
+    }
+  this->TotalPhysicalMemory = m >> 8;
   return 1;
 #elif defined(_AIX)
   long c = sysconf(_SC_AIX_REALMEM);
