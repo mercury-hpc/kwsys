@@ -3537,10 +3537,6 @@ bool SystemInformationImplementation::QueryAIXMemory()
 /** Query for the memory status */
 int SystemInformationImplementation::QueryMemory()
 {
-  this->TotalVirtualMemory = 0;
-  this->TotalPhysicalMemory = 0;
-  this->AvailableVirtualMemory = 0;
-  this->AvailablePhysicalMemory = 0;
 #ifdef __CYGWIN__
   // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
   // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
