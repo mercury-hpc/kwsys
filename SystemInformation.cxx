@@ -473,6 +473,9 @@ protected:
   //For Microsoft Windows
   bool QueryWindowsMemory();
 
+  //For AIX
+  bool QueryAIXMemory();
+
   bool QueryProcessor();
 
   // Evaluate the memory information.
@@ -1318,6 +1321,8 @@ void SystemInformationImplementation::RunMemoryCheck()
   this->QueryHPUXMemory();
 #elif defined(__linux)
   this->QueryLinuxMemory();
+#elif defined(_AIX)
+  this->QueryAIXMemory();
 #else
   this->QueryMemory();
 #endif
@@ -3512,6 +3517,23 @@ bool SystemInformationImplementation::QueryLinuxMemory()
 #endif
 }
 
+bool SystemInformationImplementation::QueryAIXMemory()
+{
+#if defined(_AIX)
+  long c = sysconf(_SC_AIX_REALMEM);
+  if (c <= 0)
+    {
+    return false;
+    }
+
+  this->TotalPhysicalMemory = c / 1024;
+
+  return true;
+#else
+  return false;
+#endif
+}
+
 /** Query for the memory status */
 int SystemInformationImplementation::QueryMemory()
 {
@@ -3529,16 +3551,6 @@ int SystemInformationImplementation::QueryMemory()
     return false;
     }
   this->TotalPhysicalMemory = m >> 8;
-  return 1;
-#elif defined(_AIX)
-  long c = sysconf(_SC_AIX_REALMEM);
-  if (c <= 0)
-  {
-    return 0;
-  }
-
-  this->TotalPhysicalMemory = c / 1024;
-
   return 1;
 #else
 
