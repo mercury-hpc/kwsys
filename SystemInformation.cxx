@@ -480,7 +480,7 @@ protected:
   bool QueryProcessor();
 
   // Evaluate the memory information.
-  int QueryMemory();
+  bool QueryMemory();
   size_t TotalVirtualMemory;
   size_t AvailableVirtualMemory;
   size_t TotalPhysicalMemory;
@@ -3556,7 +3556,7 @@ bool SystemInformationImplementation::QueryAIXMemory()
 }
 
 /** Query for the memory status */
-int SystemInformationImplementation::QueryMemory()
+bool SystemInformationImplementation::QueryMemory()
 {
 #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
   // Assume the mmap() granularity as returned by _SC_PAGESIZE is also
@@ -3567,7 +3567,7 @@ int SystemInformationImplementation::QueryMemory()
 
   if (p < 0 || m < 0)
     {
-    return 0;
+    return false;
     }
 
   // assume pagesize is a power of 2 and smaller 1 MiB
@@ -3580,17 +3580,16 @@ int SystemInformationImplementation::QueryMemory()
   p = sysconf(_SC_AVPHYS_PAGES);
   if (p < 0)
     {
-    return 0;
+    return false;
     }
 
   this->AvailablePhysicalMemory = p;
   this->AvailablePhysicalMemory /= pagediv;
 #endif
 
-  return 1;
+  return true;
 #else
-
-  return 0;
+  return false;
 #endif
 }
 
