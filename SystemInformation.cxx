@@ -467,6 +467,9 @@ protected:
   //For HP-UX
   bool QueryHPUXProcessor();
 
+  //For Microsoft Windows
+  bool QueryWindowsMemory();
+
   bool QueryProcessor();
 
   // Evaluate the memory information.
@@ -1306,6 +1309,8 @@ void SystemInformationImplementation::RunMemoryCheck()
   this->QueryQNXMemory();
 #elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
   this->QueryBSDMemory();
+#elif defined(_WIN32)
+  this->QueryWindowsMemory();
 #else
   this->QueryMemory();
 #endif
@@ -3342,25 +3347,9 @@ void SystemInformationImplementation::SetStackTraceOnError(int enable)
 #endif
 }
 
-/** Query for the memory status */
-int SystemInformationImplementation::QueryMemory()
+bool SystemInformationImplementation::QueryWindowsMemory()
 {
-  this->TotalVirtualMemory = 0;
-  this->TotalPhysicalMemory = 0;
-  this->AvailableVirtualMemory = 0;
-  this->AvailablePhysicalMemory = 0;
-#ifdef __CYGWIN__
-  // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
-  // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
-  // Therefore just use 4096 as the page size of Windows.
-  long m = sysconf(_SC_PHYS_PAGES);
-  if (m < 0)
-    {
-    return false;
-    }
-  this->TotalPhysicalMemory = m >> 8;
-  return 1;
-#elif defined(_WIN32)
+#if defined(_WIN32)
 # if defined(_MSC_VER) && _MSC_VER < 1300
   MEMORYSTATUS ms;
   unsigned long tv, tp, av, ap;
@@ -3385,6 +3374,29 @@ int SystemInformationImplementation::QueryMemory()
   this->TotalPhysicalMemory = tp>>10>>10;
   this->AvailableVirtualMemory = av>>10>>10;
   this->AvailablePhysicalMemory = ap>>10>>10;
+  return true;
+#else
+  return false;
+#endif
+}
+
+/** Query for the memory status */
+int SystemInformationImplementation::QueryMemory()
+{
+  this->TotalVirtualMemory = 0;
+  this->TotalPhysicalMemory = 0;
+  this->AvailableVirtualMemory = 0;
+  this->AvailablePhysicalMemory = 0;
+#ifdef __CYGWIN__
+  // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
+  // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
+  // Therefore just use 4096 as the page size of Windows.
+  long m = sysconf(_SC_PHYS_PAGES);
+  if (m < 0)
+    {
+    return false;
+    }
+  this->TotalPhysicalMemory = m >> 8;
   return 1;
 #elif defined(__linux)
   unsigned long tv=0;
