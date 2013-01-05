@@ -437,6 +437,7 @@ protected:
                                           const char* word, size_t init=0);
 
   bool QueryLinuxMemory();
+  bool QueryCygwinMemory();
 
   static void Delay (unsigned int);
   static void DelayOverhead (unsigned int);
@@ -1315,6 +1316,8 @@ void SystemInformationImplementation::RunMemoryCheck()
   this->QueryQNXMemory();
 #elif defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
   this->QueryBSDMemory();
+#elif defined(__CYGWIN__)
+  this->QueryCygwinMemory();
 #elif defined(_WIN32)
   this->QueryWindowsMemory();
 #elif defined(__hpux)
@@ -3517,6 +3520,24 @@ bool SystemInformationImplementation::QueryLinuxMemory()
 #endif
 }
 
+bool SystemInformationImplementation::QueryCygwinMemory()
+{
+#ifdef __CYGWIN__
+  // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
+  // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
+  // Therefore just use 4096 as the page size of Windows.
+  long m = sysconf(_SC_PHYS_PAGES);
+  if (m < 0)
+    {
+    return false;
+    }
+  this->TotalPhysicalMemory = m >> 8;
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool SystemInformationImplementation::QueryAIXMemory()
 {
 #if defined(_AIX)
@@ -3537,19 +3558,6 @@ bool SystemInformationImplementation::QueryAIXMemory()
 /** Query for the memory status */
 int SystemInformationImplementation::QueryMemory()
 {
-#ifdef __CYGWIN__
-  // _SC_PAGE_SIZE does return the mmap() granularity on Cygwin,
-  // see http://cygwin.com/ml/cygwin/2006-06/msg00350.html
-  // Therefore just use 4096 as the page size of Windows.
-  long m = sysconf(_SC_PHYS_PAGES);
-  if (m < 0)
-    {
-    return false;
-    }
-  this->TotalPhysicalMemory = m >> 8;
-  return 1;
-#else
-
 #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
   // Assume the mmap() granularity as returned by _SC_PAGESIZE is also
   // the system page size. The only known system where this isn't true
@@ -3580,7 +3588,7 @@ int SystemInformationImplementation::QueryMemory()
 #endif
 
   return 1;
-#endif
+#else
 
   return 0;
 #endif
