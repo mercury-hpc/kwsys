@@ -207,11 +207,6 @@ typedef struct rlimit ResourceLimitType;
 #if USE_CPUID
 
 #define CPUID_AWARE_COMPILER
-#ifdef CPUID_AWARE_COMPILER
-#define CPUID_INSTRUCTION    cpuid
-#else
-#define CPUID_INSTRUCTION    _asm _emit 0x0f _asm _emit 0xa2
-#endif
 
 /**
  * call CPUID instruction
@@ -239,7 +234,12 @@ static bool call_cpuid(int select, int result[4])
 #endif
       ; <<CPUID>>
       mov eax, select
-      CPUID_INSTRUCTION
+#ifdef CPUID_AWARE_COMPILER
+      cpuid
+#else
+      _asm _emit 0x0f
+      _asm _emit 0xa2
+#endif
       mov tmp[0 * TYPE int], eax
       mov tmp[1 * TYPE int], ebx
       mov tmp[2 * TYPE int], ecx
