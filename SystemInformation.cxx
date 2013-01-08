@@ -4188,12 +4188,12 @@ kwsys_stl::string SystemInformationImplementation::ParseValueFromKStat(const cha
 /** Querying for system information from Solaris */
 bool SystemInformationImplementation::QuerySolarisInfo()
 {
-  // Parse values
-  this->NumberOfPhysicalCPU = static_cast<unsigned int>(
-    atoi(this->ParseValueFromKStat("-n syste_misc -s ncpus").c_str()));
-  this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
-  this->Features.ExtendedFeatures.LogicalProcessorsPerPhysical = 1;
+  if (!this->QueryProcessorBySysconf())
+    {
+    return false;
+    }
 
+  // Parse values
   this->CPUSpeedInMHz = static_cast<float>(atoi(this->ParseValueFromKStat("-s clock_MHz").c_str()));
 
   // Chip family
