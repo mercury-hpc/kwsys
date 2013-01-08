@@ -480,6 +480,7 @@ protected:
   bool QueryProcessor();
 
   // Evaluate the memory information.
+  bool QueryMemoryBySysconf();
   bool QueryMemory();
   size_t TotalVirtualMemory;
   size_t AvailableVirtualMemory;
@@ -3555,8 +3556,7 @@ bool SystemInformationImplementation::QueryAIXMemory()
 #endif
 }
 
-/** Query for the memory status */
-bool SystemInformationImplementation::QueryMemory()
+bool SystemInformationImplementation::QueryMemoryBySysconf()
 {
 #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
   // Assume the mmap() granularity as returned by _SC_PAGESIZE is also
@@ -3591,6 +3591,12 @@ bool SystemInformationImplementation::QueryMemory()
 #else
   return false;
 #endif
+}
+
+/** Query for the memory status */
+bool SystemInformationImplementation::QueryMemory()
+{
+  return this->QueryMemoryBySysconf();
 }
 
 /** */
