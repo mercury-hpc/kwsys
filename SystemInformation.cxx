@@ -452,7 +452,8 @@ protected:
   kwsys_stl::string SysCtlBuffer;
 
   // For Solaris
-  bool QuerySolarisInfo();
+  bool QuerySolarisMemory();
+  bool QuerySolarisProcessor();
   kwsys_stl::string ParseValueFromKStat(const char* arguments);
   kwsys_stl::string RunProcess(kwsys_stl::vector<const char*> args);
 
@@ -1285,7 +1286,7 @@ void SystemInformationImplementation::RunCPUCheck()
 #elif defined(__APPLE__)
   this->ParseSysCtl();
 #elif defined (__SVR4) && defined (__sun)
-  this->QuerySolarisInfo();
+  this->QuerySolarisProcessor();
 #elif defined(__HAIKU__)
   this->QueryHaikuInfo();
 #elif defined(__QNX__)
@@ -1311,7 +1312,7 @@ void SystemInformationImplementation::RunMemoryCheck()
 #if defined(__APPLE__)
   this->ParseSysCtl();
 #elif defined (__SVR4) && defined (__sun)
-  this->QuerySolarisInfo();
+  this->QuerySolarisMemory();
 #elif defined(__HAIKU__)
   this->QueryHaikuInfo();
 #elif defined(__QNX__)
@@ -4184,9 +4185,33 @@ kwsys_stl::string SystemInformationImplementation::ParseValueFromKStat(const cha
   return value;
 }
 
-
 /** Querying for system information from Solaris */
-bool SystemInformationImplementation::QuerySolarisInfo()
+bool SystemInformationImplementation::QuerySolarisMemory()
+{
+#if defined (__SVR4) && defined (__sun)
+  // Solaris allows querying this value by sysconf, but if this is
+  // a 32 bit process on a 64 bit host the returned memory will be
+  // limited to 4GiB. So if this is a 32 bit process or if the sysconf
+  // method fails use the kstat interface.
+#if SIZEOF_VOID_P == 8
+  if (this->QueryMemoryBySysconf())
+    {
+    return true;
+    }
+#endif
+
+  char* tail;
+  unsigned long totalMemory =
+       strtoul(this->ParseValueFromKStat("-s physmem").c_str(),&tail,0);
+  this->TotalPhysicalMemory = totalMemory/128;
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool SystemInformationImplementation::QuerySolarisProcessor()
 {
   if (!this->QueryProcessorBySysconf())
     {
@@ -4209,20 +4234,6 @@ bool SystemInformationImplementation::QuerySolarisInfo()
     this->ChipID.Vendor = "Sun";
     this->FindManufacturer();
     }
-
-  // Cache size
-  this->Features.L1CacheSize = 0;
-  this->Features.L2CacheSize = 0;
-
-  char* tail;
-  unsigned long totalMemory =
-       strtoul(this->ParseValueFromKStat("-s physmem").c_str(),&tail,0);
-  this->TotalPhysicalMemory = totalMemory/128;
-
-  // Undefined values (for now at least)
-  this->TotalVirtualMemory = 0;
-  this->AvailablePhysicalMemory = 0;
-  this->AvailableVirtualMemory = 0;
 
   return true;
 }
