@@ -477,6 +477,7 @@ protected:
   //For AIX
   bool QueryAIXMemory();
 
+  bool QueryProcessorBySysconf();
   bool QueryProcessor();
 
   // Evaluate the memory information.
@@ -3013,7 +3014,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   return true;
 }
 
-bool SystemInformationImplementation::QueryProcessor()
+bool SystemInformationImplementation::QueryProcessorBySysconf()
 {
 #if defined(_SC_NPROC_ONLN) && !defined(_SC_NPROCESSORS_ONLN)
 // IRIX names this slightly different
@@ -3034,6 +3035,11 @@ bool SystemInformationImplementation::QueryProcessor()
 #else
   return false;
 #endif
+}
+
+bool SystemInformationImplementation::QueryProcessor()
+{
+  return this->QueryProcessorBySysconf();
 }
 
 /**
