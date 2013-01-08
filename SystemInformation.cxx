@@ -4059,8 +4059,10 @@ kwsys_stl::string SystemInformationImplementation::RunProcess(kwsys_stl::vector<
   char* data = NULL;
   int length;
   double timeout = 255;
+  int pipe; // pipe id as returned by kwsysProcess_WaitForData()
 
-  while(kwsysProcess_WaitForData(gp,&data,&length,&timeout)) // wait for 1s
+  while( ( pipe = kwsysProcess_WaitForData(gp,&data,&length,&timeout),
+           (pipe == kwsysProcess_Pipe_STDOUT || pipe == kwsysProcess_Pipe_STDERR) ) ) // wait for 1s
     {
     for(int i=0;i<length;i++)
       {
