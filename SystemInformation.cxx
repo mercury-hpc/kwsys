@@ -4064,10 +4064,7 @@ kwsys_stl::string SystemInformationImplementation::RunProcess(kwsys_stl::vector<
   while( ( pipe = kwsysProcess_WaitForData(gp,&data,&length,&timeout),
            (pipe == kwsysProcess_Pipe_STDOUT || pipe == kwsysProcess_Pipe_STDERR) ) ) // wait for 1s
     {
-    for(int i=0;i<length;i++)
-      {
-      buffer += data[i];
-      }
+      buffer.append(data, length);
     }
   kwsysProcess_WaitForExit(gp, 0);
 
