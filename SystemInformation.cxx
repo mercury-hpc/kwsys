@@ -4013,6 +4013,72 @@ bool SystemInformationImplementation::ParseSysCtl()
       {
       this->ChipID.Revision = static_cast< int >( value );
       }
+
+    // feature string
+    char *buf = 0;
+    size_t allocSize = 128;
+
+    err = 0;
+    len = 0;
+
+    // sysctlbyname() will return with err==0 && len==0 if the buffer is too small
+    while (err == 0 && len == 0)
+      {
+      delete[] buf;
+      allocSize *= 2;
+      buf = new char[allocSize];
+      if (!buf)
+        {
+        break;
+        }
+      buf[0] = ' ';
+      len = allocSize - 2; // keep space for leading and trailing space
+      err = sysctlbyname("machdep.cpu.features", buf + 1, &len, NULL, 0);
+      }
+    if (!err && buf && len)
+      {
+      // now we can match every flags as space + flag + space
+      buf[len + 1] = ' ';
+      kwsys_stl::string cpuflags(buf, len + 2);
+
+      if ((cpuflags.find(" FPU ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasFPU = true;
+        }
+      if ((cpuflags.find(" TSC ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasTSC = true;
+        }
+      if ((cpuflags.find(" MMX ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasMMX = true;
+        }
+      if ((cpuflags.find(" SSE ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasSSE = true;
+        }
+      if ((cpuflags.find(" SSE2 ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasSSE2 = true;
+        }
+      if ((cpuflags.find(" APIC ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasAPIC = true;
+        }
+      if ((cpuflags.find(" CMOV ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasCMOV = true;
+        }
+      if ((cpuflags.find(" MTRR ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasMTRR = true;
+        }
+      if ((cpuflags.find(" ACPI ")!=kwsys_stl::string::npos))
+        {
+        this->Features.HasACPI = true;
+        }
+      }
+    delete[] buf;
     }
 
   // brand string
