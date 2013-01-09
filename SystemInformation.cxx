@@ -91,6 +91,10 @@ typedef int siginfo_t;
 # include <sys/sysctl.h>
 #endif
 
+#if defined(KWSYS_SYS_HAS_MACHINE_CPU_H)
+# include <machine/cpu.h>
+#endif
+
 #if defined(__DragonFly__)
 # include <sys/sysctl.h>
 #endif
@@ -4421,6 +4425,45 @@ bool SystemInformationImplementation::QueryBSDProcessor()
     }
 
   this->CPUSpeedInMHz = (float) k;
+#endif
+
+#if defined(CPU_SSE)
+  ctrl[0] = CTL_MACHDEP;
+  ctrl[1] = CPU_SSE;
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->Features.HasSSE = (k > 0);
+#endif
+
+#if defined(CPU_SSE2)
+  ctrl[0] = CTL_MACHDEP;
+  ctrl[1] = CPU_SSE2;
+
+  if (sysctl(ctrl, 2, &k, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->Features.HasSSE2 = (k > 0);
+#endif
+
+#if defined(CPU_CPUVENDOR)
+  ctrl[0] = CTL_MACHDEP;
+  ctrl[1] = CPU_CPUVENDOR;
+  char vbuf[25];
+  ::memset(vbuf, 0, sizeof(vbuf));
+  sz = sizeof(vbuf) - 1;
+  if (sysctl(ctrl, 2, vbuf, &sz, NULL, 0) != 0)
+    {
+    return false;
+    }
+
+  this->ChipID.Vendor = vbuf;
+  this->FindManufacturer();
 #endif
 
   return true;
