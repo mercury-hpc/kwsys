@@ -3026,7 +3026,7 @@ bool SystemInformationImplementation::QueryProcessor()
     return false;
     }
 
-  this->NumberOfPhysicalCPU = c;
+  this->NumberOfPhysicalCPU = static_cast<unsigned int>(c);
   this->NumberOfLogicalCPU = this->NumberOfPhysicalCPU;
 
   return true;
