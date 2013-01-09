@@ -202,7 +202,7 @@ typedef struct rlimit ResourceLimitType;
 #define USE_CPUID_INTRINSICS 0
 #endif
 
-#if USE_ASM_INSTRUCTIONS || USE_CPUID_INTRINSICS
+#if USE_ASM_INSTRUCTIONS || USE_CPUID_INTRINSICS || defined(KWSYS_CXX_HAS_BORLAND_ASM_CPUID)
 # define USE_CPUID 1
 #else
 # define USE_CPUID 0
@@ -224,6 +224,7 @@ static bool call_cpuid(int select, int result[4])
   return true;
 #else
   int tmp[4];
+#if defined(_MSC_VER)
   // Use SEH to determine CPUID presence
   __try {
     _asm {
@@ -262,7 +263,24 @@ static bool call_cpuid(int select, int result[4])
     return false;
     }
 
-  memcpy(result, tmp, sizeof(tmp));
+    memcpy(result, tmp, sizeof(tmp));
+#elif defined(KWSYS_CXX_HAS_BORLAND_ASM_CPUID)
+  unsigned int a, b, c, d;
+  __asm {
+    mov EAX, select;
+    cpuid
+    mov a, EAX;
+    mov b, EBX;
+    mov c, ECX;
+    mov d, EDX;
+  }
+
+  result[0] = a;
+  result[1] = b;
+  result[2] = c;
+  result[3] = d;
+#endif
+
   // The cpuid instruction succeeded.
   return true;
 #endif
