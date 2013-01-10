@@ -3748,11 +3748,11 @@ unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
 
   if (((Regs[0] & FAMILY_ID) == PENTIUM4_ID) || (Regs[0] & EXT_FAMILY_ID))
     {
-    if (VendorId[1] == 'uneG')
+    if (VendorId[1] == 0x756e6547) // 'uneG'
       {
-      if (VendorId[3] == 'Ieni')
+      if (VendorId[3] == 0x49656e69) // 'Ieni'
         {
-        if (VendorId[2] == 'letn')
+        if (VendorId[2] == 0x6c65746e) // 'letn'
           {
           return(Regs[3] & HT_BIT);    // Genuine Intel with hyper-Threading technology
           }
