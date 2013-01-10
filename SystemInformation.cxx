@@ -3731,6 +3731,11 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
 /** Works only for windows */
 bool SystemInformationImplementation::IsHyperThreadingSupported()
 {
+  if (this->Features.ExtendedFeatures.SupportsHyperthreading)
+    {
+    return true;
+    }
+
 #if USE_CPUID
   int Regs[4] = { 0, 0, 0, 0 },
              VendorId[4] = { 0, 0, 0, 0 };
@@ -3754,7 +3759,9 @@ bool SystemInformationImplementation::IsHyperThreadingSupported()
         {
         if (VendorId[2] == 0x6c65746e) // 'letn'
           {
-          return(Regs[3] & HT_BIT);    // Genuine Intel with hyper-Threading technology
+          // Genuine Intel with hyper-Threading technology
+          this->Features.ExtendedFeatures.SupportsHyperthreading = ((Regs[3] & HT_BIT) != 0);
+          return this->Features.ExtendedFeatures.SupportsHyperthreading;
           }
         }
       }
