@@ -432,7 +432,7 @@ protected:
   int CPUCount();
   unsigned char LogicalCPUPerPhysicalCPU();
   unsigned char GetAPICId();
-  unsigned int IsHyperThreadingSupported();
+  bool IsHyperThreadingSupported();
   static LongLong GetCyclesDifference(DELAY_FUNC, unsigned int);
 
   // For Linux and Cygwin, /proc/cpuinfo formats are slightly different
@@ -3729,7 +3729,7 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
 
 
 /** Works only for windows */
-unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
+bool SystemInformationImplementation::IsHyperThreadingSupported()
 {
 #if USE_CPUID
   int Regs[4] = { 0, 0, 0, 0 },
