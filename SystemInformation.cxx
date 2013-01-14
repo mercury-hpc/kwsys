@@ -202,7 +202,7 @@ typedef struct rlimit ResourceLimitType;
 #define USE_CPUID_INTRINSICS 0
 #endif
 
-#if USE_ASM_INSTRUCTIONS || USE_CPUID_INTRINSICS
+#if USE_ASM_INSTRUCTIONS || USE_CPUID_INTRINSICS || defined(KWSYS_CXX_HAS_BORLAND_ASM_CPUID)
 # define USE_CPUID 1
 #else
 # define USE_CPUID 0
@@ -224,6 +224,7 @@ static bool call_cpuid(int select, int result[4])
   return true;
 #else
   int tmp[4];
+#if defined(_MSC_VER)
   // Use SEH to determine CPUID presence
   __try {
     _asm {
@@ -262,7 +263,24 @@ static bool call_cpuid(int select, int result[4])
     return false;
     }
 
-  memcpy(result, tmp, sizeof(tmp));
+    memcpy(result, tmp, sizeof(tmp));
+#elif defined(KWSYS_CXX_HAS_BORLAND_ASM_CPUID)
+  unsigned int a, b, c, d;
+  __asm {
+    mov EAX, select;
+    cpuid
+    mov a, EAX;
+    mov b, EBX;
+    mov c, ECX;
+    mov d, EDX;
+  }
+
+  result[0] = a;
+  result[1] = b;
+  result[2] = c;
+  result[3] = d;
+#endif
+
   // The cpuid instruction succeeded.
   return true;
 #endif
@@ -432,7 +450,7 @@ protected:
   int CPUCount();
   unsigned char LogicalCPUPerPhysicalCPU();
   unsigned char GetAPICId();
-  unsigned int IsHyperThreadingSupported();
+  bool IsHyperThreadingSupported();
   static LongLong GetCyclesDifference(DELAY_FUNC, unsigned int);
 
   // For Linux and Cygwin, /proc/cpuinfo formats are slightly different
@@ -3742,8 +3760,13 @@ unsigned char SystemInformationImplementation::LogicalCPUPerPhysicalCPU(void)
 
 
 /** Works only for windows */
-unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
+bool SystemInformationImplementation::IsHyperThreadingSupported()
 {
+  if (this->Features.ExtendedFeatures.SupportsHyperthreading)
+    {
+    return true;
+    }
+
 #if USE_CPUID
   int Regs[4] = { 0, 0, 0, 0 },
              VendorId[4] = { 0, 0, 0, 0 };
@@ -3761,13 +3784,15 @@ unsigned int SystemInformationImplementation::IsHyperThreadingSupported()
 
   if (((Regs[0] & FAMILY_ID) == PENTIUM4_ID) || (Regs[0] & EXT_FAMILY_ID))
     {
-    if (VendorId[1] == 'uneG')
+    if (VendorId[1] == 0x756e6547) // 'uneG'
       {
-      if (VendorId[3] == 'Ieni')
+      if (VendorId[3] == 0x49656e69) // 'Ieni'
         {
-        if (VendorId[2] == 'letn')
+        if (VendorId[2] == 0x6c65746e) // 'letn'
           {
-          return(Regs[3] & HT_BIT);    // Genuine Intel with hyper-Threading technology
+          // Genuine Intel with hyper-Threading technology
+          this->Features.ExtendedFeatures.SupportsHyperthreading = ((Regs[3] & HT_BIT) != 0);
+          return this->Features.ExtendedFeatures.SupportsHyperthreading;
           }
         }
       }
