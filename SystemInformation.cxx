@@ -1471,7 +1471,7 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
       {
       char host[NI_MAXHOST]={'\0'};
 
-      int addrlen
+      socklen_t addrlen
         = (fam==AF_INET?sizeof(struct sockaddr_in):sizeof(struct sockaddr_in6));
 
       ierr=getnameinfo(
