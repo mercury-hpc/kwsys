@@ -764,6 +764,55 @@ static DWORD SystemToolsMakeRegistryMode(DWORD mode,
 }
 #endif
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+bool
+SystemTools::GetRegistrySubKeys(const char *key,
+                                kwsys_stl::vector<kwsys_stl::string>& subkeys,
+                                KeyWOW64 view)
+{
+  HKEY primaryKey = HKEY_CURRENT_USER;
+  kwsys_stl::string second;
+  kwsys_stl::string valuename;
+  if (!SystemToolsParseRegistryKey(key, primaryKey, second, valuename))
+    {
+    return false;
+    }
+
+  HKEY hKey;
+  if(RegOpenKeyEx(primaryKey,
+                  second.c_str(),
+                  0,
+                  SystemToolsMakeRegistryMode(KEY_READ, view),
+                  &hKey) != ERROR_SUCCESS)
+    {
+    return false;
+    }
+  else
+    {
+    char name[1024];
+    DWORD dwNameSize = sizeof(name)/sizeof(name[0]);
+
+    DWORD i = 0;
+    while (RegEnumKey(hKey, i, name, dwNameSize) == ERROR_SUCCESS)
+      {
+      subkeys.push_back(name);
+      ++i;
+      }
+
+    RegCloseKey(hKey);
+    }
+
+  return true;
+}
+#else
+bool SystemTools::GetRegistrySubKeys(const char *,
+                                     kwsys_stl::vector<kwsys_stl::string>&,
+                                     KeyWOW64)
+{
+  return false;
+}
+#endif
+
 // Read a registry value.
 // Example :
 //      HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore\2.1\InstallPath
