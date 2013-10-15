@@ -42,10 +42,6 @@ namespace @KWSYS_NAMESPACE@
 }
 #endif // va_list
 
-#if defined( _MSC_VER )
-typedef unsigned short mode_t;
-#endif
-
 /* Define these macros temporarily to keep the code readable.  */
 #if !defined (KWSYS_NAMESPACE) && !@KWSYS_NAMESPACE@_NAME_IS_KWSYS
 # define kwsys_stl @KWSYS_NAMESPACE@_stl
@@ -683,6 +679,10 @@ public:
    * Return file's creation time (Win32: works only for NTFS, not FAT)
    */
   static long int CreationTime(const char* filename);
+
+  #if defined( _MSC_VER )
+  typedef unsigned short mode_t;
+  #endif
 
   /**
    * Get and set permissions of the file.
