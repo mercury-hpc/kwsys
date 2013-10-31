@@ -123,6 +123,7 @@ IF(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
   SET(KWSYS_USE_FundamentalType 1)
   SET(KWSYS_USE_Terminal 1)
   SET(KWSYS_USE_IOStream 1)
+  SET(KWSYS_USE_FStream 1)
   SET(KWSYS_USE_String 1)
   SET(KWSYS_USE_SystemInformation 1)
   SET(KWSYS_USE_CPU 1)
@@ -143,6 +144,9 @@ ENDIF(KWSYS_USE_Process)
 IF(KWSYS_USE_SystemInformation)
   SET(KWSYS_USE_Process 1)
 ENDIF(KWSYS_USE_SystemInformation)
+IF(KWSYS_USE_FStream)
+  SET(KWSYS_USE_Encoding 1)
+ENDIF(KWSYS_USE_FStream)
 
 # Setup the large file support default.
 IF(KWSYS_LFS_DISABLE)
@@ -869,7 +873,7 @@ SET(KWSYS_HXX_FILES Configure String
 # Add selected C++ classes.
 SET(cppclasses
   Directory DynamicLoader Encoding Glob RegularExpression SystemTools
-  CommandLineArguments IOStream SystemInformation
+  CommandLineArguments IOStream FStream SystemInformation
   )
 FOREACH(cpp ${cppclasses})
   IF(KWSYS_USE_${cpp})
@@ -931,7 +935,7 @@ FOREACH(c ${KWSYS_CLASSES})
   # Add this source to the list of source files for the library.
   IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${c}CXX.cxx)
     LIST(APPEND KWSYS_CXX_SRCS ${c}CXX.cxx)
-  ELSE()
+  ELSEIF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${c}.cxx)
     LIST(APPEND KWSYS_CXX_SRCS ${c}.cxx)
   ENDIF()
 
