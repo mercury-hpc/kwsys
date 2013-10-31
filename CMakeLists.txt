@@ -112,6 +112,7 @@ IF(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
   SET(KWSYS_USE_Base64 1)
   SET(KWSYS_USE_Directory 1)
   SET(KWSYS_USE_DynamicLoader 1)
+  SET(KWSYS_USE_Encoding 1)
   SET(KWSYS_USE_Glob 1)
   SET(KWSYS_USE_MD5 1)
   SET(KWSYS_USE_Process 1)
@@ -506,6 +507,12 @@ IF(KWSYS_USE_FundamentalType)
     "Checking whether char is signed" DIRECT)
 ENDIF(KWSYS_USE_FundamentalType)
 
+IF(KWSYS_USE_Encoding)
+  # Look for type size helper macros.
+  KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAS_WSTRING
+    "Checking whether wstring is available" DIRECT)
+ENDIF(KWSYS_USE_Encoding)
+
 IF(KWSYS_USE_IOStream)
   # Determine whether iostreams support long long.
   SET(KWSYS_PLATFORM_CXX_TEST_DEFINES
@@ -861,7 +868,7 @@ SET(KWSYS_HXX_FILES Configure String
 
 # Add selected C++ classes.
 SET(cppclasses
-  Directory DynamicLoader Glob RegularExpression SystemTools
+  Directory DynamicLoader Encoding Glob RegularExpression SystemTools
   CommandLineArguments IOStream SystemInformation
   )
 FOREACH(cpp ${cppclasses})
@@ -878,7 +885,7 @@ ENDFOREACH(cpp)
 
 # Add selected C components.
 FOREACH(c
-    Process Base64 FundamentalType MD5 Terminal System String CPU
+    Process Base64 Encoding FundamentalType MD5 Terminal System String CPU
     )
   IF(KWSYS_USE_${c})
     # Use the corresponding header file.
@@ -909,16 +916,24 @@ IF(KWSYS_USE_Process)
 ENDIF(KWSYS_USE_Process)
 
 # Add selected C sources.
-FOREACH(c Base64 MD5 Terminal System String)
+FOREACH(c Base64 Encoding MD5 Terminal System String)
   IF(KWSYS_USE_${c})
-    SET(KWSYS_C_SRCS ${KWSYS_C_SRCS} ${c}.c)
+    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${c}C.c)
+      LIST(APPEND KWSYS_C_SRCS ${c}C.c)
+    ELSE()
+      LIST(APPEND KWSYS_C_SRCS ${c}.c)
+    ENDIF()
   ENDIF(KWSYS_USE_${c})
 ENDFOREACH(c)
 
 # Configure headers of C++ classes and construct the list of sources.
 FOREACH(c ${KWSYS_CLASSES})
   # Add this source to the list of source files for the library.
-  SET(KWSYS_CXX_SRCS ${KWSYS_CXX_SRCS} ${c}.cxx)
+  IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${c}CXX.cxx)
+    LIST(APPEND KWSYS_CXX_SRCS ${c}CXX.cxx)
+  ELSE()
+    LIST(APPEND KWSYS_CXX_SRCS ${c}.cxx)
+  ENDIF()
 
   # Configure the header for this class.
   CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/${c}.hxx.in ${KWSYS_HEADER_DIR}/${c}.hxx
@@ -1087,6 +1102,11 @@ IF(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
       testCommandLineArguments
       testCommandLineArguments1
       )
+    IF(KWSYS_STL_HAS_WSTRING)
+      SET(KWSYS_CXX_TESTS ${KWSYS_CXX_TESTS}
+        testEncoding
+        )
+    ENDIF(KWSYS_STL_HAS_WSTRING)
     IF(KWSYS_USE_SystemInformation)
       SET(KWSYS_CXX_TESTS ${KWSYS_CXX_TESTS} testSystemInformation)
     ENDIF(KWSYS_USE_SystemInformation)
