@@ -166,6 +166,11 @@ ELSE(KWSYS_LFS_DISABLE)
   SET(KWSYS_LFS_REQUESTED 1)
 ENDIF(KWSYS_LFS_DISABLE)
 
+# Specify default 8 bit encoding for Windows
+IF(NOT KWSYS_ENCODING_DEFAULT_CODEPAGE)
+  SET(KWSYS_ENCODING_DEFAULT_CODEPAGE CP_ACP)
+ENDIF(NOT KWSYS_ENCODING_DEFAULT_CODEPAGE)
+
 # Enable testing if building standalone.
 IF(KWSYS_STANDALONE)
   INCLUDE(Dart)
@@ -1073,6 +1078,12 @@ IF(KWSYS_USE_String)
   SET_SOURCE_FILES_PROPERTIES(String.c PROPERTIES
     COMPILE_FLAGS "-DKWSYS_STRING_C")
 ENDIF(KWSYS_USE_String)
+
+IF(KWSYS_USE_Encoding)
+  # Set default 8 bit encoding in "EndcodingC.c".
+  SET_PROPERTY(SOURCE EncodingC.c APPEND PROPERTY COMPILE_DEFINITIONS
+    KWSYS_ENCODING_DEFAULT_CODEPAGE=${KWSYS_ENCODING_DEFAULT_CODEPAGE})
+ENDIF(KWSYS_USE_Encoding)
 
 #-----------------------------------------------------------------------------
 # Setup testing if not being built as part of another project.
