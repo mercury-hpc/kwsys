@@ -253,7 +253,7 @@ static bool call_cpuid(int select, int result[4])
     _asm {
 #ifdef CPUID_AWARE_COMPILER
       ; we must push/pop the registers <<CPUID>> writes to, as the
-      ; optimiser doesn't know about <<CPUID>>, and so doesn't expect
+      ; optimiser does not know about <<CPUID>>, and so does not expect
       ; these registers to change.
       push eax
       push ebx
