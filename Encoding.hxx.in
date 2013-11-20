@@ -13,7 +13,6 @@
 #define @KWSYS_NAMESPACE@_Encoding_hxx
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
-#include <@KWSYS_NAMESPACE@/String.h>
 #include <@KWSYS_NAMESPACE@/stl/string>
 
 /* Define these macros temporarily to keep the code readable.  */
