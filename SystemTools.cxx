@@ -1063,18 +1063,6 @@ bool SystemTools::SameFile(const char* file1, const char* file2)
 }
 
 //----------------------------------------------------------------------------
-#if defined(_WIN32) || defined(__CYGWIN__)
-static bool WindowsFileExists(const wchar_t* filename)
-{
-  return GetFileAttributesW(filename) != INVALID_FILE_ATTRIBUTES;
-}
-static bool WindowsFileExists(const char* filename)
-{
-  return GetFileAttributesA(filename) != INVALID_FILE_ATTRIBUTES;
-}
-#endif
-
-//----------------------------------------------------------------------------
 bool SystemTools::FileExists(const char* filename)
 {
   if(!(filename && *filename))
@@ -1086,11 +1074,12 @@ bool SystemTools::FileExists(const char* filename)
   char winpath[MAX_PATH];
   if(SystemTools::PathCygwinToWin32(filename, winpath))
     {
-    return WindowsFileExists(winpath);
+    return (GetFileAttributesA(winpath) != INVALID_FILE_ATTRIBUTES);
     }
   return access(filename, R_OK) == 0;
 #elif defined(_WIN32)
-  return WindowsFileExists(Encoding::ToWide(filename).c_str());
+  return (GetFileAttributesW(Encoding::ToWide(filename).c_str())
+          != INVALID_FILE_ATTRIBUTES);
 #else
   return access(filename, R_OK) == 0;
 #endif
