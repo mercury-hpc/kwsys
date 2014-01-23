@@ -682,6 +682,7 @@ IF(KWSYS_USE_SystemInformation)
     # usually it's in libc but on FreeBSD
     # it's in libexecinfo
     FIND_LIBRARY(EXECINFO_LIB "execinfo")
+    MARK_AS_ADVANCED(EXECINFO_LIB)
     IF (NOT EXECINFO_LIB)
       SET(EXECINFO_LIB "")
     ENDIF()
