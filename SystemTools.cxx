@@ -3041,7 +3041,7 @@ bool SystemTools::FindProgramPath(const char* argv0,
     kwsys_stl::vector<kwsys_stl::string>::iterator i;
     for(i=failures.begin(); i != failures.end(); ++i)
       {
-      msg << "    \"" << i->c_str() << "\"\n";
+      msg << "    \"" << *i << "\"\n";
       }
     errorMsg = msg.str();
     return false;

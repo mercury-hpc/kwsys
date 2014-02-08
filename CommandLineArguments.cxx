@@ -235,7 +235,7 @@ int CommandLineArguments::Parse()
           return 0;
           }
         CommandLineArguments_DEBUG("This is a space argument: " << arg
-          << " value: " << this->Internals->Argv[cc+1].c_str());
+          << " value: " << this->Internals->Argv[cc+1]);
         // Value is the next argument
         if ( !this->PopulateVariable(cs, this->Internals->Argv[cc+1].c_str()) )
           {
@@ -313,7 +313,7 @@ int CommandLineArguments::Parse()
         }
       else
         {
-        kwsys_ios::cerr << "Got unknown argument: \"" << arg.c_str() << "\"" << kwsys_ios::endl;
+        kwsys_ios::cerr << "Got unknown argument: \"" << arg << "\"" << kwsys_ios::endl;
         this->Internals->LastArgument --;
         return 0;
         }
