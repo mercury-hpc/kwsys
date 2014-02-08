@@ -271,8 +271,7 @@ void Glob::RecurseDirectory(kwsys_stl::string::size_type start,
     else
       {
       if ( !this->Internals->Expressions.empty() &&
-           this->Internals->Expressions[
-             this->Internals->Expressions.size()-1].find(fname.c_str()) )
+           this->Internals->Expressions.rbegin()->find(fname) )
         {
         this->AddFile(this->Internals->Files, realname.c_str());
         }

@@ -244,7 +244,7 @@ int CommandLineArguments::Parse()
         cc ++;
         break;
       case EQUAL_ARGUMENT:
-        if ( arg.size() == sarg.size() || *(arg.c_str() + sarg.size()) != '=' )
+        if ( arg.size() == sarg.size() || arg.at(sarg.size()) != '=' )
           {
           this->Internals->LastArgument --;
           return 0;

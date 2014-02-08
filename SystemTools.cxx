@@ -1815,12 +1815,13 @@ void SystemTools::ConvertToUnixSlashes(kwsys_stl::string& path)
     // remove trailing slash if the path is more than
     // a single /
     pathCString = path.c_str();
-    if(path.size() > 1 && *(pathCString+(path.size()-1)) == '/')
+    size_t size = path.size();
+    if(size > 1 && *path.rbegin() == '/')
       {
       // if it is c:/ then do not remove the trailing slash
-      if(!((path.size() == 3 && pathCString[1] == ':')))
+      if(!((size == 3 && pathCString[1] == ':')))
         {
-        path = path.substr(0, path.size()-1);
+        path.resize(size - 1);
         }
       }
     }
@@ -2500,7 +2501,7 @@ kwsys_stl::string SystemTools
       i != path.end(); ++i)
     {
     kwsys_stl::string& p = *i;
-    if(p.empty() || p[p.size()-1] != '/')
+    if(p.empty() || *p.rbegin() != '/')
       {
       p += "/";
       }
@@ -2636,7 +2637,7 @@ kwsys_stl::string SystemTools::FindProgram(
       i != path.end(); ++i)
     {
     kwsys_stl::string& p = *i;
-    if(p.empty() || p[p.size()-1] != '/')
+    if(p.empty() || *p.rbegin() != '/')
       {
       p += "/";
       }
@@ -2732,7 +2733,7 @@ kwsys_stl::string SystemTools
       i != path.end(); ++i)
     {
     kwsys_stl::string& p = *i;
-    if(p.empty() || p[p.size()-1] != '/')
+    if(p.empty() || *p.rbegin() != '/')
       {
       p += "/";
       }
@@ -3073,11 +3074,11 @@ void SystemTools::AddTranslationPath(const char * a, const char * b)
         == kwsys_stl::string::npos )
       {
       // Before inserting make sure path ends with '/'
-      if(!path_a.empty() && path_a[path_a.size() -1] != '/')
+      if(!path_a.empty() && *path_a.rbegin() != '/')
         {
         path_a += '/';
         }
-      if(!path_b.empty() && path_b[path_b.size() -1] != '/')
+      if(!path_b.empty() && *path_b.rbegin() != '/')
         {
         path_b += '/';
         }
@@ -3298,7 +3299,7 @@ kwsys_stl::string SystemTools::RelativePath(const char* local, const char* remot
   for(kwsys_stl::vector<String>::iterator vit1 = finalPath.begin();
       vit1 != finalPath.end(); ++vit1)
     {
-    if(!relativePath.empty() && relativePath[relativePath.size()-1] != '/')
+    if(!relativePath.empty() && *relativePath.rbegin() != '/')
       {
       relativePath += "/";
       }
@@ -3520,10 +3521,10 @@ void SystemTools::SplitPath(const char* p,
         }
       }
 #endif
-    if(!homedir.empty() && (homedir[homedir.size()-1] == '/' ||
-                            homedir[homedir.size()-1] == '\\'))
+    if(!homedir.empty() && (*homedir.rbegin() == '/' ||
+                            *homedir.rbegin() == '\\'))
       {
-      homedir = homedir.substr(0, homedir.size()-1);
+      homedir.resize(homedir.size() - 1);
       }
     SystemTools::SplitPath(homedir.c_str(), components);
     }
@@ -3950,7 +3951,7 @@ bool SystemTools::LocateFileInDir(const char *filename,
         filename_dir_base = SystemTools::GetFilenameName(filename_dir);
 #if defined( _WIN32 )
         if (filename_dir_base.empty() ||
-            filename_dir_base[filename_dir_base.size() - 1] == ':')
+            *filename_dir_base.rbegin() == ':')
 #else
         if (filename_dir_base.empty())
 #endif
