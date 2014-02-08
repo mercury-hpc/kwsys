@@ -273,7 +273,7 @@ void Glob::RecurseDirectory(kwsys_stl::string::size_type start,
       if ( !this->Internals->Expressions.empty() &&
            this->Internals->Expressions.rbegin()->find(fname) )
         {
-        this->AddFile(this->Internals->Files, realname.c_str());
+        this->AddFile(this->Internals->Files, realname);
         }
       }
     }
@@ -351,7 +351,7 @@ void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
       {
       if ( last )
         {
-        this->AddFile(this->Internals->Files, realname.c_str());
+        this->AddFile(this->Internals->Files, realname);
         }
       else
         {
@@ -497,11 +497,11 @@ const char* Glob::GetRelative()
 }
 
 //----------------------------------------------------------------------------
-void Glob::AddFile(kwsys_stl::vector<kwsys_stl::string>& files, const char* file)
+void Glob::AddFile(kwsys_stl::vector<kwsys_stl::string>& files, const kwsys_stl::string& file)
 {
   if ( !this->Relative.empty() )
     {
-    files.push_back(kwsys::SystemTools::RelativePath(this->Relative.c_str(), file));
+    files.push_back(kwsys::SystemTools::RelativePath(this->Relative.c_str(), file.c_str()));
     }
   else
     {

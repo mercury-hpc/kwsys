@@ -94,7 +94,7 @@ protected:
   void AddExpression(const char* expr);
 
   //! Add a file to the list
-  void AddFile(kwsys_stl::vector<kwsys_stl::string>& files, const char* file);
+  void AddFile(kwsys_stl::vector<kwsys_stl::string>& files, const kwsys_stl::string& file);
 
   GlobInternals* Internals;
   bool Recurse;
