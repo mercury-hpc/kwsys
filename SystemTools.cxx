@@ -3536,9 +3536,7 @@ void SystemTools::SplitPath(const char* p,
     if(*last == '/' || *last == '\\')
       {
       // End of a component.  Save it.
-      components.push_back(
-        kwsys_stl::string(first,static_cast<kwsys_stl::string::size_type>(
-                            last-first)));
+      components.push_back(kwsys_stl::string(first, last));
       first = last+1;
       }
     }
@@ -3546,9 +3544,7 @@ void SystemTools::SplitPath(const char* p,
   // Save the last component unless there were no components.
   if(last != c)
     {
-    components.push_back(
-      kwsys_stl::string(first,static_cast<kwsys_stl::string::size_type>(
-                          last-first)));
+    components.push_back(kwsys_stl::string(first, last));
     }
 }
 
