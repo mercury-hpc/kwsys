@@ -229,8 +229,7 @@ void Glob::RecurseDirectory(kwsys_stl::string::size_type start,
   for ( cc = 0; cc < d.GetNumberOfFiles(); cc ++ )
     {
     fname = d.GetFile(cc);
-    if ( strcmp(fname.c_str(), ".") == 0 ||
-      strcmp(fname.c_str(), "..") == 0  )
+    if ( fname == "." || fname == ".." )
       {
       continue;
       }
@@ -310,8 +309,7 @@ void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
   for ( cc = 0; cc < d.GetNumberOfFiles(); cc ++ )
     {
     fname = d.GetFile(cc);
-    if ( strcmp(fname.c_str(), ".") == 0 ||
-      strcmp(fname.c_str(), "..") == 0  )
+    if ( fname == "." || fname == ".." )
       {
       continue;
       }
