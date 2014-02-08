@@ -2818,11 +2818,11 @@ kwsys_stl::string SystemTools::GetRealPath(const char* path)
 
 bool SystemTools::FileIsDirectory(const char* name)
 {
-  size_t length = strlen(name);
-  if (length == 0)
+  if (!*name)
     {
     return false;
     }
+  size_t length = strlen(name);
 
   // Remove any trailing slash from the name except in a root component.
   char local_buffer[KWSYS_SYSTEMTOOLS_MAXPATH];
