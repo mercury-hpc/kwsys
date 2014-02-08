@@ -2595,18 +2595,15 @@ kwsys_stl::string SystemTools::FindProgram(
   kwsys_stl::string tryPath;
 
   // first try with extensions if the os supports them
-  if(extensions.size())
+  for(kwsys_stl::vector<kwsys_stl::string>::iterator i =
+        extensions.begin(); i != extensions.end(); ++i)
     {
-    for(kwsys_stl::vector<kwsys_stl::string>::iterator i =
-          extensions.begin(); i != extensions.end(); ++i)
+    tryPath = name;
+    tryPath += *i;
+    if(SystemTools::FileExists(tryPath.c_str()) &&
+        !SystemTools::FileIsDirectory(tryPath.c_str()))
       {
-      tryPath = name;
-      tryPath += *i;
-      if(SystemTools::FileExists(tryPath.c_str()) &&
-         !SystemTools::FileIsDirectory(tryPath.c_str()))
-        {
-        return SystemTools::CollapseFullPath(tryPath.c_str());
-        }
+      return SystemTools::CollapseFullPath(tryPath.c_str());
       }
     }
   // now try just the name
@@ -2652,19 +2649,16 @@ kwsys_stl::string SystemTools::FindProgram(
     SystemTools::ReplaceString(*p, "\"", "");
 #endif
     // first try with extensions
-    if(extensions.size())
+    for(kwsys_stl::vector<kwsys_stl::string>::iterator ext
+          = extensions.begin(); ext != extensions.end(); ++ext)
       {
-      for(kwsys_stl::vector<kwsys_stl::string>::iterator ext
-            = extensions.begin(); ext != extensions.end(); ++ext)
+      tryPath = *p;
+      tryPath += name;
+      tryPath += *ext;
+      if(SystemTools::FileExists(tryPath.c_str()) &&
+          !SystemTools::FileIsDirectory(tryPath.c_str()))
         {
-        tryPath = *p;
-        tryPath += name;
-        tryPath += *ext;
-        if(SystemTools::FileExists(tryPath.c_str()) &&
-           !SystemTools::FileIsDirectory(tryPath.c_str()))
-          {
-          return SystemTools::CollapseFullPath(tryPath.c_str());
-          }
+        return SystemTools::CollapseFullPath(tryPath.c_str());
         }
       }
     // now try it without them
