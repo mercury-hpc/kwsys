@@ -178,7 +178,7 @@ bool CommandLineArguments::GetMatchedArguments(
       matches->push_back(parg);
       }
     }
-  return matches->size() > 0;
+  return !matches->empty();
 }
 
 //----------------------------------------------------------------------------

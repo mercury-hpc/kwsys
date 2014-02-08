@@ -627,7 +627,7 @@ bool SystemTools::MakeDirectory(const char* path)
     return SystemTools::FileIsDirectory(path);
     }
   kwsys_stl::string dir = path;
-  if(dir.size() == 0)
+  if(dir.empty())
     {
     return false;
     }
@@ -1262,7 +1262,7 @@ bool SystemTools::FileTimeCompare(const char* f1, const char* f2,
 kwsys_stl::string SystemTools::Capitalized(const kwsys_stl::string& s)
 {
   kwsys_stl::string n;
-  if(s.size() == 0)
+  if(s.empty())
     {
     return n;
     }
@@ -1322,7 +1322,7 @@ kwsys_stl::string SystemTools::AddSpaceBetweenCapitalizedWords(
   const kwsys_stl::string& s)
 {
   kwsys_stl::string n;
-  if (s.size())
+  if (!s.empty())
     {
     n.reserve(s.size());
     n += s[0];
@@ -3073,11 +3073,11 @@ void SystemTools::AddTranslationPath(const char * a, const char * b)
         == kwsys_stl::string::npos )
       {
       // Before inserting make sure path ends with '/'
-      if(path_a.size() && path_a[path_a.size() -1] != '/')
+      if(!path_a.empty() && path_a[path_a.size() -1] != '/')
         {
         path_a += '/';
         }
-      if(path_b.size() && path_b[path_b.size() -1] != '/')
+      if(!path_b.empty() && path_b[path_b.size() -1] != '/')
         {
         path_b += '/';
         }
@@ -3277,7 +3277,7 @@ kwsys_stl::string SystemTools::RelativePath(const char* local, const char* remot
   // path into the remote dir
   for(unsigned int i = 0; i < localSplit.size(); ++i)
     {
-    if(localSplit[i].size())
+    if(!localSplit[i].empty())
       {
       finalPath.push_back("../");
       }
@@ -3287,7 +3287,7 @@ kwsys_stl::string SystemTools::RelativePath(const char* local, const char* remot
   for(kwsys_stl::vector<String>::iterator vit = remoteSplit.begin();
       vit != remoteSplit.end(); ++vit)
     {
-    if(vit->size())
+    if(!vit->empty())
       {
       finalPath.push_back(*vit);
       }
@@ -3298,7 +3298,7 @@ kwsys_stl::string SystemTools::RelativePath(const char* local, const char* remot
   for(kwsys_stl::vector<String>::iterator vit1 = finalPath.begin();
       vit1 != finalPath.end(); ++vit1)
     {
-    if(relativePath.size() && relativePath[relativePath.size()-1] != '/')
+    if(!relativePath.empty() && relativePath[relativePath.size()-1] != '/')
       {
       relativePath += "/";
       }
@@ -3680,7 +3680,7 @@ kwsys_stl::string SystemTools::GetFilenamePath(const kwsys_stl::string& filename
       {
       return ret + '/';
       }
-    if(ret.size() == 0)
+    if(ret.empty())
       {
       return "/";
       }
@@ -3915,7 +3915,7 @@ bool SystemTools::LocateFileInDir(const char *filename,
   // Try to find the file in 'dir'
 
   bool res = false;
-  if (filename_base.size() && dir)
+  if (!filename_base.empty() && dir)
     {
     size_t dir_len = strlen(dir);
     int need_slash =
@@ -3949,10 +3949,10 @@ bool SystemTools::LocateFileInDir(const char *filename,
         filename_dir = SystemTools::GetFilenamePath(filename_dir);
         filename_dir_base = SystemTools::GetFilenameName(filename_dir);
 #if defined( _WIN32 )
-        if (!filename_dir_base.size() ||
+        if (filename_dir_base.empty() ||
             filename_dir_base[filename_dir_base.size() - 1] == ':')
 #else
-        if (!filename_dir_base.size())
+        if (filename_dir_base.empty())
 #endif
           {
           break;
@@ -3970,7 +3970,7 @@ bool SystemTools::LocateFileInDir(const char *filename,
         res = SystemTools::LocateFileInDir(
           filename_base.c_str(), temp.c_str(), filename_found, 0);
 
-        } while (!res && filename_dir_base.size());
+        } while (!res && !filename_dir_base.empty());
       }
     }
 
@@ -4073,7 +4073,7 @@ void SystemTools::SplitProgramFromArgs(const char* path,
   // may have spaces in its name so we have to look for it
   kwsys_stl::vector<kwsys_stl::string> e;
   kwsys_stl::string findProg = SystemTools::FindProgram(path, e);
-  if(findProg.size())
+  if(!findProg.empty())
     {
     program = findProg;
     args = "";
@@ -4103,7 +4103,7 @@ void SystemTools::SplitProgramFromArgs(const char* path,
       }
     // Now try and find the program in the path
     findProg = SystemTools::FindProgram(tryProg.c_str(), e);
-    if(findProg.size())
+    if(!findProg.empty())
       {
       program = findProg;
       // remove trailing spaces from program

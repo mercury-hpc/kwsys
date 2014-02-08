@@ -270,7 +270,7 @@ void Glob::RecurseDirectory(kwsys_stl::string::size_type start,
       }
     else
       {
-      if ( (this->Internals->Expressions.size() > 0) &&
+      if ( !this->Internals->Expressions.empty() &&
            this->Internals->Expressions[
              this->Internals->Expressions.size()-1].find(fname.c_str()) )
         {
@@ -440,7 +440,7 @@ bool Glob::FindFiles(const kwsys_stl::string& inexpr)
     int ch = expr[cc];
     if ( ch == '/' )
       {
-      if ( cexpr.size() > 0 )
+      if ( !cexpr.empty() )
         {
         this->AddExpression(cexpr.c_str());
         }
@@ -451,7 +451,7 @@ bool Glob::FindFiles(const kwsys_stl::string& inexpr)
       cexpr.append(1, static_cast<char>(ch));
       }
     }
-  if ( cexpr.size() > 0 )
+  if ( !cexpr.empty() )
     {
     this->AddExpression(cexpr.c_str());
     }
