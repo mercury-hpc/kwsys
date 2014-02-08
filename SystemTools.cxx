@@ -3970,30 +3970,30 @@ bool SystemTools::LocateFileInDir(const char *filename,
 
 bool SystemTools::FileIsFullPath(const char* in_name)
 {
-  kwsys_stl::string name = in_name;
+  size_t len = strlen(in_name);
 #if defined(_WIN32) || defined(__CYGWIN__)
   // On Windows, the name must be at least two characters long.
-  if(name.length() < 2)
+  if(len < 2)
     {
     return false;
     }
-  if(name[1] == ':')
+  if(in_name[1] == ':')
     {
     return true;
     }
-  if(name[0] == '\\')
+  if(in_name[0] == '\\')
     {
     return true;
     }
 #else
   // On UNIX, the name must be at least one character long.
-  if(name.length() < 1)
+  if(len < 1)
     {
     return false;
     }
 #endif
 #if !defined(_WIN32)
-  if(name[0] == '~')
+  if(in_name[0] == '~')
     {
     return true;
     }
@@ -4001,7 +4001,7 @@ bool SystemTools::FileIsFullPath(const char* in_name)
   // On UNIX, the name must begin in a '/'.
   // On Windows, if the name begins in a '/', then it is a full
   // network path.
-  if(name[0] == '/')
+  if(in_name[0] == '/')
     {
     return true;
     }
