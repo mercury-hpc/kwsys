@@ -3692,7 +3692,7 @@ kwsys_stl::string SystemTools::GetFilenameName(const kwsys_stl::string& filename
 #if defined(_WIN32)
   kwsys_stl::string::size_type slash_pos = filename.find_last_of("/\\");
 #else
-  kwsys_stl::string::size_type slash_pos = filename.find_last_of("/");
+  kwsys_stl::string::size_type slash_pos = filename.rfind('/');
 #endif
   if(slash_pos != kwsys_stl::string::npos)
     {
