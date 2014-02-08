@@ -465,7 +465,7 @@ public:
    * For windows return the short path for the given path,
    * Unix just a pass through
    */
-  static bool GetShortPath(const char* path, kwsys_stl::string& result);
+  static bool GetShortPath(const kwsys_stl::string& path, kwsys_stl::string& result);
   
   /**
    * Read line from file. Make sure to get everything. Due to a buggy stream

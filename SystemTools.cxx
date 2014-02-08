@@ -4008,22 +4008,22 @@ bool SystemTools::FileIsFullPath(const char* in_name)
   return false;
 }
 
-bool SystemTools::GetShortPath(const char* path, kwsys_stl::string& shortPath)
+bool SystemTools::GetShortPath(const kwsys_stl::string& path, kwsys_stl::string& shortPath)
 {
 #if defined(WIN32) && !defined(__CYGWIN__)
-  const int size = int(strlen(path)) +1; // size of return
+  const int size = int(path.size()) +1; // size of return
   char *tempPath = new char[size];  // create a buffer
   DWORD ret;
 
   // if the path passed in has quotes around it, first remove the quotes
-  if (path[0] == '"' && path[strlen(path)-1] == '"')
+  if (!path.empty() && path[0] == '"' && *path.rbegin() == '"')
     {
-    strcpy(tempPath,path+1);
-    tempPath[strlen(tempPath)-1] = '\0';
+    strcpy(tempPath,path.c_str()+1);
+    tempPath[size-2] = '\0';
     }
   else
     {
-    strcpy(tempPath,path);
+    strcpy(tempPath,path.c_str());
     }
 
   kwsys_stl::wstring wtempPath = Encoding::ToWide(tempPath);
