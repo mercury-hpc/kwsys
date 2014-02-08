@@ -441,7 +441,7 @@ bool Glob::FindFiles(const kwsys_stl::string& inexpr)
       {
       if ( !cexpr.empty() )
         {
-        this->AddExpression(cexpr.c_str());
+        this->AddExpression(cexpr);
         }
       cexpr = "";
       }
@@ -452,7 +452,7 @@ bool Glob::FindFiles(const kwsys_stl::string& inexpr)
     }
   if ( !cexpr.empty() )
     {
-    this->AddExpression(cexpr.c_str());
+    this->AddExpression(cexpr);
     }
 
   // Handle network paths
@@ -468,11 +468,11 @@ bool Glob::FindFiles(const kwsys_stl::string& inexpr)
 }
 
 //----------------------------------------------------------------------------
-void Glob::AddExpression(const char* expr)
+void Glob::AddExpression(const kwsys_stl::string& expr)
 {
   this->Internals->Expressions.push_back(
     kwsys::RegularExpression(
-      this->PatternToRegex(expr).c_str()));
+      this->PatternToRegex(expr)));
 }
 
 //----------------------------------------------------------------------------
