@@ -3307,7 +3307,7 @@ static int GetCasePathName(const kwsys_stl::string & pathIn,
                             kwsys_stl::string & casePath)
 {
   kwsys_stl::vector<kwsys_stl::string> path_components;
-  SystemTools::SplitPath(pathIn.c_str(), path_components);
+  SystemTools::SplitPath(pathIn, path_components);
   if(path_components[0].empty()) // First component always exists.
     {
     // Relative paths cannot be converted.
@@ -3389,11 +3389,11 @@ kwsys_stl::string SystemTools::GetActualCaseForPath(const char* p)
 }
 
 //----------------------------------------------------------------------------
-const char* SystemTools::SplitPathRootComponent(const char* p,
+const char* SystemTools::SplitPathRootComponent(const std::string& p,
                                                 kwsys_stl::string* root)
 {
   // Identify the root component.
-  const char* c = p;
+  const char* c = p.c_str();
   if((c[0] == '/' && c[1] == '/') || (c[0] == '\\' && c[1] == '\\'))
     {
     // Network path.
@@ -3475,17 +3475,17 @@ const char* SystemTools::SplitPathRootComponent(const char* p,
 }
 
 //----------------------------------------------------------------------------
-void SystemTools::SplitPath(const char* p,
+void SystemTools::SplitPath(const std::string& p,
                             kwsys_stl::vector<kwsys_stl::string>& components,
                             bool expand_home_dir)
 {
-  const char* c = p;
+  const char* c;
   components.clear();
 
   // Identify the root component.
   {
   kwsys_stl::string root;
-  c = SystemTools::SplitPathRootComponent(c, &root);
+  c = SystemTools::SplitPathRootComponent(p, &root);
 
   // Expand home directory references if requested.
   if(expand_home_dir && !root.empty() && root[0] == '~')
@@ -3520,7 +3520,7 @@ void SystemTools::SplitPath(const char* p,
       {
       homedir.resize(homedir.size() - 1);
       }
-    SystemTools::SplitPath(homedir.c_str(), components);
+    SystemTools::SplitPath(homedir, components);
     }
   else
     {

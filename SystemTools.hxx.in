@@ -383,7 +383,7 @@ public:
    * returned.  The root component is stored in the "root" string if
    * given.
    */
-  static const char* SplitPathRootComponent(const char* p,
+  static const char* SplitPathRootComponent(const std::string& p,
                                             kwsys_stl::string* root=0);
 
   /**
@@ -396,7 +396,7 @@ public:
    * automatically expanded if expand_home_dir is true and this
    * platform supports them.
    */
-  static void SplitPath(const char* p,
+  static void SplitPath(const std::string& p,
                         kwsys_stl::vector<kwsys_stl::string>& components,
                         bool expand_home_dir = true);
 
