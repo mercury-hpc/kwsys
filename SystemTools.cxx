@@ -3130,17 +3130,19 @@ SystemToolsAppendComponents(
   kwsys_stl::vector<kwsys_stl::string>::const_iterator first,
   kwsys_stl::vector<kwsys_stl::string>::const_iterator last)
 {
+  static const kwsys_stl::string up = "..";
+  static const kwsys_stl::string cur = ".";
   for(kwsys_stl::vector<kwsys_stl::string>::const_iterator i = first;
       i != last; ++i)
     {
-    if(*i == "..")
+    if(*i == up)
       {
       if(out_components.size() > 1)
         {
-        out_components.erase(out_components.end()-1, out_components.end());
+        out_components.resize(out_components.size()-1);
         }
       }
-    else if(!(*i == ".") && !(*i == ""))
+    else if(!i->empty() && *i != cur)
       {
       out_components.push_back(*i);
       }
