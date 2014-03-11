@@ -413,7 +413,7 @@ public:
   /**
    * Compare a path or components of a path.
    */
-  static bool ComparePath(const char* c1, const char* c2);
+  static bool ComparePath(const kwsys_stl::string& c1, const kwsys_stl::string& c2);
 
 
   /**

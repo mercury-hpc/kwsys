@@ -3586,18 +3586,18 @@ SystemTools
 }
 
 //----------------------------------------------------------------------------
-bool SystemTools::ComparePath(const char* c1, const char* c2)
+bool SystemTools::ComparePath(const kwsys_stl::string& c1, const kwsys_stl::string& c2)
 {
 #if defined(_WIN32) || defined(__APPLE__)
 # ifdef _MSC_VER
-  return _stricmp(c1, c2) == 0;
+  return _stricmp(c1.c_str(), c2.c_str()) == 0;
 # elif defined(__APPLE__) || defined(__GNUC__)
-  return strcasecmp(c1, c2) == 0;
+  return strcasecmp(c1.c_str(), c2.c_str()) == 0;
 #else
-  return SystemTools::Strucmp(c1, c2) == 0;
+  return SystemTools::Strucmp(c1.c_str(), c2.c_str()) == 0;
 # endif
 #else
-  return strcmp(c1, c2) == 0;
+  return c1 == c2;
 #endif
 }
 
@@ -4348,7 +4348,7 @@ bool SystemTools::IsSubDirectory(const char* cSubdir, const char* cDir)
   if(subdir.size() > dir.size() && subdir[dir.size()] == '/')
     {
     std::string s = subdir.substr(0, dir.size());
-    return SystemTools::ComparePath(s.c_str(), dir.c_str());
+    return SystemTools::ComparePath(s, dir);
     }
   return false;
 }
