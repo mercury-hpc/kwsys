@@ -3563,6 +3563,13 @@ SystemTools
 {
   // Construct result in a single string.
   kwsys_stl::string result;
+  size_t len = 0;
+  kwsys_stl::vector<kwsys_stl::string>::const_iterator i;
+  for(i = first; i != last; ++i)
+    {
+    len += 1 + i->size();
+    }
+  result.reserve(len);
 
   // The first two components do not add a slash.
   if(first != last)
