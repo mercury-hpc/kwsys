@@ -357,8 +357,8 @@ public:
    * (which defaults to the current working directory).  The full path
    * is returned.
    */
-  static kwsys_stl::string CollapseFullPath(const char* in_relative);
-  static kwsys_stl::string CollapseFullPath(const char* in_relative,
+  static kwsys_stl::string CollapseFullPath(const kwsys_stl::string& in_relative);
+  static kwsys_stl::string CollapseFullPath(const kwsys_stl::string& in_relative,
                                             const char* in_base);
 
   /** 
