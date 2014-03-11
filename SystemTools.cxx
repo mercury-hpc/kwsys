@@ -3085,7 +3085,7 @@ void SystemTools::AddTranslationPath(const kwsys_stl::string& a, const kwsys_stl
     }
 }
 
-void SystemTools::AddKeepPath(const char* dir)
+void SystemTools::AddKeepPath(const kwsys_stl::string& dir)
 {
   kwsys_stl::string cdir;
   Realpath(SystemTools::CollapseFullPath(dir).c_str(), cdir);

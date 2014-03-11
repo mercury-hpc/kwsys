@@ -812,7 +812,7 @@ public:
    * If dir is different after CollapseFullPath is called,
    * Then insert it into the path translation table
    */
-  static void AddKeepPath(const char* dir);
+  static void AddKeepPath(const kwsys_stl::string& dir);
 
   /**
    * Update path by going through the Path Translation table;
