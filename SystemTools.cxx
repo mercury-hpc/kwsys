@@ -4335,9 +4335,9 @@ kwsys_stl::string SystemTools::GetParentDirectory(const char* fileOrDir)
   return SystemTools::GetFilenamePath(fileOrDir);
 }
 
-bool SystemTools::IsSubDirectory(const char* cSubdir, const char* cDir)
+bool SystemTools::IsSubDirectory(const kwsys_stl::string& cSubdir, const kwsys_stl::string& cDir)
 {
-  if(!*cDir)
+  if(cDir.empty())
     {
     return false;
     }
