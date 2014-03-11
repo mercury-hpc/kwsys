@@ -806,7 +806,7 @@ public:
   /**
    * Add an entry in the path translation table.
    */
-  static void AddTranslationPath(const char * dir, const char * refdir);
+  static void AddTranslationPath(const kwsys_stl::string& dir, const kwsys_stl::string& refdir);
 
   /**
    * If dir is different after CollapseFullPath is called,

@@ -3051,7 +3051,7 @@ kwsys_stl::string SystemTools::CollapseFullPath(const char* in_relative)
   return SystemTools::CollapseFullPath(in_relative, 0);
 }
 
-void SystemTools::AddTranslationPath(const char * a, const char * b)
+void SystemTools::AddTranslationPath(const kwsys_stl::string& a, const kwsys_stl::string& b)
 {
   kwsys_stl::string path_a = a;
   kwsys_stl::string path_b = b;
@@ -3089,7 +3089,7 @@ void SystemTools::AddKeepPath(const char* dir)
 {
   kwsys_stl::string cdir;
   Realpath(SystemTools::CollapseFullPath(dir).c_str(), cdir);
-  SystemTools::AddTranslationPath(cdir.c_str(), dir);
+  SystemTools::AddTranslationPath(cdir, dir);
 }
 
 void SystemTools::CheckTranslationPath(kwsys_stl::string & path)
@@ -3207,7 +3207,7 @@ kwsys_stl::string SystemTools::CollapseFullPath(const char* in_path,
   // collapsed, so I am going to try to comment it out, and see what hits the
   // fan, hopefully quickly.
   // Commented out line below:
-  //SystemTools::AddTranslationPath(newPath.c_str(), in_path);
+  //SystemTools::AddTranslationPath(newPath, in_path);
 
   SystemTools::CheckTranslationPath(newPath);
 #ifdef _WIN32
@@ -4917,8 +4917,8 @@ void SystemTools::ClassInitialize()
       // Add the translation to keep the logical path name.
       if(!cwd_changed.empty() && !pwd_changed.empty())
         {
-        SystemTools::AddTranslationPath(cwd_changed.c_str(),
-                                        pwd_changed.c_str());
+        SystemTools::AddTranslationPath(cwd_changed,
+                                        pwd_changed);
         }
       }
     }
