@@ -5023,12 +5023,15 @@ bool SystemInformationImplementation::QueryHPUXProcessor()
     case CPU_PA_RISC1_0:
       this->ChipID.Vendor = "Hewlett-Packard";
       this->ChipID.Family = 0x100;
+      break;
     case CPU_PA_RISC1_1:
       this->ChipID.Vendor = "Hewlett-Packard";
       this->ChipID.Family = 0x110;
+      break;
     case CPU_PA_RISC2_0:
       this->ChipID.Vendor = "Hewlett-Packard";
       this->ChipID.Family = 0x200;
+      break;
 #  ifdef CPU_HP_INTEL_EM_1_0
     case CPU_HP_INTEL_EM_1_0:
 #  endif
