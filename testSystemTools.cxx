@@ -98,31 +98,35 @@ static bool CheckEscapeChars(kwsys_stl::string input,
 static bool CheckFileOperations()
 {
   bool res = true;
+  const kwsys_stl::string testBinFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+    "/testSystemTools.bin");
+  const kwsys_stl::string testTxtFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+    "/testSystemTools.cxx");
 
-  if (kwsys::SystemTools::DetectFileType(TEST_SYSTEMTOOLS_BIN_FILE) !=
+  if (kwsys::SystemTools::DetectFileType(testBinFile.c_str()) !=
       kwsys::SystemTools::FileTypeBinary)
     {
     kwsys_ios::cerr
       << "Problem with DetectFileType - failed to detect type of: "
-      << TEST_SYSTEMTOOLS_BIN_FILE << kwsys_ios::endl;
+      << testBinFile << kwsys_ios::endl;
     res = false;
     }
 
-  if (kwsys::SystemTools::DetectFileType(TEST_SYSTEMTOOLS_SRC_FILE) !=
+  if (kwsys::SystemTools::DetectFileType(testTxtFile.c_str()) !=
       kwsys::SystemTools::FileTypeText)
     {
     kwsys_ios::cerr
       << "Problem with DetectFileType - failed to detect type of: "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << testTxtFile << kwsys_ios::endl;
     res = false;
     }
-  
-  if (kwsys::SystemTools::FileLength(TEST_SYSTEMTOOLS_BIN_FILE) != 766)
+
+  if (kwsys::SystemTools::FileLength(testBinFile.c_str()) != 766)
     {
     kwsys_ios::cerr
       << "Problem with FileLength - incorrect length for: "
-      << TEST_SYSTEMTOOLS_BIN_FILE << kwsys_ios::endl;
-    res = false;    
+      << testBinFile << kwsys_ios::endl;
+    res = false;
     }
 
   return res;
@@ -138,7 +142,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with CapitalizedWords "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << '"' << test << '"' << kwsys_ios::endl;
     res = false;    
     }
 
@@ -148,7 +152,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with UnCapitalizedWords "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << '"' << test << '"' << kwsys_ios::endl;
     res = false;    
     }
 
@@ -158,7 +162,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with AddSpaceBetweenCapitalizedWords "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << '"' << test << '"' << kwsys_ios::endl;
     res = false;    
     }
 
@@ -168,7 +172,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with AppendStrings "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A\" \" Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
   delete [] cres;
@@ -179,7 +183,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with AppendStrings "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had\" \" A \" \"Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
   delete [] cres;
@@ -188,7 +192,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with CountChar "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
 
@@ -198,7 +202,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with RemoveChars "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
   delete [] cres;
@@ -209,7 +213,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with RemoveCharsButUpperHex "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
   delete [] cres;
@@ -221,7 +225,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with ReplaceChars "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
   delete [] cres2;
@@ -231,7 +235,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with StringStartsWith "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
 
@@ -240,7 +244,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with StringEndsWith "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
 
@@ -249,7 +253,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with DuplicateString "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
   delete [] cres;
@@ -260,7 +264,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with CropString "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;    
     }
 
@@ -271,8 +275,8 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with Split "
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
-    res = false;    
+      << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
+    res = false;
     }
 
   if (kwsys::SystemTools::ConvertToWindowsOutputPath
@@ -281,6 +285,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with ConvertToWindowsOutputPath "
+      << "\"L://Local Mojo/Hex Power Pack/Iffy Voodoo\""
       << kwsys_ios::endl;
     res = false;    
     }
@@ -291,6 +296,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with ConvertToWindowsOutputPath "
+      << "\"//grayson/Local Mojo/Hex Power Pack/Iffy Voodoo\""
       << kwsys_ios::endl;
     res = false;    
     }
@@ -301,6 +307,7 @@ static bool CheckStringOperations()
     {
     kwsys_ios::cerr
       << "Problem with ConvertToUnixOutputPath "
+      << "\"//Local Mojo/Hex Power Pack/Iffy Voodoo\""
       << kwsys_ios::endl;
     res = false;    
     }
@@ -308,14 +315,17 @@ static bool CheckStringOperations()
   int targc;
   char **targv;
   kwsys::SystemTools::ConvertWindowsCommandLineToUnixArguments
-    ("\"Local Mojo\\Voodoo.asp\" -CastHex \"D:\\My Secret Mojo\\Voodoo.mp3\"", &targc, &targv);
+    ("\"Local Mojo\\Voodoo.asp\" -CastHex \"D:\\My Secret Mojo\\Voodoo.mp3\"",
+    &targc, &targv);
   if (targc != 4 || strcmp(targv[1],"Local Mojo\\Voodoo.asp") ||
       strcmp(targv[2],"-CastHex") || 
       strcmp(targv[3],"D:\\My Secret Mojo\\Voodoo.mp3"))
     {
     kwsys_ios::cerr
       << "Problem with ConvertWindowsCommandLineToUnixArguments"
-      << TEST_SYSTEMTOOLS_SRC_FILE << kwsys_ios::endl;
+      << "\'\"Local Mojo\\Voodoo.asp\" "
+      << "-CastHex \"D:\\My Secret Mojo\\Voodoo.mp3\"\'"
+      << kwsys_ios::endl;
     res = false;    
     }
   for (;targc >=0; --targc)
