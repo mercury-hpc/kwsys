@@ -102,6 +102,9 @@ static bool CheckFileOperations()
     "/testSystemTools.bin");
   const kwsys_stl::string testTxtFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemTools.cxx");
+  const kwsys_stl::string testNewDir(TEST_SYSTEMTOOLS_BINARY_DIR
+    "/testSystemToolsNewDir");
+  const kwsys_stl::string testNewFile(testNewDir + "/testNewFile.txt");
 
   if (kwsys::SystemTools::DetectFileType(testBinFile.c_str()) !=
       kwsys::SystemTools::FileTypeBinary)
@@ -128,6 +131,91 @@ static bool CheckFileOperations()
       << testBinFile << kwsys_ios::endl;
     res = false;
     }
+
+  if (!kwsys::SystemTools::MakeDirectory(testNewDir.c_str()))
+    {
+    kwsys_ios::cerr
+      << "Problem with MakeDirectory for: "
+      << testNewDir << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::Touch(testNewFile.c_str(), true))
+    {
+    kwsys_ios::cerr
+      << "Problem with Touch for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::RemoveFile(testNewFile.c_str()))
+    {
+    kwsys_ios::cerr
+      << "Problem with RemoveFile: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  kwsys::SystemTools::Touch(testNewFile.c_str(), true);
+  if (!kwsys::SystemTools::RemoveADirectory(testNewDir.c_str()))
+    {
+    kwsys_ios::cerr
+      << "Problem with RemoveADirectory for: "
+      << testNewDir << kwsys_ios::endl;
+    res = false;
+    }
+
+#ifdef KWSYS_TEST_SYSTEMTOOLS_LONG_PATHS
+  // Perform the same file and directory creation and deletion tests but
+  // with paths > 256 characters in length.
+
+  const kwsys_stl::string testNewLongDir(
+    TEST_SYSTEMTOOLS_BINARY_DIR "/"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "01234567890123");
+  const kwsys_stl::string testNewLongFile(testNewLongDir + "/"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "012345678901234567890123456789012345678901234567890123456789"
+    "0123456789.txt");
+
+  if (!kwsys::SystemTools::MakeDirectory(testNewLongDir.c_str()))
+    {
+    kwsys_ios::cerr
+      << "Problem with MakeDirectory for: "
+      << testNewLongDir << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::Touch(testNewLongFile.c_str(), true))
+    {
+    kwsys_ios::cerr
+      << "Problem with Touch for: "
+      << testNewLongFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::RemoveFile(testNewLongFile.c_str()))
+    {
+    kwsys_ios::cerr
+      << "Problem with RemoveFile: "
+      << testNewLongFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  kwsys::SystemTools::Touch(testNewLongFile.c_str(), true);
+  if (!kwsys::SystemTools::RemoveADirectory(testNewLongDir.c_str()))
+    {
+    kwsys_ios::cerr
+      << "Problem with RemoveADirectory for: "
+      << testNewLongDir << kwsys_ios::endl;
+    res = false;
+    }
+#endif
 
   return res;
 }
@@ -278,6 +366,113 @@ static bool CheckStringOperations()
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
     res = false;
     }
+
+#ifdef _WIN32
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath
+      ("L:\\Local Mojo\\Hex Power Pack\\Iffy Voodoo") !=
+      L"\\\\?\\L:\\Local Mojo\\Hex Power Pack\\Iffy Voodoo")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"L:\\Local Mojo\\Hex Power Pack\\Iffy Voodoo\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath
+      ("L:/Local Mojo/Hex Power Pack/Iffy Voodoo") !=
+      L"\\\\?\\L:\\Local Mojo\\Hex Power Pack\\Iffy Voodoo")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"L:/Local Mojo/Hex Power Pack/Iffy Voodoo\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath
+      ("\\\\Foo\\Local Mojo\\Hex Power Pack\\Iffy Voodoo") !=
+      L"\\\\?\\UNC\\Foo\\Local Mojo\\Hex Power Pack\\Iffy Voodoo")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"\\\\Foo\\Local Mojo\\Hex Power Pack\\Iffy Voodoo\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath
+      ("//Foo/Local Mojo/Hex Power Pack/Iffy Voodoo") !=
+      L"\\\\?\\UNC\\Foo\\Local Mojo\\Hex Power Pack\\Iffy Voodoo")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"//Foo/Local Mojo/Hex Power Pack/Iffy Voodoo\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath("//") !=
+      L"//")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"//\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath("\\\\.\\") !=
+      L"\\\\.\\")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"\\\\.\\\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath("\\\\.\\X") !=
+      L"\\\\.\\X")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"\\\\.\\X\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath("\\\\.\\X:") !=
+      L"\\\\?\\X:")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"\\\\.\\X:\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath("\\\\.\\X:\\") !=
+      L"\\\\?\\X:\\")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"\\\\.\\X:\\\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::ConvertToWindowsExtendedPath("NUL") !=
+      L"\\\\.\\NUL")
+    {
+    kwsys_ios::cerr
+      << "Problem with ConvertToWindowsExtendedPath "
+      << "\"NUL\""
+      << kwsys_ios::endl;
+    res = false;
+    }
+
+#endif
 
   if (kwsys::SystemTools::ConvertToWindowsOutputPath
       ("L://Local Mojo/Hex Power Pack/Iffy Voodoo") != 

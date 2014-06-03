@@ -193,11 +193,13 @@ static inline char *realpath(const char *path, char *resolved_path)
 
 inline int Mkdir(const char* dir)
 {
-  return _wmkdir(KWSYS_NAMESPACE::Encoding::ToWide(dir).c_str());
+  return _wmkdir(
+    KWSYS_NAMESPACE::SystemTools::ConvertToWindowsExtendedPath(dir).c_str());
 }
 inline int Rmdir(const char* dir)
 {
-  return _wrmdir(KWSYS_NAMESPACE::Encoding::ToWide(dir).c_str());
+  return _wrmdir(
+    KWSYS_NAMESPACE::SystemTools::ConvertToWindowsExtendedPath(dir).c_str());
 }
 inline const char* Getcwd(char* buf, unsigned int len)
 {
@@ -609,7 +611,7 @@ const char* SystemTools::GetExecutableExtension()
 FILE* SystemTools::Fopen(const char* file, const char* mode)
 {
 #ifdef _WIN32
-  return _wfopen(Encoding::ToWide(file).c_str(),
+  return _wfopen(SystemTools::ConvertToWindowsExtendedPath(file).c_str(),
                  Encoding::ToWide(mode).c_str());
 #else
   return fopen(file, mode);
@@ -1081,7 +1083,8 @@ bool SystemTools::FileExists(const char* filename)
     }
   return access(filename, R_OK) == 0;
 #elif defined(_WIN32)
-  return (GetFileAttributesW(Encoding::ToWide(filename).c_str())
+  return (GetFileAttributesW(
+            SystemTools::ConvertToWindowsExtendedPath(filename).c_str())
           != INVALID_FILE_ATTRIBUTES);
 #else
   return access(filename, R_OK) == 0;
@@ -1137,10 +1140,11 @@ bool SystemTools::Touch(const char* filename, bool create)
     return false;
     }
 #if defined(_WIN32) && !defined(__CYGWIN__)
-  HANDLE h = CreateFileW(Encoding::ToWide(filename).c_str(),
-                        FILE_WRITE_ATTRIBUTES,
-                        FILE_SHARE_WRITE, 0, OPEN_EXISTING,
-                        FILE_FLAG_BACKUP_SEMANTICS, 0);
+  HANDLE h = CreateFileW(
+    SystemTools::ConvertToWindowsExtendedPath(filename).c_str(),
+    FILE_WRITE_ATTRIBUTES,
+    FILE_SHARE_WRITE, 0, OPEN_EXISTING,
+    FILE_FLAG_BACKUP_SEMANTICS, 0);
   if(!h)
     {
     return false;
@@ -1242,13 +1246,15 @@ bool SystemTools::FileTimeCompare(const char* f1, const char* f2,
   // Windows version.  Get the modification time from extended file attributes.
   WIN32_FILE_ATTRIBUTE_DATA f1d;
   WIN32_FILE_ATTRIBUTE_DATA f2d;
-  if(!GetFileAttributesExW(Encoding::ToWide(f1).c_str(),
-                           GetFileExInfoStandard, &f1d))
+  if(!GetFileAttributesExW(
+       SystemTools::ConvertToWindowsExtendedPath(f1).c_str(),
+       GetFileExInfoStandard, &f1d))
     {
     return false;
     }
-  if(!GetFileAttributesExW(Encoding::ToWide(f2).c_str(),
-                           GetFileExInfoStandard, &f2d))
+  if(!GetFileAttributesExW(
+       SystemTools::ConvertToWindowsExtendedPath(f2).c_str(),
+       GetFileExInfoStandard, &f2d))
     {
     return false;
     }
@@ -1830,6 +1836,71 @@ void SystemTools::ConvertToUnixSlashes(kwsys_stl::string& path)
     }
 }
 
+#ifdef _WIN32
+// Convert local paths to UNC style paths
+kwsys_stl::wstring
+SystemTools::ConvertToWindowsExtendedPath(const kwsys_stl::string &source)
+{
+  kwsys_stl::wstring wsource = Encoding::ToWide(source);
+
+  // Resolve any relative paths
+  DWORD wfull_len;
+
+  /* The +3 is a workaround for a bug in some versions of GetFullPathNameW that
+   * won't return a large enough buffer size if the input is too small */
+  wfull_len = GetFullPathNameW(wsource.c_str(), 0, NULL, NULL) + 3;
+  kwsys_stl::vector<wchar_t> wfull(wfull_len);
+  GetFullPathNameW(wsource.c_str(), wfull_len, &wfull[0], NULL);
+
+  /* This should get the correct size without any extra padding from the
+   * previous size workaround. */
+  wfull_len = static_cast<DWORD>(wcslen(&wfull[0]));
+
+  if(wfull_len >= 2 && isalpha(wfull[0]) && wfull[1] == L':')
+    { /* C:\Foo\bar\FooBar.txt */
+    return L"\\\\?\\" + kwsys_stl::wstring(&wfull[0]);
+    }
+  else if(wfull_len >= 2 && wfull[0] == L'\\' && wfull[1] == L'\\')
+    { /* Starts with \\ */
+    if(wfull_len >= 4 && wfull[2] == L'?' && wfull[3] == L'\\')
+      { /* Starts with \\?\ */
+      if(wfull_len >= 8 && wfull[4] == L'U' && wfull[5] == L'N' &&
+                           wfull[6] == L'C' && wfull[7] == L'\\')
+        { /* \\?\UNC\Foo\bar\FooBar.txt */
+        return kwsys_stl::wstring(&wfull[0]);
+        }
+      else if(wfull_len >= 6 && isalpha(wfull[4]) && wfull[5] == L':')
+        { /* \\?\C:\Foo\bar\FooBar.txt */
+        return kwsys_stl::wstring(&wfull[0]);
+        }
+      else if(wfull_len >= 5)
+        { /* \\?\Foo\bar\FooBar.txt */
+        return L"\\\\?\\UNC\\" + kwsys_stl::wstring(&wfull[4]);
+        }
+      }
+    else if(wfull_len >= 4 && wfull[2] == L'.' && wfull[3] == L'\\')
+      { /* Starts with \\.\ a device name */
+      if(wfull_len >= 6 && isalpha(wfull[4]) && wfull[5] == L':')
+        { /* \\.\C:\Foo\bar\FooBar.txt */
+        return L"\\\\?\\" + kwsys_stl::wstring(&wfull[4]);
+        }
+      else if(wfull_len >= 5)
+        { /* \\.\Foo\bar\ Device name is left unchanged */
+        return kwsys_stl::wstring(&wfull[0]);
+        }
+      }
+    else if(wfull_len >= 3)
+      { /* \\Foo\bar\FooBar.txt */
+      return L"\\\\?\\UNC\\" + kwsys_stl::wstring(&wfull[2]);
+      }
+    }
+
+  // If this case has been reached, then the path is invalid.  Leave it
+  // unchanged
+  return Encoding::ToWide(source);
+}
+#endif
+
 // change // to /, and escape any spaces in the path
 kwsys_stl::string SystemTools::ConvertToUnixOutputPath(const char* path)
 {
@@ -1960,17 +2031,19 @@ bool SystemTools::FilesDiffer(const char* source,
 
 #if defined(_WIN32)
   WIN32_FILE_ATTRIBUTE_DATA statSource;
-  if (GetFileAttributesExW(Encoding::ToWide(source).c_str(),
-                           GetFileExInfoStandard,
-                           &statSource) == 0)
+  if (GetFileAttributesExW(
+        SystemTools::ConvertToWindowsExtendedPath(source).c_str(),
+        GetFileExInfoStandard,
+        &statSource) == 0)
     {
     return true;
     }
 
   WIN32_FILE_ATTRIBUTE_DATA statDestination;
-  if (GetFileAttributesExW(Encoding::ToWide(destination).c_str(),
-                           GetFileExInfoStandard,
-                           &statDestination) == 0)
+  if (GetFileAttributesExW(
+        SystemTools::ConvertToWindowsExtendedPath(destination).c_str(),
+        GetFileExInfoStandard,
+        &statDestination) == 0)
     {
     return true;
     }
@@ -2191,7 +2264,12 @@ bool SystemTools::CopyADirectory(const char* source, const char* destination,
                                  bool always)
 {
   Directory dir;
+#ifdef _WIN32
+  dir.Load(Encoding::ToNarrow(
+             SystemTools::ConvertToWindowsExtendedPath(source)).c_str());
+#else
   dir.Load(source);
+#endif
   size_t fileNum;
   if ( !SystemTools::MakeDirectory(destination) )
     {
@@ -2234,14 +2312,27 @@ bool SystemTools::CopyADirectory(const char* source, const char* destination,
 // return size of file; also returns zero if no file exists
 unsigned long SystemTools::FileLength(const char* filename)
 {
-  struct stat fs;
-  if (stat(filename, &fs) != 0)
+#ifdef _WIN32
+  WIN32_FILE_ATTRIBUTE_DATA fs;
+  if (GetFileAttributesExW(
+        SystemTools::ConvertToWindowsExtendedPath(filename).c_str(),
+        GetFileExInfoStandard, &fs) == TRUE)
     {
-      return 0;
+    /* To support the full 64-bit file size, use fs.nFileSizeHigh
+     * and fs.nFileSizeLow to construct the 64 bit size
+     */
+    return static_cast<unsigned long>(fs.nFileSizeLow);
     }
+#else
+  struct stat fs;
+  if (stat(filename, &fs) == 0)
+    {
+    return static_cast<unsigned long>(fs.st_size);
+    }
+#endif
   else
     {
-      return static_cast<unsigned long>(fs.st_size);
+    return 0;
     }
 }
 
@@ -2406,7 +2497,8 @@ bool SystemTools::RemoveFile(const char* source)
   SystemTools::SetPermissions(source, S_IWRITE);
 #endif
 #ifdef _WIN32
-  bool res = _wunlink(Encoding::ToWide(source).c_str()) != 0 ? false : true;
+  bool res =
+    _wunlink(SystemTools::ConvertToWindowsExtendedPath(source).c_str()) == 0;
 #else
   bool res = unlink(source) != 0 ? false : true;
 #endif
@@ -2435,7 +2527,12 @@ bool SystemTools::RemoveADirectory(const char* source)
     }
 
   Directory dir;
+#ifdef _WIN32
+  dir.Load(Encoding::ToNarrow(
+             SystemTools::ConvertToWindowsExtendedPath(source)).c_str());
+#else
   dir.Load(source);
+#endif
   size_t fileNum;
   for (fileNum = 0; fileNum <  dir.GetNumberOfFiles(); ++fileNum)
     {
@@ -2849,7 +2946,8 @@ bool SystemTools::FileIsDirectory(const char* name)
 
   // Now check the file node type.
 #if defined( _WIN32 )
-  DWORD attr = GetFileAttributesW(Encoding::ToWide(name).c_str());
+  DWORD attr = GetFileAttributesW(
+    SystemTools::ConvertToWindowsExtendedPath(name).c_str());
   if (attr != INVALID_FILE_ATTRIBUTES)
     {
     return (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
@@ -4041,7 +4139,7 @@ bool SystemTools::GetShortPath(const kwsys_stl::string& path, kwsys_stl::string&
   kwsys_stl::wstring wtempPath = Encoding::ToWide(tempPath);
   kwsys_stl::vector<wchar_t> buffer(wtempPath.size()+1);
   buffer[0] = 0;
-  ret = GetShortPathNameW(Encoding::ToWide(tempPath).c_str(),
+  ret = GetShortPathNameW(wtempPath.c_str(),
     &buffer[0], static_cast<DWORD>(wtempPath.size()));
 
   if(buffer[0] == 0 || ret > wtempPath.size())
@@ -4279,7 +4377,8 @@ bool SystemTools::GetPermissions(const char* file, mode_t& mode)
     }
 
 #if defined(_WIN32)
-  DWORD attr = GetFileAttributesW(Encoding::ToWide(file).c_str());
+  DWORD attr = GetFileAttributesW(
+    SystemTools::ConvertToWindowsExtendedPath(file).c_str());
   if(attr == INVALID_FILE_ATTRIBUTES)
     {
     return false;
@@ -4331,7 +4430,8 @@ bool SystemTools::SetPermissions(const char* file, mode_t mode)
     return false;
     }
 #ifdef _WIN32
-  if ( _wchmod(Encoding::ToWide(file).c_str(), mode) < 0 )
+  if ( _wchmod(SystemTools::ConvertToWindowsExtendedPath(file).c_str(),
+               mode) < 0 )
 #else
   if ( chmod(file, mode) < 0 )
 #endif
