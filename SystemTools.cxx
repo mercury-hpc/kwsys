@@ -187,6 +187,21 @@ static inline char *realpath(const char *path, char *resolved_path)
 }
 #endif
 
+#ifdef _WIN32
+static time_t windows_filetime_to_posix_time(const FILETIME& ft)
+{
+  LARGE_INTEGER date;
+  date.HighPart = ft.dwHighDateTime;
+  date.LowPart = ft.dwLowDateTime;
+
+  // removes the diff between 1970 and 1601
+  date.QuadPart -= ((LONGLONG)(369 * 365 + 89) * 24 * 3600 * 10000000);
+
+  // converts back from 100-nanoseconds to seconds
+  return date.QuadPart / 10000000;
+}
+#endif
+
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__MINGW32__))
 
 #include <wctype.h>
@@ -2312,28 +2327,28 @@ bool SystemTools::CopyADirectory(const char* source, const char* destination,
 // return size of file; also returns zero if no file exists
 unsigned long SystemTools::FileLength(const char* filename)
 {
+  unsigned long length = 0;
 #ifdef _WIN32
   WIN32_FILE_ATTRIBUTE_DATA fs;
   if (GetFileAttributesExW(
         SystemTools::ConvertToWindowsExtendedPath(filename).c_str(),
-        GetFileExInfoStandard, &fs) == TRUE)
+        GetFileExInfoStandard, &fs) != 0)
     {
     /* To support the full 64-bit file size, use fs.nFileSizeHigh
      * and fs.nFileSizeLow to construct the 64 bit size
+
+    length = ((__int64)fs.nFileSizeHigh << 32) + fs.nFileSizeLow;
      */
-    return static_cast<unsigned long>(fs.nFileSizeLow);
+    length = static_cast<unsigned long>(fs.nFileSizeLow);
     }
 #else
   struct stat fs;
   if (stat(filename, &fs) == 0)
     {
-    return static_cast<unsigned long>(fs.st_size);
+    length = static_cast<unsigned long>(fs.st_size);
     }
 #endif
-  else
-    {
-    return 0;
-    }
+  return length;
 }
 
 int SystemTools::Strucmp(const char *s1, const char *s2)
@@ -2352,29 +2367,47 @@ int SystemTools::Strucmp(const char *s1, const char *s2)
 // return file's modified time
 long int SystemTools::ModifiedTime(const char* filename)
 {
+  long int mt = 0;
+#ifdef _WIN32
+  WIN32_FILE_ATTRIBUTE_DATA fs;
+  if (GetFileAttributesExW(
+        SystemTools::ConvertToWindowsExtendedPath(filename).c_str(),
+                           GetFileExInfoStandard,
+                           &fs) != 0)
+    {
+    mt = windows_filetime_to_posix_time(fs.ftLastWriteTime);
+    }
+#else
   struct stat fs;
-  if (stat(filename, &fs) != 0)
+  if (stat(filename, &fs) == 0)
     {
-    return 0;
+    mt = static_cast<long int>(fs.st_mtime);
     }
-  else
-    {
-    return static_cast<long int>(fs.st_mtime);
-    }
+#endif
+  return mt;
 }
 
 // return file's creation time
 long int SystemTools::CreationTime(const char* filename)
 {
+  long int ct = 0;
+#ifdef _WIN32
+  WIN32_FILE_ATTRIBUTE_DATA fs;
+  if (GetFileAttributesExW(
+        SystemTools::ConvertToWindowsExtendedPath(filename).c_str(),
+                           GetFileExInfoStandard,
+                           &fs) != 0)
+    {
+    ct = windows_filetime_to_posix_time(fs.ftCreationTime);
+    }
+#else
   struct stat fs;
-  if (stat(filename, &fs) != 0)
+  if (stat(filename, &fs) == 0)
     {
-    return 0;
+    ct = fs.st_ctime >= 0 ? static_cast<long int>(fs.st_ctime) : 0;
     }
-  else
-    {
-    return fs.st_ctime >= 0 ? static_cast<long int>(fs.st_ctime) : 0;
-    }
+#endif
+  return ct;
 }
 
 bool SystemTools::ConvertDateMacroString(const char *str, time_t *tmt)
