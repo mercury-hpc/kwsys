@@ -206,12 +206,12 @@ static time_t windows_filetime_to_posix_time(const FILETIME& ft)
 
 #include <wctype.h>
 
-inline int Mkdir(const char* dir)
+inline int Mkdir(const kwsys_stl::string& dir)
 {
   return _wmkdir(
     KWSYS_NAMESPACE::SystemTools::ConvertToWindowsExtendedPath(dir).c_str());
 }
-inline int Rmdir(const char* dir)
+inline int Rmdir(const kwsys_stl::string& dir)
 {
   return _wrmdir(
     KWSYS_NAMESPACE::SystemTools::ConvertToWindowsExtendedPath(dir).c_str());
@@ -232,15 +232,15 @@ inline const char* Getcwd(char* buf, unsigned int len)
     }
   return 0;
 }
-inline int Chdir(const char* dir)
+inline int Chdir(const kwsys_stl::string& dir)
 {
   #if defined(__BORLANDC__)
-  return chdir(dir);
+  return chdir(dir.c_str());
   #else
   return _wchdir(KWSYS_NAMESPACE::Encoding::ToWide(dir).c_str());
   #endif
 }
-inline void Realpath(const char *path, kwsys_stl::string & resolved_path)
+inline void Realpath(const kwsys_stl::string& path, kwsys_stl::string & resolved_path)
 {
   kwsys_stl::wstring tmp = KWSYS_NAMESPACE::Encoding::ToWide(path);
   wchar_t *ptemp;
@@ -260,28 +260,28 @@ inline void Realpath(const char *path, kwsys_stl::string & resolved_path)
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-inline int Mkdir(const char* dir)
+inline int Mkdir(const kwsys_stl::string& dir)
 {
-  return mkdir(dir, 00777);
+  return mkdir(dir.c_str(), 00777);
 }
-inline int Rmdir(const char* dir)
+inline int Rmdir(const kwsys_stl::string& dir)
 {
-  return rmdir(dir);
+  return rmdir(dir.c_str());
 }
 inline const char* Getcwd(char* buf, unsigned int len)
 {
   return getcwd(buf, len);
 }
 
-inline int Chdir(const char* dir)
+inline int Chdir(const kwsys_stl::string& dir)
 {
-  return chdir(dir);
+  return chdir(dir.c_str());
 }
-inline void Realpath(const char *path, kwsys_stl::string & resolved_path)
+inline void Realpath(const kwsys_stl::string& path, kwsys_stl::string & resolved_path)
 {
   char resolved_name[KWSYS_SYSTEMTOOLS_MAXPATH];
 
-  char *ret = realpath(path, resolved_name);
+  char *ret = realpath(path.c_str(), resolved_name);
   if(ret)
     {
     resolved_path = ret;
@@ -623,13 +623,13 @@ const char* SystemTools::GetExecutableExtension()
 #endif
 }
 
-FILE* SystemTools::Fopen(const char* file, const char* mode)
+FILE* SystemTools::Fopen(const kwsys_stl::string& file, const char* mode)
 {
 #ifdef _WIN32
   return _wfopen(SystemTools::ConvertToWindowsExtendedPath(file).c_str(),
                  Encoding::ToWide(mode).c_str());
 #else
-  return fopen(file, mode);
+  return fopen(file.c_str(), mode);
 #endif
 }
 
@@ -639,15 +639,20 @@ bool SystemTools::MakeDirectory(const char* path)
     {
     return false;
     }
+  return SystemTools::MakeDirectory(kwsys_stl::string(path));
+}
+
+bool SystemTools::MakeDirectory(const kwsys_stl::string& path)
+{
   if(SystemTools::FileExists(path))
     {
     return SystemTools::FileIsDirectory(path);
     }
-  kwsys_stl::string dir = path;
-  if(dir.empty())
+  if(path.empty())
     {
     return false;
     }
+  kwsys_stl::string dir = path;
   SystemTools::ConvertToUnixSlashes(dir);
 
   kwsys_stl::string::size_type pos = 0;
@@ -1021,7 +1026,7 @@ bool SystemTools::DeleteRegistryValue(const char *, KeyWOW64)
 }
 #endif
 
-bool SystemTools::SameFile(const char* file1, const char* file2)
+bool SystemTools::SameFile(const kwsys_stl::string& file1, const kwsys_stl::string& file2)
 {
 #ifdef _WIN32
   HANDLE hFile1, hFile2;
@@ -1066,7 +1071,7 @@ bool SystemTools::SameFile(const char* file1, const char* file2)
            fiBuf1.nFileIndexLow == fiBuf2.nFileIndexLow);
 #else
   struct stat fileStat1, fileStat2;
-  if (stat(file1, &fileStat1) == 0 && stat(file2, &fileStat2) == 0)
+  if (stat(file1.c_str(), &fileStat1) == 0 && stat(file2.c_str(), &fileStat2) == 0)
     {
     // see if the files are the same file
     // check the device inode and size
@@ -1085,29 +1090,51 @@ bool SystemTools::SameFile(const char* file1, const char* file2)
 //----------------------------------------------------------------------------
 bool SystemTools::FileExists(const char* filename)
 {
-  if(!(filename && *filename))
+  if(!filename)
+    {
+    return false;
+    }
+  return SystemTools::FileExists(kwsys_stl::string(filename));
+}
+
+//----------------------------------------------------------------------------
+bool SystemTools::FileExists(const kwsys_stl::string& filename)
+{
+  if(filename.empty())
     {
     return false;
     }
 #if defined(__CYGWIN__)
   // Convert filename to native windows path if possible.
   char winpath[MAX_PATH];
-  if(SystemTools::PathCygwinToWin32(filename, winpath))
+  if(SystemTools::PathCygwinToWin32(filename.c_str(), winpath))
     {
     return (GetFileAttributesA(winpath) != INVALID_FILE_ATTRIBUTES);
     }
-  return access(filename, R_OK) == 0;
+  return access(filename.c_str(), R_OK) == 0;
 #elif defined(_WIN32)
   return (GetFileAttributesW(
             SystemTools::ConvertToWindowsExtendedPath(filename).c_str())
           != INVALID_FILE_ATTRIBUTES);
 #else
-  return access(filename, R_OK) == 0;
+  return access(filename.c_str(), R_OK) == 0;
 #endif
 }
 
 //----------------------------------------------------------------------------
 bool SystemTools::FileExists(const char* filename, bool isFile)
+{
+  if(SystemTools::FileExists(filename))
+    {
+    // If isFile is set return not FileIsDirectory,
+    // so this will only be true if it is a file
+    return !isFile || !SystemTools::FileIsDirectory(filename);
+    }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool SystemTools::FileExists(const kwsys_stl::string& filename, bool isFile)
 {
   if(SystemTools::FileExists(filename))
     {
@@ -1142,7 +1169,7 @@ bool SystemTools::PathCygwinToWin32(const char *path, char *win32_path)
 }
 #endif
 
-bool SystemTools::Touch(const char* filename, bool create)
+bool SystemTools::Touch(const kwsys_stl::string& filename, bool create)
 {
   if(create && !SystemTools::FileExists(filename))
     {
@@ -1174,13 +1201,13 @@ bool SystemTools::Touch(const char* filename, bool create)
   CloseHandle(h);
 #elif KWSYS_CXX_HAS_UTIMENSAT
   struct timespec times[2] = {{0,UTIME_OMIT},{0,UTIME_NOW}};
-  if(utimensat(AT_FDCWD, filename, times, 0) < 0)
+  if(utimensat(AT_FDCWD, filename.c_str(), times, 0) < 0)
     {
     return false;
     }
 #else
   struct stat st;
-  if(stat(filename, &st) < 0)
+  if(stat(filename.c_str(), &st) < 0)
     {
     return false;
     }
@@ -1196,13 +1223,13 @@ bool SystemTools::Touch(const char* filename, bool create)
 #  endif
       mtime
     };
-  if(utimes(filename, times) < 0)
+  if(utimes(filename.c_str(), times) < 0)
     {
     return false;
     }
 # else
   struct utimbuf times = {st.st_atime, mtime.tv_sec};
-  if(utime(filename, &times) < 0)
+  if(utime(filename.c_str(), &times) < 0)
     {
     return false;
     }
@@ -1211,7 +1238,8 @@ bool SystemTools::Touch(const char* filename, bool create)
   return true;
 }
 
-bool SystemTools::FileTimeCompare(const char* f1, const char* f2,
+bool SystemTools::FileTimeCompare(const kwsys_stl::string& f1,
+                                  const kwsys_stl::string& f2,
                                   int* result)
 {
   // Default to same time.
@@ -1219,12 +1247,12 @@ bool SystemTools::FileTimeCompare(const char* f1, const char* f2,
 #if !defined(_WIN32) || defined(__CYGWIN__)
   // POSIX version.  Use stat function to get file modification time.
   struct stat s1;
-  if(stat(f1, &s1) != 0)
+  if(stat(f1.c_str(), &s1) != 0)
     {
     return false;
     }
   struct stat s2;
-  if(stat(f2, &s2) != 0)
+  if(stat(f2.c_str(), &s2) != 0)
     {
     return false;
     }
@@ -1535,6 +1563,17 @@ bool SystemTools::StringStartsWith(const char* str1, const char* str2)
   return len1 >= len2 && !strncmp(str1, str2, len2) ? true : false;
 }
 
+// Returns if string starts with another string
+bool SystemTools::StringStartsWith(const kwsys_stl::string& str1, const char* str2)
+{
+  if (!str2)
+    {
+    return false;
+    }
+  size_t len1 = str1.size(), len2 = strlen(str2);
+  return len1 >= len2 && !strncmp(str1.c_str(), str2, len2) ? true : false;
+}
+
 // Returns if string ends with another string
 bool SystemTools::StringEndsWith(const char* str1, const char* str2)
 {
@@ -1544,6 +1583,17 @@ bool SystemTools::StringEndsWith(const char* str1, const char* str2)
     }
   size_t len1 = strlen(str1), len2 = strlen(str2);
   return len1 >= len2 &&  !strncmp(str1 + (len1 - len2), str2, len2) ? true : false;
+}
+
+// Returns if string ends with another string
+bool SystemTools::StringEndsWith(const kwsys_stl::string& str1, const char* str2)
+{
+  if (!str2)
+    {
+    return false;
+    }
+  size_t len1 = str1.size(), len2 = strlen(str2);
+  return len1 >= len2 &&  !strncmp(str1.c_str() + (len1 - len2), str2, len2) ? true : false;
 }
 
 // Returns a pointer to the last occurence of str2 in str1
@@ -1615,7 +1665,7 @@ kwsys_stl::string SystemTools::CropString(const kwsys_stl::string& s,
 }
 
 //----------------------------------------------------------------------------
-kwsys_stl::vector<kwsys::String> SystemTools::SplitString(const char* p, char sep, bool isPath)
+kwsys_stl::vector<kwsys::String> SystemTools::SplitString(const kwsys_stl::string& p, char sep, bool isPath)
 {
   kwsys_stl::string path = p;
   kwsys_stl::vector<kwsys::String> paths;
@@ -1917,7 +1967,7 @@ SystemTools::ConvertToWindowsExtendedPath(const kwsys_stl::string &source)
 #endif
 
 // change // to /, and escape any spaces in the path
-kwsys_stl::string SystemTools::ConvertToUnixOutputPath(const char* path)
+kwsys_stl::string SystemTools::ConvertToUnixOutputPath(const kwsys_stl::string& path)
 {
   kwsys_stl::string ret = path;
 
@@ -1947,7 +1997,7 @@ kwsys_stl::string SystemTools::ConvertToUnixOutputPath(const char* path)
   return ret;
 }
 
-kwsys_stl::string SystemTools::ConvertToOutputPath(const char* path)
+kwsys_stl::string SystemTools::ConvertToOutputPath(const kwsys_stl::string& path)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
   return SystemTools::ConvertToWindowsOutputPath(path);
@@ -1957,13 +2007,12 @@ kwsys_stl::string SystemTools::ConvertToOutputPath(const char* path)
 }
 
 // remove double slashes not at the start
-kwsys_stl::string SystemTools::ConvertToWindowsOutputPath(const char* path)
+kwsys_stl::string SystemTools::ConvertToWindowsOutputPath(const kwsys_stl::string& path)
 {
   kwsys_stl::string ret;
   // make it big enough for all of path and double quotes
-  ret.reserve(strlen(path)+3);
+  ret.reserve(path.size()+3);
   // put path into the string
-  ret.assign(path);
   ret = path;
   kwsys_stl::string::size_type pos = 0;
   // first convert all of the slashes
@@ -2005,8 +2054,8 @@ kwsys_stl::string SystemTools::ConvertToWindowsOutputPath(const char* path)
   return ret;
 }
 
-bool SystemTools::CopyFileIfDifferent(const char* source,
-                                      const char* destination)
+bool SystemTools::CopyFileIfDifferent(const kwsys_stl::string& source,
+                                      const kwsys_stl::string& destination)
 {
   // special check for a destination that is a directory
   // FilesDiffer does not handle file to directory compare
@@ -2040,8 +2089,8 @@ bool SystemTools::CopyFileIfDifferent(const char* source,
 
 #define KWSYS_ST_BUFFER 4096
 
-bool SystemTools::FilesDiffer(const char* source,
-                              const char* destination)
+bool SystemTools::FilesDiffer(const kwsys_stl::string& source,
+                              const kwsys_stl::string& destination)
 {
 
 #if defined(_WIN32)
@@ -2079,13 +2128,13 @@ bool SystemTools::FilesDiffer(const char* source,
 #else
 
   struct stat statSource;
-  if (stat(source, &statSource) != 0)
+  if (stat(source.c_str(), &statSource) != 0)
     {
     return true;
     }
 
   struct stat statDestination;
-  if (stat(destination, &statDestination) != 0)
+  if (stat(destination.c_str(), &statDestination) != 0)
     {
     return true;
     }
@@ -2103,15 +2152,15 @@ bool SystemTools::FilesDiffer(const char* source,
 #endif
 
 #if defined(_WIN32)
-  kwsys::ifstream finSource(source,
+  kwsys::ifstream finSource(source.c_str(),
                             (kwsys_ios::ios::binary |
                              kwsys_ios::ios::in));
-  kwsys::ifstream finDestination(destination,
+  kwsys::ifstream finDestination(destination.c_str(),
                                  (kwsys_ios::ios::binary |
                                   kwsys_ios::ios::in));
 #else
-  kwsys::ifstream finSource(source);
-  kwsys::ifstream finDestination(destination);
+  kwsys::ifstream finSource(source.c_str());
+  kwsys::ifstream finDestination(destination.c_str());
 #endif
   if(!finSource || !finDestination)
     {
@@ -2156,7 +2205,7 @@ bool SystemTools::FilesDiffer(const char* source,
 /**
  * Copy a file named by "source" to the file named by "destination".
  */
-bool SystemTools::CopyFileAlways(const char* source, const char* destination)
+bool SystemTools::CopyFileAlways(const kwsys_stl::string& source, const kwsys_stl::string& destination)
 {
   // If files are the same do not copy
   if ( SystemTools::SameFile(source, destination) )
@@ -2172,31 +2221,33 @@ bool SystemTools::CopyFileAlways(const char* source, const char* destination)
   // If destination is a directory, try to create a file with the same
   // name as the source in that directory.
 
-  kwsys_stl::string new_destination;
+  kwsys_stl::string real_destination = destination;
+  kwsys_stl::string destination_dir;
   if(SystemTools::FileExists(destination) &&
      SystemTools::FileIsDirectory(destination))
     {
-    new_destination = destination;
-    SystemTools::ConvertToUnixSlashes(new_destination);
-    new_destination += '/';
+    destination_dir = real_destination;
+    SystemTools::ConvertToUnixSlashes(real_destination);
+    real_destination += '/';
     kwsys_stl::string source_name = source;
-    new_destination += SystemTools::GetFilenameName(source_name);
-    destination = new_destination.c_str();
+    real_destination += SystemTools::GetFilenameName(source_name);
+    }
+  else
+    {
+    destination_dir = SystemTools::GetFilenamePath(destination);
     }
 
   // Create destination directory
 
-  kwsys_stl::string destination_dir = destination;
-  destination_dir = SystemTools::GetFilenamePath(destination_dir);
   SystemTools::MakeDirectory(destination_dir.c_str());
 
   // Open files
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-  kwsys::ifstream fin(source,
+  kwsys::ifstream fin(source.c_str(),
                 kwsys_ios::ios::binary | kwsys_ios::ios::in);
 #else
-  kwsys::ifstream fin(source);
+  kwsys::ifstream fin(source.c_str());
 #endif
   if(!fin)
     {
@@ -2207,13 +2258,13 @@ bool SystemTools::CopyFileAlways(const char* source, const char* destination)
   // can be written to.
   // If the remove fails continue so that files in read only directories
   // that do not allow file removal can be modified.
-  SystemTools::RemoveFile(destination);
+  SystemTools::RemoveFile(real_destination);
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-  kwsys::ofstream fout(destination,
+  kwsys::ofstream fout(real_destination.c_str(),
                      kwsys_ios::ios::binary | kwsys_ios::ios::out | kwsys_ios::ios::trunc);
 #else
-  kwsys::ofstream fout(destination,
+  kwsys::ofstream fout(real_destination.c_str(),
                      kwsys_ios::ios::out | kwsys_ios::ios::trunc);
 #endif
   if(!fout)
@@ -2249,7 +2300,7 @@ bool SystemTools::CopyFileAlways(const char* source, const char* destination)
     }
   if ( perms )
     {
-    if ( !SystemTools::SetPermissions(destination, perm) )
+    if ( !SystemTools::SetPermissions(real_destination, perm) )
       {
       return false;
       }
@@ -2258,7 +2309,7 @@ bool SystemTools::CopyFileAlways(const char* source, const char* destination)
 }
 
 //----------------------------------------------------------------------------
-bool SystemTools::CopyAFile(const char* source, const char* destination,
+bool SystemTools::CopyAFile(const kwsys_stl::string& source, const kwsys_stl::string& destination,
                             bool always)
 {
   if(always)
@@ -2275,7 +2326,7 @@ bool SystemTools::CopyAFile(const char* source, const char* destination,
  * Copy a directory content from "source" directory to the directory named by
  * "destination".
  */
-bool SystemTools::CopyADirectory(const char* source, const char* destination,
+bool SystemTools::CopyADirectory(const kwsys_stl::string& source, const kwsys_stl::string& destination,
                                  bool always)
 {
   Directory dir;
@@ -2283,7 +2334,7 @@ bool SystemTools::CopyADirectory(const char* source, const char* destination,
   dir.Load(Encoding::ToNarrow(
              SystemTools::ConvertToWindowsExtendedPath(source)).c_str());
 #else
-  dir.Load(source);
+  dir.Load(source.c_str());
 #endif
   size_t fileNum;
   if ( !SystemTools::MakeDirectory(destination) )
@@ -2365,7 +2416,7 @@ int SystemTools::Strucmp(const char *s1, const char *s2)
 }
 
 // return file's modified time
-long int SystemTools::ModifiedTime(const char* filename)
+long int SystemTools::ModifiedTime(const kwsys_stl::string& filename)
 {
   long int mt = 0;
 #ifdef _WIN32
@@ -2379,7 +2430,7 @@ long int SystemTools::ModifiedTime(const char* filename)
     }
 #else
   struct stat fs;
-  if (stat(filename, &fs) == 0)
+  if (stat(filename.c_str(), &fs) == 0)
     {
     mt = static_cast<long int>(fs.st_mtime);
     }
@@ -2388,7 +2439,7 @@ long int SystemTools::ModifiedTime(const char* filename)
 }
 
 // return file's creation time
-long int SystemTools::CreationTime(const char* filename)
+long int SystemTools::CreationTime(const kwsys_stl::string& filename)
 {
   long int ct = 0;
 #ifdef _WIN32
@@ -2402,7 +2453,7 @@ long int SystemTools::CreationTime(const char* filename)
     }
 #else
   struct stat fs;
-  if (stat(filename, &fs) == 0)
+  if (stat(filename.c_str(), &fs) == 0)
     {
     ct = fs.st_ctime >= 0 ? static_cast<long int>(fs.st_ctime) : 0;
     }
@@ -2518,7 +2569,7 @@ kwsys_stl::string SystemTools::GetLastSystemError()
   return strerror(e);
 }
 
-bool SystemTools::RemoveFile(const char* source)
+bool SystemTools::RemoveFile(const kwsys_stl::string& source)
 {
 #ifdef _WIN32
   mode_t mode;
@@ -2533,7 +2584,7 @@ bool SystemTools::RemoveFile(const char* source)
   bool res =
     _wunlink(SystemTools::ConvertToWindowsExtendedPath(source).c_str()) == 0;
 #else
-  bool res = unlink(source) != 0 ? false : true;
+  bool res = unlink(source.c_str()) != 0 ? false : true;
 #endif
 #ifdef _WIN32
   if ( !res )
@@ -2544,7 +2595,7 @@ bool SystemTools::RemoveFile(const char* source)
   return res;
 }
 
-bool SystemTools::RemoveADirectory(const char* source)
+bool SystemTools::RemoveADirectory(const kwsys_stl::string& source)
 {
   // Add write permission to the directory so we can modify its
   // content to remove files and directories from it.
@@ -2564,7 +2615,7 @@ bool SystemTools::RemoveADirectory(const char* source)
   dir.Load(Encoding::ToNarrow(
              SystemTools::ConvertToWindowsExtendedPath(source)).c_str());
 #else
-  dir.Load(source);
+  dir.Load(source.c_str());
 #endif
   size_t fileNum;
   for (fileNum = 0; fileNum <  dir.GetNumberOfFiles(); ++fileNum)
@@ -2593,7 +2644,7 @@ bool SystemTools::RemoveADirectory(const char* source)
       }
     }
 
-  return (Rmdir(source) == 0);
+  return (Rmdir(source.c_str()) == 0);
 }
 
 /**
@@ -2708,7 +2759,14 @@ kwsys_stl::string SystemTools::FindProgram(
     {
     return "";
     }
-  kwsys_stl::string name = nameIn;
+  return SystemTools::FindProgram(kwsys_stl::string(nameIn), userPaths, no_system_path);
+}
+
+kwsys_stl::string SystemTools::FindProgram(
+  const kwsys_stl::string& name,
+  const kwsys_stl::vector<kwsys_stl::string>& userPaths,
+  bool no_system_path)
+{
   kwsys_stl::vector<kwsys_stl::string> extensions;
 #if defined (_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
   bool hasExtension = false;
@@ -2833,7 +2891,7 @@ kwsys_stl::string SystemTools::FindProgram(
  * found.  Otherwise, the empty string is returned.
  */
 kwsys_stl::string SystemTools
-::FindLibrary(const char* name,
+::FindLibrary(const kwsys_stl::string& name,
               const kwsys_stl::vector<kwsys_stl::string>& userPaths)
 {
   // See if the executable exists as written.
@@ -2942,32 +3000,33 @@ kwsys_stl::string SystemTools
   return "";
 }
 
-kwsys_stl::string SystemTools::GetRealPath(const char* path)
+kwsys_stl::string SystemTools::GetRealPath(const kwsys_stl::string& path)
 {
   kwsys_stl::string ret;
   Realpath(path, ret);
   return ret;
 }
 
-bool SystemTools::FileIsDirectory(const char* name)
+bool SystemTools::FileIsDirectory(const kwsys_stl::string& inName)
 {
-  if (!*name)
+  if (inName.empty())
     {
     return false;
     }
-  size_t length = strlen(name);
+  size_t length = inName.size();
+  const char* name = inName.c_str();
 
   // Remove any trailing slash from the name except in a root component.
   char local_buffer[KWSYS_SYSTEMTOOLS_MAXPATH];
   std::string string_buffer;
   size_t last = length-1;
   if(last > 0 && (name[last] == '/' || name[last] == '\\')
-    && strcmp(name, "/") !=0 && name[last-1] != ':')
+    && strcmp(name, "/") != 0 && name[last-1] != ':')
     {
-    if(last < sizeof(local_buffer))
+    if (last < sizeof(local_buffer))
       {
       memcpy(local_buffer, name, last);
-      local_buffer[last] = 0;
+      local_buffer[last] = '\0';
       name = local_buffer;
       }
     else
@@ -2997,14 +3056,14 @@ bool SystemTools::FileIsDirectory(const char* name)
     }
 }
 
-bool SystemTools::FileIsSymlink(const char* name)
+bool SystemTools::FileIsSymlink(const kwsys_stl::string& name)
 {
 #if defined( _WIN32 )
   (void)name;
   return false;
 #else
   struct stat fs;
-  if(lstat(name, &fs) == 0)
+  if(lstat(name.c_str(), &fs) == 0)
     {
     return S_ISLNK(fs.st_mode);
     }
@@ -3053,9 +3112,9 @@ bool SystemTools::ReadSymlink(const char* newName,
 }
 #endif
 
-int SystemTools::ChangeDirectory(const char *dir)
+int SystemTools::ChangeDirectory(const kwsys_stl::string& dir)
 {
-  return Chdir(dir);
+  return Chdir(dir.c_str());
 }
 
 kwsys_stl::string SystemTools::GetCurrentWorkingDirectory(bool collapse)
@@ -3355,7 +3414,7 @@ kwsys_stl::string SystemTools::CollapseFullPath(const kwsys_stl::string& in_path
 }
 
 // compute the relative path from here to there
-kwsys_stl::string SystemTools::RelativePath(const char* local, const char* remote)
+kwsys_stl::string SystemTools::RelativePath(const kwsys_stl::string& local, const kwsys_stl::string& remote)
 {
   if(!SystemTools::FileIsFullPath(local))
     {
@@ -3745,7 +3804,7 @@ bool SystemTools::ComparePath(const kwsys_stl::string& c1, const kwsys_stl::stri
 }
 
 //----------------------------------------------------------------------------
-bool SystemTools::Split(const char* str, kwsys_stl::vector<kwsys_stl::string>& lines, char separator)
+bool SystemTools::Split(const kwsys_stl::string& str, kwsys_stl::vector<kwsys_stl::string>& lines, char separator)
 {
   kwsys_stl::string data(str);
   kwsys_stl::string::size_type lpos = 0;
@@ -3769,7 +3828,7 @@ bool SystemTools::Split(const char* str, kwsys_stl::vector<kwsys_stl::string>& l
 }
 
 //----------------------------------------------------------------------------
-bool SystemTools::Split(const char* str, kwsys_stl::vector<kwsys_stl::string>& lines)
+bool SystemTools::Split(const kwsys_stl::string& str, kwsys_stl::vector<kwsys_stl::string>& lines)
 {
   kwsys_stl::string data(str);
   kwsys_stl::string::size_type lpos = 0;
@@ -4111,9 +4170,18 @@ bool SystemTools::LocateFileInDir(const char *filename,
   return res;
 }
 
+bool SystemTools::FileIsFullPath(const kwsys_stl::string& in_name)
+{
+  return SystemTools::FileIsFullPath(in_name.c_str(), in_name.size());
+}
+
 bool SystemTools::FileIsFullPath(const char* in_name)
 {
-  size_t len = strlen(in_name);
+  return SystemTools::FileIsFullPath(in_name, in_name[0] ? (in_name[1] ? 2 : 1) : 0);
+}
+
+bool SystemTools::FileIsFullPath(const char* in_name, size_t len)
+{
 #if defined(_WIN32) || defined(__CYGWIN__)
   // On Windows, the name must be at least two characters long.
   if(len < 2)
@@ -4408,7 +4476,11 @@ bool SystemTools::GetPermissions(const char* file, mode_t& mode)
     {
     return false;
     }
+  return SystemTools::GetPermissions(kwsys_stl::string(file), mode);
+}
 
+bool SystemTools::GetPermissions(const kwsys_stl::string& file, mode_t& mode)
+{
 #if defined(_WIN32)
   DWORD attr = GetFileAttributesW(
     SystemTools::ConvertToWindowsExtendedPath(file).c_str());
@@ -4433,7 +4505,8 @@ bool SystemTools::GetPermissions(const char* file, mode_t& mode)
     {
     mode |= S_IFREG;
     }
-  const char* ext = strrchr(file, '.');
+  size_t dotPos = file.rfind('.');
+  const char* ext = dotPos == file.npos ? 0 : (file.c_str() + dotPos);
   if(ext && (Strucmp(ext, ".exe") == 0 ||
     Strucmp(ext, ".com") == 0 ||
     Strucmp(ext, ".cmd") == 0 ||
@@ -4443,7 +4516,7 @@ bool SystemTools::GetPermissions(const char* file, mode_t& mode)
     }
 #else
   struct stat st;
-  if ( stat(file, &st) < 0 )
+  if ( stat(file.c_str(), &st) < 0 )
     {
     return false;
     }
@@ -4458,6 +4531,11 @@ bool SystemTools::SetPermissions(const char* file, mode_t mode)
     {
     return false;
     }
+  return SystemTools::SetPermissions(kwsys_stl::string(file), mode);
+}
+
+bool SystemTools::SetPermissions(const kwsys_stl::string& file, mode_t mode)
+{
   if ( !SystemTools::FileExists(file) )
     {
     return false;
@@ -4466,7 +4544,7 @@ bool SystemTools::SetPermissions(const char* file, mode_t mode)
   if ( _wchmod(SystemTools::ConvertToWindowsExtendedPath(file).c_str(),
                mode) < 0 )
 #else
-  if ( chmod(file, mode) < 0 )
+  if ( chmod(file.c_str(), mode) < 0 )
 #endif
     {
     return false;
@@ -4475,7 +4553,7 @@ bool SystemTools::SetPermissions(const char* file, mode_t mode)
   return true;
 }
 
-kwsys_stl::string SystemTools::GetParentDirectory(const char* fileOrDir)
+kwsys_stl::string SystemTools::GetParentDirectory(const kwsys_stl::string& fileOrDir)
 {
   return SystemTools::GetFilenamePath(fileOrDir);
 }
