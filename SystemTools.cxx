@@ -334,9 +334,9 @@ class SystemToolsTranslationMap :
 void SystemTools::GetPath(kwsys_stl::vector<kwsys_stl::string>& path, const char* env)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
-  const char* pathSep = ";";
+  const char pathSep = ';';
 #else
-  const char* pathSep = ":";
+  const char pathSep = ':';
 #endif
   if(!env)
     {
@@ -351,7 +351,7 @@ void SystemTools::GetPath(kwsys_stl::vector<kwsys_stl::string>& path, const char
   kwsys_stl::string pathEnv = cpathEnv;
 
   // A hack to make the below algorithm work.
-  if(!pathEnv.empty() && pathEnv[pathEnv.length()-1] != pathSep[0])
+  if(!pathEnv.empty() && *pathEnv.rbegin() != pathSep)
     {
     pathEnv += pathSep;
     }
