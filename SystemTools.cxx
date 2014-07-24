@@ -660,11 +660,11 @@ bool SystemTools::MakeDirectory(const kwsys_stl::string& path)
   while((pos = dir.find('/', pos)) != kwsys_stl::string::npos)
     {
     topdir = dir.substr(0, pos);
-    Mkdir(topdir.c_str());
+    Mkdir(topdir);
     pos++;
     }
   topdir = dir;
-  if(Mkdir(topdir.c_str()) != 0)
+  if(Mkdir(topdir) != 0)
     {
     // There is a bug in the Borland Run time library which makes MKDIR
     // return EACCES when it should return EEXISTS
@@ -2066,7 +2066,7 @@ bool SystemTools::CopyFileIfDifferent(const kwsys_stl::string& source,
     new_destination += '/';
     kwsys_stl::string source_name = source;
     new_destination += SystemTools::GetFilenameName(source_name);
-    if(SystemTools::FilesDiffer(source, new_destination.c_str()))
+    if(SystemTools::FilesDiffer(source, new_destination))
       {
       return SystemTools::CopyFileAlways(source, destination);
       }
@@ -2239,7 +2239,7 @@ bool SystemTools::CopyFileAlways(const kwsys_stl::string& source, const kwsys_st
 
   // Create destination directory
 
-  SystemTools::MakeDirectory(destination_dir.c_str());
+  SystemTools::MakeDirectory(destination_dir);
 
   // Open files
 
@@ -2349,13 +2349,13 @@ bool SystemTools::CopyADirectory(const kwsys_stl::string& source, const kwsys_st
       kwsys_stl::string fullPath = source;
       fullPath += "/";
       fullPath += dir.GetFile(static_cast<unsigned long>(fileNum));
-      if(SystemTools::FileIsDirectory(fullPath.c_str()))
+      if(SystemTools::FileIsDirectory(fullPath))
         {
         kwsys_stl::string fullDestPath = destination;
         fullDestPath += "/";
         fullDestPath += dir.GetFile(static_cast<unsigned long>(fileNum));
-        if (!SystemTools::CopyADirectory(fullPath.c_str(),
-                                         fullDestPath.c_str(),
+        if (!SystemTools::CopyADirectory(fullPath,
+                                         fullDestPath,
                                          always))
           {
           return false;
@@ -2363,7 +2363,7 @@ bool SystemTools::CopyADirectory(const kwsys_stl::string& source, const kwsys_st
         }
       else
         {
-        if(!SystemTools::CopyAFile(fullPath.c_str(), destination, always))
+        if(!SystemTools::CopyAFile(fullPath, destination, always))
           {
           return false;
           }
@@ -2626,17 +2626,17 @@ bool SystemTools::RemoveADirectory(const kwsys_stl::string& source)
       kwsys_stl::string fullPath = source;
       fullPath += "/";
       fullPath += dir.GetFile(static_cast<unsigned long>(fileNum));
-      if(SystemTools::FileIsDirectory(fullPath.c_str()) &&
-        !SystemTools::FileIsSymlink(fullPath.c_str()))
+      if(SystemTools::FileIsDirectory(fullPath) &&
+        !SystemTools::FileIsSymlink(fullPath))
         {
-        if (!SystemTools::RemoveADirectory(fullPath.c_str()))
+        if (!SystemTools::RemoveADirectory(fullPath))
           {
           return false;
           }
         }
       else
         {
-        if(!SystemTools::RemoveFile(fullPath.c_str()))
+        if(!SystemTools::RemoveFile(fullPath))
           {
           return false;
           }
@@ -2644,7 +2644,7 @@ bool SystemTools::RemoveADirectory(const kwsys_stl::string& source)
       }
     }
 
-  return (Rmdir(source.c_str()) == 0);
+  return (Rmdir(source) == 0);
 }
 
 /**
@@ -2698,7 +2698,7 @@ kwsys_stl::string SystemTools
     {
     tryPath = *p;
     tryPath += name;
-    if(SystemTools::FileExists(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath))
       {
       return tryPath;
       }
@@ -2718,7 +2718,7 @@ kwsys_stl::string SystemTools
            bool no_system_path)
 {
   kwsys_stl::string tryPath = SystemTools::FindName(name, userPaths, no_system_path);
-  if(tryPath != "" && !SystemTools::FileIsDirectory(tryPath.c_str()))
+  if(!tryPath.empty() && !SystemTools::FileIsDirectory(tryPath))
     {
     return SystemTools::CollapseFullPath(tryPath);
     }
@@ -2737,7 +2737,7 @@ kwsys_stl::string SystemTools
                 bool no_system_path)
 {
   kwsys_stl::string tryPath = SystemTools::FindName(name, userPaths, no_system_path);
-  if(tryPath != "" && SystemTools::FileIsDirectory(tryPath.c_str()))
+  if(!tryPath.empty() && SystemTools::FileIsDirectory(tryPath))
     {
     return SystemTools::CollapseFullPath(tryPath);
     }
@@ -2791,16 +2791,16 @@ kwsys_stl::string SystemTools::FindProgram(
     {
     tryPath = name;
     tryPath += *i;
-    if(SystemTools::FileExists(tryPath.c_str()) &&
-        !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath) &&
+        !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
     }
   // now try just the name
   tryPath = name;
-  if(SystemTools::FileExists(tryPath.c_str()) &&
-     !SystemTools::FileIsDirectory(tryPath.c_str()))
+  if(SystemTools::FileExists(tryPath) &&
+     !SystemTools::FileIsDirectory(tryPath))
     {
     return SystemTools::CollapseFullPath(tryPath);
     }
@@ -2846,8 +2846,8 @@ kwsys_stl::string SystemTools::FindProgram(
       tryPath = *p;
       tryPath += name;
       tryPath += *ext;
-      if(SystemTools::FileExists(tryPath.c_str()) &&
-          !SystemTools::FileIsDirectory(tryPath.c_str()))
+      if(SystemTools::FileExists(tryPath) &&
+          !SystemTools::FileIsDirectory(tryPath))
         {
         return SystemTools::CollapseFullPath(tryPath);
         }
@@ -2855,8 +2855,8 @@ kwsys_stl::string SystemTools::FindProgram(
     // now try it without them
     tryPath = *p;
     tryPath += name;
-    if(SystemTools::FileExists(tryPath.c_str()) &&
-       !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath) &&
+       !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2874,7 +2874,7 @@ kwsys_stl::string SystemTools::FindProgram(
       it != names.end() ; ++it)
     {
     // Try to find the program.
-    kwsys_stl::string result = SystemTools::FindProgram(it->c_str(),
+    kwsys_stl::string result = SystemTools::FindProgram(*it,
                                                   path,
                                                   noSystemPath);
     if ( !result.empty() )
@@ -2932,8 +2932,8 @@ kwsys_stl::string SystemTools
     tryPath = *p;
     tryPath += name;
     tryPath += ".framework";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2942,8 +2942,8 @@ kwsys_stl::string SystemTools
     tryPath = *p;
     tryPath += name;
     tryPath += ".lib";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2952,8 +2952,8 @@ kwsys_stl::string SystemTools
     tryPath += "lib";
     tryPath += name;
     tryPath += ".so";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2961,8 +2961,8 @@ kwsys_stl::string SystemTools
     tryPath += "lib";
     tryPath += name;
     tryPath += ".a";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2970,8 +2970,8 @@ kwsys_stl::string SystemTools
     tryPath += "lib";
     tryPath += name;
     tryPath += ".sl";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2979,8 +2979,8 @@ kwsys_stl::string SystemTools
     tryPath += "lib";
     tryPath += name;
     tryPath += ".dylib";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -2988,8 +2988,8 @@ kwsys_stl::string SystemTools
     tryPath += "lib";
     tryPath += name;
     tryPath += ".dll";
-    if(SystemTools::FileExists(tryPath.c_str())
-       && !SystemTools::FileIsDirectory(tryPath.c_str()))
+    if(SystemTools::FileExists(tryPath)
+       && !SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
@@ -3114,7 +3114,7 @@ bool SystemTools::ReadSymlink(const char* newName,
 
 int SystemTools::ChangeDirectory(const kwsys_stl::string& dir)
 {
-  return Chdir(dir.c_str());
+  return Chdir(dir);
 }
 
 kwsys_stl::string SystemTools::GetCurrentWorkingDirectory(bool collapse)
@@ -3149,7 +3149,7 @@ bool SystemTools::SplitProgramPath(const char* in_name,
   file = "";
   SystemTools::ConvertToUnixSlashes(dir);
 
-  if(!SystemTools::FileIsDirectory(dir.c_str()))
+  if(!SystemTools::FileIsDirectory(dir))
     {
     kwsys_stl::string::size_type slashPos = dir.rfind("/");
     if(slashPos != kwsys_stl::string::npos)
@@ -3163,7 +3163,7 @@ bool SystemTools::SplitProgramPath(const char* in_name,
       dir = "";
       }
     }
-  if(!(dir == "") && !SystemTools::FileIsDirectory(dir.c_str()))
+  if(!(dir.empty()) && !SystemTools::FileIsDirectory(dir))
     {
     kwsys_stl::string oldDir = in_name;
     SystemTools::ConvertToUnixSlashes(oldDir);
@@ -3184,8 +3184,8 @@ bool SystemTools::FindProgramPath(const char* argv0,
   kwsys_stl::string self = argv0 ? argv0 : "";
   failures.push_back(self);
   SystemTools::ConvertToUnixSlashes(self);
-  self = SystemTools::FindProgram(self.c_str());
-  if(!SystemTools::FileExists(self.c_str()))
+  self = SystemTools::FindProgram(self);
+  if(!SystemTools::FileExists(self))
     {
     if(buildDir)
       {
@@ -3203,7 +3203,7 @@ bool SystemTools::FindProgramPath(const char* argv0,
     }
   if(installPrefix)
     {
-    if(!SystemTools::FileExists(self.c_str()))
+    if(!SystemTools::FileExists(self))
       {
       failures.push_back(self);
       self = installPrefix;
@@ -3211,7 +3211,7 @@ bool SystemTools::FindProgramPath(const char* argv0,
       self +=  exeName;
       }
     }
-  if(!SystemTools::FileExists(self.c_str()))
+  if(!SystemTools::FileExists(self))
     {
     failures.push_back(self);
     kwsys_ios::ostringstream msg;
@@ -3252,12 +3252,12 @@ void SystemTools::AddTranslationPath(const kwsys_stl::string& a, const kwsys_stl
   SystemTools::ConvertToUnixSlashes(path_b);
   // First check this is a directory path, since we don't want the table to
   // grow too fat
-  if( SystemTools::FileIsDirectory( path_a.c_str() ) )
+  if( SystemTools::FileIsDirectory( path_a ) )
     {
     // Make sure the path is a full path and does not contain no '..'
     // Ken--the following code is incorrect. .. can be in a valid path
     // for example  /home/martink/MyHubba...Hubba/Src
-    if( SystemTools::FileIsFullPath(path_b.c_str()) && path_b.find("..")
+    if( SystemTools::FileIsFullPath(path_b) && path_b.find("..")
         == kwsys_stl::string::npos )
       {
       // Before inserting make sure path ends with '/'
@@ -4121,7 +4121,7 @@ bool SystemTools::LocateFileInDir(const char *filename,
       }
     temp += filename_base;
 
-    if (SystemTools::FileExists(temp.c_str()))
+    if (SystemTools::FileExists(temp))
       {
       res = true;
       filename_found = temp;
@@ -4290,7 +4290,7 @@ void SystemTools::SplitProgramFromArgs(const char* path,
     {
     kwsys_stl::string tryProg = dir.substr(0, spacePos);
     // See if the file exists
-    if(SystemTools::FileExists(tryProg.c_str()))
+    if(SystemTools::FileExists(tryProg))
       {
       program = tryProg;
       // remove trailing spaces from program
@@ -4304,7 +4304,7 @@ void SystemTools::SplitProgramFromArgs(const char* path,
       return;
       }
     // Now try and find the program in the path
-    findProg = SystemTools::FindProgram(tryProg.c_str(), e);
+    findProg = SystemTools::FindProgram(tryProg, e);
     if(!findProg.empty())
       {
       program = findProg;
