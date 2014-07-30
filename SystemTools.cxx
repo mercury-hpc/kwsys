@@ -2332,9 +2332,9 @@ bool SystemTools::CopyADirectory(const kwsys_stl::string& source, const kwsys_st
   Directory dir;
 #ifdef _WIN32
   dir.Load(Encoding::ToNarrow(
-             SystemTools::ConvertToWindowsExtendedPath(source)).c_str());
+             SystemTools::ConvertToWindowsExtendedPath(source)));
 #else
-  dir.Load(source.c_str());
+  dir.Load(source);
 #endif
   size_t fileNum;
   if ( !SystemTools::MakeDirectory(destination) )
@@ -2613,9 +2613,9 @@ bool SystemTools::RemoveADirectory(const kwsys_stl::string& source)
   Directory dir;
 #ifdef _WIN32
   dir.Load(Encoding::ToNarrow(
-             SystemTools::ConvertToWindowsExtendedPath(source)).c_str());
+             SystemTools::ConvertToWindowsExtendedPath(source)));
 #else
-  dir.Load(source.c_str());
+  dir.Load(source);
 #endif
   size_t fileNum;
   for (fileNum = 0; fileNum <  dir.GetNumberOfFiles(); ++fileNum)

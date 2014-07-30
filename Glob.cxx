@@ -218,7 +218,7 @@ void Glob::RecurseDirectory(kwsys_stl::string::size_type start,
   const kwsys_stl::string& dir)
 {
   kwsys::Directory d;
-  if ( !d.Load(dir.c_str()) )
+  if ( !d.Load(dir) )
     {
     return;
     }
@@ -297,7 +297,7 @@ void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
     }
 
   kwsys::Directory d;
-  if ( !d.Load(dir.c_str()) )
+  if ( !d.Load(dir) )
     {
     return;
     }
