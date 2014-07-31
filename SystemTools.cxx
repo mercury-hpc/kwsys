@@ -2414,7 +2414,7 @@ bool SystemTools::CopyADirectory(const kwsys_stl::string& source, const kwsys_st
 
 
 // return size of file; also returns zero if no file exists
-unsigned long SystemTools::FileLength(const char* filename)
+unsigned long SystemTools::FileLength(const kwsys_stl::string& filename)
 {
   unsigned long length = 0;
 #ifdef _WIN32
@@ -2432,7 +2432,7 @@ unsigned long SystemTools::FileLength(const char* filename)
     }
 #else
   struct stat fs;
-  if (stat(filename, &fs) == 0)
+  if (stat(filename.c_str(), &fs) == 0)
     {
     length = static_cast<unsigned long>(fs.st_size);
     }
@@ -2698,7 +2698,7 @@ size_t SystemTools::GetMaximumFilePathLength()
  * found.  Otherwise, the empty string is returned.
  */
 kwsys_stl::string SystemTools
-::FindName(const char* name,
+::FindName(const kwsys_stl::string& name,
            const kwsys_stl::vector<kwsys_stl::string>& userPaths,
            bool no_system_path)
 {
@@ -2751,7 +2751,7 @@ kwsys_stl::string SystemTools
  * found.  Otherwise, the empty string is returned.
  */
 kwsys_stl::string SystemTools
-::FindFile(const char* name,
+::FindFile(const kwsys_stl::string& name,
            const kwsys_stl::vector<kwsys_stl::string>& userPaths,
            bool no_system_path)
 {
@@ -2770,7 +2770,7 @@ kwsys_stl::string SystemTools
  * found.  Otherwise, the empty string is returned.
  */
 kwsys_stl::string SystemTools
-::FindDirectory(const char* name,
+::FindDirectory(const kwsys_stl::string& name,
                 const kwsys_stl::vector<kwsys_stl::string>& userPaths,
                 bool no_system_path)
 {
@@ -3113,29 +3113,29 @@ bool SystemTools::FileIsSymlink(const kwsys_stl::string& name)
 }
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::CreateSymlink(const char*, const char*)
+bool SystemTools::CreateSymlink(const kwsys_stl::string&, const kwsys_stl::string&)
 {
   return false;
 }
 #else
-bool SystemTools::CreateSymlink(const char* origName, const char* newName)
+bool SystemTools::CreateSymlink(const kwsys_stl::string& origName, const kwsys_stl::string& newName)
 {
-  return symlink(origName, newName) >= 0;
+  return symlink(origName.c_str(), newName.c_str()) >= 0;
 }
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::ReadSymlink(const char*, kwsys_stl::string&)
+bool SystemTools::ReadSymlink(const kwsys_stl::string&, kwsys_stl::string&)
 {
   return false;
 }
 #else
-bool SystemTools::ReadSymlink(const char* newName,
+bool SystemTools::ReadSymlink(const kwsys_stl::string& newName,
                               kwsys_stl::string& origName)
 {
   char buf[KWSYS_SYSTEMTOOLS_MAXPATH+1];
   int count =
-    static_cast<int>(readlink(newName, buf, KWSYS_SYSTEMTOOLS_MAXPATH));
+    static_cast<int>(readlink(newName.c_str(), buf, KWSYS_SYSTEMTOOLS_MAXPATH));
   if(count >= 0)
     {
     // Add null-terminator.
@@ -3171,14 +3171,14 @@ kwsys_stl::string SystemTools::GetCurrentWorkingDirectory(bool collapse)
   return path;
 }
 
-kwsys_stl::string SystemTools::GetProgramPath(const char* in_name)
+kwsys_stl::string SystemTools::GetProgramPath(const kwsys_stl::string& in_name)
 {
   kwsys_stl::string dir, file;
   SystemTools::SplitProgramPath(in_name, dir, file);
   return dir;
 }
 
-bool SystemTools::SplitProgramPath(const char* in_name,
+bool SystemTools::SplitProgramPath(const kwsys_stl::string& in_name,
                                    kwsys_stl::string& dir,
                                    kwsys_stl::string& file,
                                    bool)
@@ -3444,7 +3444,62 @@ kwsys_stl::string SystemTools::CollapseFullPath(const kwsys_stl::string& in_path
 
   SystemTools::CheckTranslationPath(newPath);
 #ifdef _WIN32
-  newPath = SystemTools::GetActualCaseForPath(newPath.c_str());
+  newPath = SystemTools::GetActualCaseForPath(newPath);
+  SystemTools::ConvertToUnixSlashes(newPath);
+#endif
+  // Return the reconstructed path.
+  return newPath;
+}
+
+kwsys_stl::string SystemTools::CollapseFullPath(const kwsys_stl::string& in_path,
+                                                const kwsys_stl::string& in_base)
+{
+  // Collect the output path components.
+  kwsys_stl::vector<kwsys_stl::string> out_components;
+
+  // Split the input path components.
+  kwsys_stl::vector<kwsys_stl::string> path_components;
+  SystemTools::SplitPath(in_path, path_components);
+
+  // If the input path is relative, start with a base path.
+  if(path_components[0].length() == 0)
+    {
+    kwsys_stl::vector<kwsys_stl::string> base_components;
+    // Use the given base path.
+    SystemTools::SplitPath(in_base, base_components);
+
+    // Append base path components to the output path.
+    out_components.push_back(base_components[0]);
+    SystemToolsAppendComponents(out_components,
+                                base_components.begin()+1,
+                                base_components.end());
+    }
+
+  // Append input path components to the output path.
+  SystemToolsAppendComponents(out_components,
+                              path_components.begin(),
+                              path_components.end());
+
+  // Transform the path back to a string.
+  kwsys_stl::string newPath = SystemTools::JoinPath(out_components);
+
+  // Update the translation table with this potentially new path.  I am not
+  // sure why this line is here, it seems really questionable, but yet I
+  // would put good money that if I remove it something will break, basically
+  // from what I can see it created a mapping from the collapsed path, to be
+  // replaced by the input path, which almost completely does the opposite of
+  // this function, the only thing preventing this from happening a lot is
+  // that if the in_path has a .. in it, then it is not added to the
+  // translation table. So for most calls this either does nothing due to the
+  // ..  or it adds a translation between identical paths as nothing was
+  // collapsed, so I am going to try to comment it out, and see what hits the
+  // fan, hopefully quickly.
+  // Commented out line below:
+  //SystemTools::AddTranslationPath(newPath, in_path);
+
+  SystemTools::CheckTranslationPath(newPath);
+#ifdef _WIN32
+  newPath = SystemTools::GetActualCaseForPath(newPath);
   SystemTools::ConvertToUnixSlashes(newPath);
 #endif
   // Return the reconstructed path.
@@ -3604,7 +3659,7 @@ static int GetCasePathName(const kwsys_stl::string & pathIn,
 
 
 //----------------------------------------------------------------------------
-kwsys_stl::string SystemTools::GetActualCaseForPath(const char* p)
+kwsys_stl::string SystemTools::GetActualCaseForPath(const kwsys_stl::string& p)
 {
 #ifndef _WIN32
   return p;
@@ -4311,7 +4366,7 @@ bool SystemTools::GetShortPath(const kwsys_stl::string& path, kwsys_stl::string&
 #endif
 }
 
-void SystemTools::SplitProgramFromArgs(const char* path,
+void SystemTools::SplitProgramFromArgs(const kwsys_stl::string& path,
                                        kwsys_stl::string& program, kwsys_stl::string& args)
 {
   // see if this is a full path to a program

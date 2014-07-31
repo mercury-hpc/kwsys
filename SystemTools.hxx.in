@@ -309,7 +309,7 @@ public:
   /**
    * Return file length
    */
-  static unsigned long FileLength(const char *filename);
+  static unsigned long FileLength(const kwsys_stl::string& filename);
 
   /**
      Change the modification time or create a file
@@ -338,15 +338,15 @@ public:
    *  does not exist path is returned unchanged.  This does nothing
    *  on unix but return path.
    */
-  static kwsys_stl::string GetActualCaseForPath(const char* path);
+  static kwsys_stl::string GetActualCaseForPath(const kwsys_stl::string& path);
 
   /**
    * Given the path to a program executable, get the directory part of
    * the path with the file stripped off.  If there is no directory
    * part, the empty string is returned.
    */
-  static kwsys_stl::string GetProgramPath(const char*);
-  static bool SplitProgramPath(const char* in_name,
+  static kwsys_stl::string GetProgramPath(const kwsys_stl::string&);
+  static bool SplitProgramPath(const kwsys_stl::string& in_name,
                                kwsys_stl::string& dir,
                                kwsys_stl::string& file,
                                bool errorReport = true);
@@ -379,6 +379,8 @@ public:
   static kwsys_stl::string CollapseFullPath(const kwsys_stl::string& in_relative);
   static kwsys_stl::string CollapseFullPath(const kwsys_stl::string& in_relative,
                                             const char* in_base);
+  static kwsys_stl::string CollapseFullPath(const kwsys_stl::string& in_relative,
+                                            const kwsys_stl::string& in_base);
 
   /** 
    * Get the real path for a given path, removing all symlinks.  In
@@ -449,7 +451,7 @@ public:
    * Split a program from its arguments and handle spaces in the paths
    */
   static void SplitProgramFromArgs(
-    const char* path,
+    const kwsys_stl::string& path,
     kwsys_stl::string& program, kwsys_stl::string& args);
 
   /**
@@ -585,7 +587,7 @@ public:
    * Find a file in the system PATH, with optional extra paths
    */
   static kwsys_stl::string FindFile(
-    const char* name,
+    const kwsys_stl::string& name,
     const kwsys_stl::vector<kwsys_stl::string>& path = 
     kwsys_stl::vector<kwsys_stl::string>(),
     bool no_system_path = false);
@@ -594,7 +596,7 @@ public:
    * Find a directory in the system PATH, with optional extra paths
    */
   static kwsys_stl::string FindDirectory(
-    const char* name,
+    const kwsys_stl::string& name,
     const kwsys_stl::vector<kwsys_stl::string>& path = 
     kwsys_stl::vector<kwsys_stl::string>(),
     bool no_system_path = false);
@@ -665,13 +667,13 @@ public:
    * Create a symbolic link if the platform supports it.  Returns whether
    * creation succeded.
    */
-  static bool CreateSymlink(const char* origName, const char* newName);
+  static bool CreateSymlink(const kwsys_stl::string& origName, const kwsys_stl::string& newName);
 
   /**
    * Read the contents of a symbolic link.  Returns whether reading
    * succeded.
    */
-  static bool ReadSymlink(const char* newName, kwsys_stl::string& origName);
+  static bool ReadSymlink(const kwsys_stl::string& newName, kwsys_stl::string& origName);
 
   /**
    * Try to locate the file 'filename' in the directory 'dir'.
@@ -928,7 +930,7 @@ private:
    * optional extra paths.
    */
   static kwsys_stl::string FindName(
-    const char* name,
+    const kwsys_stl::string& name,
     const kwsys_stl::vector<kwsys_stl::string>& path = 
     kwsys_stl::vector<kwsys_stl::string>(),
     bool no_system_path = false);
