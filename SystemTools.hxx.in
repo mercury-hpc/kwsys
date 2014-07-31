@@ -755,26 +755,26 @@ public:
   /**
    * Get a list of subkeys.
    */
-  static bool GetRegistrySubKeys(const char *key,
+  static bool GetRegistrySubKeys(const kwsys_stl::string& key,
                                  kwsys_stl::vector<kwsys_stl::string>& subkeys,
                                  KeyWOW64 view = KeyWOW64_Default);
 
   /**
    * Read a registry value
    */
-  static bool ReadRegistryValue(const char *key, kwsys_stl::string &value,
+  static bool ReadRegistryValue(const kwsys_stl::string& key, kwsys_stl::string &value,
                                 KeyWOW64 view = KeyWOW64_Default);
 
   /**
    * Write a registry value
    */
-  static bool WriteRegistryValue(const char *key, const char *value,
+  static bool WriteRegistryValue(const kwsys_stl::string& key, const kwsys_stl::string& value,
                                  KeyWOW64 view = KeyWOW64_Default);
 
   /**
    * Delete a registry value
    */
-  static bool DeleteRegistryValue(const char *key,
+  static bool DeleteRegistryValue(const kwsys_stl::string& key,
                                   KeyWOW64 view = KeyWOW64_Default);
 
   /** -----------------------------------------------------------------

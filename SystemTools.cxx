@@ -772,7 +772,7 @@ void SystemTools::ReplaceString(kwsys_stl::string& source,
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-static bool SystemToolsParseRegistryKey(const char* key,
+static bool SystemToolsParseRegistryKey(const kwsys_stl::string& key,
                                         HKEY& primaryKey,
                                         kwsys_stl::string& second,
                                         kwsys_stl::string& valuename)
@@ -843,7 +843,7 @@ static DWORD SystemToolsMakeRegistryMode(DWORD mode,
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 bool
-SystemTools::GetRegistrySubKeys(const char *key,
+SystemTools::GetRegistrySubKeys(const kwsys_stl::string& key,
                                 kwsys_stl::vector<kwsys_stl::string>& subkeys,
                                 KeyWOW64 view)
 {
@@ -882,7 +882,7 @@ SystemTools::GetRegistrySubKeys(const char *key,
   return true;
 }
 #else
-bool SystemTools::GetRegistrySubKeys(const char *,
+bool SystemTools::GetRegistrySubKeys(const kwsys_stl::string&,
                                      kwsys_stl::vector<kwsys_stl::string>&,
                                      KeyWOW64)
 {
@@ -898,7 +898,7 @@ bool SystemTools::GetRegistrySubKeys(const char *,
 //      =>  will return the data of the "Root" value of the key
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::ReadRegistryValue(const char *key, kwsys_stl::string &value,
+bool SystemTools::ReadRegistryValue(const kwsys_stl::string& key, kwsys_stl::string &value,
                                     KeyWOW64 view)
 {
   bool valueset = false;
@@ -955,7 +955,7 @@ bool SystemTools::ReadRegistryValue(const char *key, kwsys_stl::string &value,
   return valueset;
 }
 #else
-bool SystemTools::ReadRegistryValue(const char *, kwsys_stl::string &,
+bool SystemTools::ReadRegistryValue(const kwsys_stl::string&, kwsys_stl::string &,
                                     KeyWOW64)
 {
   return false;
@@ -971,7 +971,8 @@ bool SystemTools::ReadRegistryValue(const char *, kwsys_stl::string &,
 //      =>  will set the data of the "Root" value of the key
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::WriteRegistryValue(const char *key, const char *value,
+bool SystemTools::WriteRegistryValue(const kwsys_stl::string& key,
+                                     const kwsys_stl::string& value,
                                      KeyWOW64 view)
 {
   HKEY primaryKey = HKEY_CURRENT_USER;
@@ -1011,7 +1012,7 @@ bool SystemTools::WriteRegistryValue(const char *key, const char *value,
   return false;
 }
 #else
-bool SystemTools::WriteRegistryValue(const char *, const char *, KeyWOW64)
+bool SystemTools::WriteRegistryValue(const kwsys_stl::string&, const kwsys_stl::string&, KeyWOW64)
 {
   return false;
 }
@@ -1025,7 +1026,7 @@ bool SystemTools::WriteRegistryValue(const char *, const char *, KeyWOW64)
 //      =>  will delete  the data of the "Root" value of the key
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::DeleteRegistryValue(const char *key, KeyWOW64 view)
+bool SystemTools::DeleteRegistryValue(const kwsys_stl::string& key, KeyWOW64 view)
 {
   HKEY primaryKey = HKEY_CURRENT_USER;
   kwsys_stl::string second;
@@ -1056,7 +1057,7 @@ bool SystemTools::DeleteRegistryValue(const char *key, KeyWOW64 view)
   return false;
 }
 #else
-bool SystemTools::DeleteRegistryValue(const char *, KeyWOW64)
+bool SystemTools::DeleteRegistryValue(const kwsys_stl::string&, KeyWOW64)
 {
   return false;
 }
