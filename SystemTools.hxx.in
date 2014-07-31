@@ -89,9 +89,9 @@ public:
    * then an underscore is prepended.  Note that this can produce
    * identifiers that the standard reserves (_[A-Z].* and __.*).
    */
-  static kwsys_stl::string MakeCidentifier(const char* s);
+  static kwsys_stl::string MakeCidentifier(const kwsys_stl::string& s);
 
-  static kwsys_stl::string MakeCindentifier(const char* s)
+  static kwsys_stl::string MakeCindentifier(const kwsys_stl::string& s)
   {
     return MakeCidentifier(s);
   }

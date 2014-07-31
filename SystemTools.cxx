@@ -4442,7 +4442,7 @@ kwsys_stl::string SystemTools::GetCurrentDateTime(const char* format)
   return kwsys_stl::string(buf);
 }
 
-kwsys_stl::string SystemTools::MakeCidentifier(const char* s)
+kwsys_stl::string SystemTools::MakeCidentifier(const kwsys_stl::string& s)
 {
   kwsys_stl::string str(s);
   if (str.find_first_of("0123456789") == 0)
