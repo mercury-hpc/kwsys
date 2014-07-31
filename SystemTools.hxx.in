@@ -102,6 +102,9 @@ public:
   static void ReplaceString(kwsys_stl::string& source,
                             const char* replace,
                             const char* with);
+  static void ReplaceString(kwsys_stl::string& source,
+                            const kwsys_stl::string& replace,
+                            const kwsys_stl::string& with);
 
   /**
    * Return a capitalized string (i.e the first letter is uppercased,
@@ -906,6 +909,14 @@ private:
     {
     return &SystemToolsManagerInstance;
     }
+
+  /**
+   * Actual implementation of ReplaceString.
+   */
+  static void ReplaceString(kwsys_stl::string& source,
+                            const char* replace,
+                            size_t replaceSize,
+                            const kwsys_stl::string& with);
 
   /**
    * Actual implementation of FileIsFullPath.

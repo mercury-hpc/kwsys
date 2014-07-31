@@ -701,8 +701,35 @@ bool SystemTools::MakeDirectory(const kwsys_stl::string& path)
 // replace replace with with as many times as it shows up in source.
 // write the result into source.
 void SystemTools::ReplaceString(kwsys_stl::string& source,
-                                   const char* replace,
-                                   const char* with)
+                                const kwsys_stl::string& replace,
+                                const kwsys_stl::string& with)
+{
+  // do while hangs if replaceSize is 0
+  if (replace.empty())
+    {
+    return;
+    }
+
+  SystemTools::ReplaceString(source, replace.c_str(), replace.size(), with);
+}
+
+void SystemTools::ReplaceString(kwsys_stl::string& source,
+                                const char* replace,
+                                const char* with)
+{
+  // do while hangs if replaceSize is 0
+  if (!*replace)
+    {
+    return;
+    }
+
+  SystemTools::ReplaceString(source, replace, strlen(replace), with ? with : "");
+}
+
+void SystemTools::ReplaceString(kwsys_stl::string& source,
+                                const char* replace,
+                                size_t replaceSize,
+                                const kwsys_stl::string& with)
 {
   const char *src = source.c_str();
   char *searchPos = const_cast<char *>(strstr(src,replace));
@@ -714,12 +741,6 @@ void SystemTools::ReplaceString(kwsys_stl::string& source,
     }
 
   // perform replacements until done
-  size_t replaceSize = strlen(replace);
-  // do while hangs if replaceSize is 0
-  if(replaceSize == 0)
-    {
-    return;
-    }
   char *orig = strdup(src);
   char *currentPos = orig;
   searchPos = searchPos - src + orig;
