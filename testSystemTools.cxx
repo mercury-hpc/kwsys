@@ -512,7 +512,7 @@ static bool CheckStringOperations()
 
 //----------------------------------------------------------------------------
 
-static bool CheckPutEnv(const char* env, const char* name, const char* value)
+static bool CheckPutEnv(const kwsys_stl::string& env, const char* name, const char* value)
 {
   if(!kwsys::SystemTools::PutEnv(env))
     {

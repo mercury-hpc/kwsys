@@ -385,6 +385,11 @@ const char* SystemTools::GetEnv(const char* key)
   return getenv(key);
 }
 
+const char* SystemTools::GetEnv(const kwsys_stl::string& key)
+{
+  return SystemTools::GetEnv(key.c_str());
+}
+
 bool SystemTools::GetEnv(const char* key, kwsys_stl::string& result)
 {
   const char* v = getenv(key);
@@ -399,6 +404,11 @@ bool SystemTools::GetEnv(const char* key, kwsys_stl::string& result)
     }
 }
 
+bool SystemTools::GetEnv(const kwsys_stl::string& key, kwsys_stl::string& result)
+{
+  return SystemTools::GetEnv(key.c_str(), result);
+}
+
 //----------------------------------------------------------------------------
 
 #if defined(__CYGWIN__) || defined(__GLIBC__)
@@ -410,27 +420,28 @@ bool SystemTools::GetEnv(const char* key, kwsys_stl::string& result)
 #if KWSYS_CXX_HAS_UNSETENV
 /* unsetenv("A") removes A from the environment.
    On older platforms it returns void instead of int.  */
-static int kwsysUnPutEnv(const char* env)
+static int kwsysUnPutEnv(const kwsys_stl::string& env)
 {
-  if(const char* eq = strchr(env, '='))
+  size_t pos = env.find('=');
+  if(pos != env.npos)
     {
-    std::string name(env, eq-env);
+    std::string name = env.substr(0, pos);
     unsetenv(name.c_str());
     }
   else
     {
-    unsetenv(env);
+    unsetenv(env.c_str());
     }
   return 0;
 }
 
 #elif defined(KWSYS_PUTENV_EMPTY) || defined(KWSYS_PUTENV_NAME)
 /* putenv("A=") or putenv("A") removes A from the environment.  */
-static int kwsysUnPutEnv(const char* env)
+static int kwsysUnPutEnv(const kwsys_stl::string& env)
 {
   int err = 0;
-  const char* eq = strchr(env, '=');
-  size_t const len = eq? (size_t)(eq-env) : strlen(env);
+  size_t pos = env.find('=');
+  size_t const len = pos == env.npos ? env.size() : pos;
 # ifdef KWSYS_PUTENV_EMPTY
   size_t const sz = len + 2;
 # else
@@ -442,7 +453,7 @@ static int kwsysUnPutEnv(const char* env)
     {
     return -1;
     }
-  strncpy(buf, env, len);
+  strncpy(buf, env.c_str(), len);
 # ifdef KWSYS_PUTENV_EMPTY
   buf[len] = '=';
   buf[len+1] = 0;
@@ -471,17 +482,17 @@ static int kwsysUnPutEnv(const char* env)
 
 #else
 /* Manipulate the "environ" global directly.  */
-static int kwsysUnPutEnv(const char* env)
+static int kwsysUnPutEnv(const kwsys_stl::string& env)
 {
-  const char* eq = strchr(env, '=');
-  size_t const len = eq? (size_t)(eq-env) : strlen(env);
+  size_t pos = env.find('=');
+  size_t const len = pos == env.npos ? env.size() : pos;
   int in = 0;
   int out = 0;
   while(environ[in])
     {
     if(strlen(environ[in]) > len &&
        environ[in][len] == '=' &&
-       strncmp(env, environ[in], len) == 0)
+       strncmp(env.c_str(), environ[in], len) == 0)
       {
       ++in;
       }
@@ -504,12 +515,13 @@ static int kwsysUnPutEnv(const char* env)
 
 /* setenv("A", "B", 1) will set A=B in the environment and makes its
    own copies of the strings.  */
-bool SystemTools::PutEnv(const char* env)
+bool SystemTools::PutEnv(const kwsys_stl::string& env)
 {
-  if(const char* eq = strchr(env, '='))
+  size_t pos = env.find('=');
+  if(pos != env.npos)
     {
-    std::string name(env, eq-env);
-    return setenv(name.c_str(), eq+1, 1) == 0;
+    std::string name = env.substr(0, pos);
+    return setenv(name.c_str(), env.c_str() + pos + 1, 1) == 0;
     }
   else
     {
@@ -517,7 +529,7 @@ bool SystemTools::PutEnv(const char* env)
     }
 }
 
-bool SystemTools::UnPutEnv(const char* env)
+bool SystemTools::UnPutEnv(const kwsys_stl::string& env)
 {
   return kwsysUnPutEnv(env) == 0;
 }
@@ -603,14 +615,14 @@ public:
 
 static kwsysEnv kwsysEnvInstance;
 
-bool SystemTools::PutEnv(const char* env)
+bool SystemTools::PutEnv(const kwsys_stl::string& env)
 {
-  return kwsysEnvInstance.Put(env);
+  return kwsysEnvInstance.Put(env.c_str());
 }
 
-bool SystemTools::UnPutEnv(const char* env)
+bool SystemTools::UnPutEnv(const kwsys_stl::string& env)
 {
-  return kwsysEnvInstance.UnPut(env);
+  return kwsysEnvInstance.UnPut(env.c_str());
 }
 
 #endif
