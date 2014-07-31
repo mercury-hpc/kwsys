@@ -779,13 +779,13 @@ static bool SystemToolsParseRegistryKey(const kwsys_stl::string& key,
 {
   kwsys_stl::string primary = key;
 
-  size_t start = primary.find("\\");
+  size_t start = primary.find('\\');
   if (start == kwsys_stl::string::npos)
     {
     return false;
     }
 
-  size_t valuenamepos = primary.find(";");
+  size_t valuenamepos = primary.find(';');
   if (valuenamepos != kwsys_stl::string::npos)
     {
     valuename = primary.substr(valuenamepos+1);
@@ -4021,7 +4021,7 @@ kwsys_stl::string SystemTools::GetFilenameName(const kwsys_stl::string& filename
 kwsys_stl::string SystemTools::GetFilenameExtension(const kwsys_stl::string& filename)
 {
   kwsys_stl::string name = SystemTools::GetFilenameName(filename);
-  kwsys_stl::string::size_type dot_pos = name.find(".");
+  kwsys_stl::string::size_type dot_pos = name.find('.');
   if(dot_pos != kwsys_stl::string::npos)
     {
     return name.substr(dot_pos);
@@ -4039,7 +4039,7 @@ kwsys_stl::string SystemTools::GetFilenameExtension(const kwsys_stl::string& fil
 kwsys_stl::string SystemTools::GetFilenameLastExtension(const kwsys_stl::string& filename)
 {
   kwsys_stl::string name = SystemTools::GetFilenameName(filename);
-  kwsys_stl::string::size_type dot_pos = name.rfind(".");
+  kwsys_stl::string::size_type dot_pos = name.rfind('.');
   if(dot_pos != kwsys_stl::string::npos)
     {
     return name.substr(dot_pos);
@@ -4057,7 +4057,7 @@ kwsys_stl::string SystemTools::GetFilenameLastExtension(const kwsys_stl::string&
 kwsys_stl::string SystemTools::GetFilenameWithoutExtension(const kwsys_stl::string& filename)
 {
   kwsys_stl::string name = SystemTools::GetFilenameName(filename);
-  kwsys_stl::string::size_type dot_pos = name.find(".");
+  kwsys_stl::string::size_type dot_pos = name.find('.');
   if(dot_pos != kwsys_stl::string::npos)
     {
     return name.substr(0, dot_pos);
@@ -4078,7 +4078,7 @@ kwsys_stl::string
 SystemTools::GetFilenameWithoutLastExtension(const kwsys_stl::string& filename)
 {
   kwsys_stl::string name = SystemTools::GetFilenameName(filename);
-  kwsys_stl::string::size_type dot_pos = name.rfind(".");
+  kwsys_stl::string::size_type dot_pos = name.rfind('.');
   if(dot_pos != kwsys_stl::string::npos)
     {
     return name.substr(0, dot_pos);
