@@ -2245,12 +2245,13 @@ bool SystemTools::CopyFileAlways(const kwsys_stl::string& source, const kwsys_st
   SystemTools::MakeDirectory(destination_dir);
 
   // Open files
-
-#if defined(_WIN32) || defined(__CYGWIN__)
-  kwsys::ifstream fin(source.c_str(),
-                kwsys_ios::ios::binary | kwsys_ios::ios::in);
+#if defined(_WIN32)
+  kwsys::ifstream fin(Encoding::ToNarrow(
+    SystemTools::ConvertToWindowsExtendedPath(source)).c_str(),
+                kwsys_ios::ios::in | kwsys_ios_binary);
 #else
-  kwsys::ifstream fin(source.c_str());
+  kwsys::ifstream fin(source.c_str(),
+                kwsys_ios::ios::in | kwsys_ios_binary);
 #endif
   if(!fin)
     {
@@ -2263,12 +2264,13 @@ bool SystemTools::CopyFileAlways(const kwsys_stl::string& source, const kwsys_st
   // that do not allow file removal can be modified.
   SystemTools::RemoveFile(real_destination);
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-  kwsys::ofstream fout(real_destination.c_str(),
-                     kwsys_ios::ios::binary | kwsys_ios::ios::out | kwsys_ios::ios::trunc);
+#if defined(_WIN32)
+  kwsys::ofstream fout(Encoding::ToNarrow(
+    SystemTools::ConvertToWindowsExtendedPath(real_destination)).c_str(),
+                     kwsys_ios::ios::out | kwsys_ios::ios::trunc | kwsys_ios_binary);
 #else
   kwsys::ofstream fout(real_destination.c_str(),
-                     kwsys_ios::ios::out | kwsys_ios::ios::trunc);
+                     kwsys_ios::ios::out | kwsys_ios::ios::trunc | kwsys_ios_binary);
 #endif
   if(!fout)
     {
