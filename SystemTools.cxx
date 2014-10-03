@@ -222,7 +222,7 @@ inline int Rmdir(const kwsys_stl::string& dir)
 inline const char* Getcwd(char* buf, unsigned int len)
 {
   std::vector<wchar_t> w_buf(len);
-  if(const wchar_t* ret = _wgetcwd(&w_buf[0], len))
+  if(_wgetcwd(&w_buf[0], len))
     {
     // make sure the drive letter is capital
     if(wcslen(&w_buf[0]) > 1 && w_buf[1] == L':')
