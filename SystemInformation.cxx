@@ -3753,9 +3753,9 @@ bool SystemInformationImplementation::QueryWindowsMemory()
   }
 #  define MEM_VAL(value) ull##value
 # endif
-  tv = ms.MEM_VAL(TotalVirtual);
+  tv = ms.MEM_VAL(TotalPageFile);
   tp = ms.MEM_VAL(TotalPhys);
-  av = ms.MEM_VAL(AvailVirtual);
+  av = ms.MEM_VAL(AvailPageFile);
   ap = ms.MEM_VAL(AvailPhys);
   this->TotalVirtualMemory = tv>>10>>10;
   this->TotalPhysicalMemory = tp>>10>>10;
