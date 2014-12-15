@@ -3,6 +3,8 @@
 /GitSetup        export-ignore
 /SetupForDevelopment.sh  export-ignore  eol=lf
 
+/CONTRIBUTING.rst conflict-marker-size=78
+
 *.c              whitespace=tab-in-indent,no-lf-at-eof
 *.h              whitespace=tab-in-indent,no-lf-at-eof
 *.h.in           whitespace=tab-in-indent,no-lf-at-eof
