@@ -16,6 +16,10 @@
 #  define _XOPEN_SOURCE_EXTENDED
 #endif
 
+#if defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__MINGW32__))
+#  define KWSYS_WINDOWS_DIRS
+#endif
+
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(RegularExpression.hxx)
 #include KWSYS_HEADER(SystemTools.hxx)
@@ -205,8 +209,7 @@ static time_t windows_filetime_to_posix_time(const FILETIME& ft)
 }
 #endif
 
-#if defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__MINGW32__))
-
+#ifdef KWSYS_WINDOWS_DIRS
 #include <wctype.h>
 
 inline int Mkdir(const kwsys_stl::string& dir)
