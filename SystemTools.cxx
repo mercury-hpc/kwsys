@@ -18,6 +18,10 @@
 
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__MINGW32__))
 #  define KWSYS_WINDOWS_DIRS
+#else
+#  if defined(__SUNPRO_CC)
+#    include <fcntl.h>
+#  endif
 #endif
 
 #include "kwsysPrivate.h"
