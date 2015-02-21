@@ -335,7 +335,7 @@ void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
         }
       else
         {
-        this->ProcessDirectory(start+1, realname + "/");
+        this->ProcessDirectory(start+1, realname);
         }
       }
     }
