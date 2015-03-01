@@ -69,6 +69,10 @@ Glob::Glob()
     // RecurseThroughSymlinks is true by default for backwards compatibility,
     // not because it's a good idea...
   this->FollowedSymlinkCount = 0;
+
+  // Keep separate variables for directory listing for back compatibility
+  this->ListDirs = true;
+  this->RecurseListDirs = false;
 }
 
 //----------------------------------------------------------------------------
@@ -277,6 +281,12 @@ bool Glob::RecurseDirectory(kwsys_stl::string::size_type start,
             this->VisitedSymlinks.end(),
             canonicalPath) == this->VisitedSymlinks.end())
           {
+          if(this->RecurseListDirs)
+            {
+            // symlinks are treated as directories
+            this->AddFile(this->Internals->Files, realname);
+            }
+
           this->VisitedSymlinks.push_back(canonicalPath);
           if(!this->RecurseDirectory(start+1, realname, messages))
             {
@@ -304,6 +314,10 @@ bool Glob::RecurseDirectory(kwsys_stl::string::size_type start,
         }
       else
         {
+        if(this->RecurseListDirs)
+          {
+          this->AddFile(this->Internals->Files, realname);
+          }
         if(!this->RecurseDirectory(start+1, realname, messages))
           {
           return false;
@@ -375,7 +389,9 @@ void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
     // << this->Internals->TextExpressions[start].c_str() << kwsys_ios::endl;
     //kwsys_ios::cout << "Real name: " << realname << kwsys_ios::endl;
 
-    if( !last && !kwsys::SystemTools::FileIsDirectory(realname) )
+    if( (!last && !kwsys::SystemTools::FileIsDirectory(realname))
+      || (!this->ListDirs && last &&
+          kwsys::SystemTools::FileIsDirectory(realname)) )
       {
       continue;
       }

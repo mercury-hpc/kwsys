@@ -105,6 +105,15 @@ public:
                                           bool require_whole_string = true,
                                           bool preserve_case = false);
 
+  /** Getters and setters for enabling and disabling directory
+      listing in recursive and non recursive globbing mode.
+      If listing is enabled in recursive mode it also lists
+      directory symbolic links even if follow symlinks is enabled. */
+  void SetListDirs(bool list) { this->ListDirs=list; }
+  bool GetListDirs() const { return this->ListDirs; }
+  void SetRecurseListDirs(bool list) { this->RecurseListDirs=list; }
+  bool GetRecurseListDirs() const { return this->RecurseListDirs; }
+
 protected:
   //! Process directory
   void ProcessDirectory(kwsys_stl::string::size_type start,
@@ -129,6 +138,8 @@ protected:
   bool RecurseThroughSymlinks;
   unsigned int FollowedSymlinkCount;
   kwsys_stl::vector<kwsys_stl::string> VisitedSymlinks;
+  bool ListDirs;
+  bool RecurseListDirs;
 
 private:
   Glob(const Glob&);  // Not implemented.
