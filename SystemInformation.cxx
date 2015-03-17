@@ -1234,6 +1234,7 @@ void StacktraceSignalHandler(
 
         case ILL_ILLTRP:
           oss << "illegal trap";
+          break;
 
         case ILL_PRVOPC:
           oss << "privileged opcode";
