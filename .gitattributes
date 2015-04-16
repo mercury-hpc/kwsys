@@ -1,4 +1,5 @@
 .git*            export-ignore
+.gitattributes  -export-ignore
 
 /GitSetup        export-ignore
 /SetupForDevelopment.sh  export-ignore  eol=lf
