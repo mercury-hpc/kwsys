@@ -2582,8 +2582,10 @@ typedef struct kwsysProcessInstances_s
 } kwsysProcessInstances;
 static kwsysProcessInstances kwsysProcesses;
 
-/* The old SIGCHLD handler.  */
+/* The old SIGCHLD / SIGINT / SIGTERM handlers.  */
 static struct sigaction kwsysProcessesOldSigChldAction;
+static struct sigaction kwsysProcessesOldSigIntAction;
+static struct sigaction kwsysProcessesOldSigTermAction;
 
 /*--------------------------------------------------------------------------*/
 static void kwsysProcessesUpdate(kwsysProcessInstances* newProcesses)
@@ -2686,20 +2688,35 @@ static int kwsysProcessesAdd(kwsysProcess* cp)
     {
     /* Install our handler for SIGCHLD.  Repeat call until it is not
        interrupted.  */
-    struct sigaction newSigChldAction;
-    memset(&newSigChldAction, 0, sizeof(struct sigaction));
+    struct sigaction newSigAction;
+    memset(&newSigAction, 0, sizeof(struct sigaction));
 #if KWSYSPE_USE_SIGINFO
-    newSigChldAction.sa_sigaction = kwsysProcessesSignalHandler;
-    newSigChldAction.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
+    newSigAction.sa_sigaction = kwsysProcessesSignalHandler;
+    newSigAction.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
 # ifdef SA_RESTART
-    newSigChldAction.sa_flags |= SA_RESTART;
+    newSigAction.sa_flags |= SA_RESTART;
 # endif
 #else
-    newSigChldAction.sa_handler = kwsysProcessesSignalHandler;
-    newSigChldAction.sa_flags = SA_NOCLDSTOP;
+    newSigAction.sa_handler = kwsysProcessesSignalHandler;
+    newSigAction.sa_flags = SA_NOCLDSTOP;
 #endif
-    while((sigaction(SIGCHLD, &newSigChldAction,
+    sigemptyset(&newSigAction.sa_mask);
+    while((sigaction(SIGCHLD, &newSigAction,
                      &kwsysProcessesOldSigChldAction) < 0) &&
+          (errno == EINTR));
+
+    /* Install our handler for SIGINT / SIGTERM.  Repeat call until
+       it is not interrupted.  */
+    sigemptyset(&newSigAction.sa_mask);
+    sigaddset(&newSigAction.sa_mask, SIGTERM);
+    while((sigaction(SIGINT, &newSigAction,
+                     &kwsysProcessesOldSigIntAction) < 0) &&
+          (errno == EINTR));
+
+    sigemptyset(&newSigAction.sa_mask);
+    sigaddset(&newSigAction.sa_mask, SIGINT);
+    while((sigaction(SIGTERM, &newSigAction,
+                     &kwsysProcessesOldSigIntAction) < 0) &&
           (errno == EINTR));
     }
   }
@@ -2734,9 +2751,13 @@ static void kwsysProcessesRemove(kwsysProcess* cp)
     /* If this was the last process, disable the signal handler.  */
     if(newProcesses.Count == 0)
       {
-      /* Restore the SIGCHLD handler.  Repeat call until it is not
+      /* Restore the signal handlers.  Repeat call until it is not
          interrupted.  */
       while((sigaction(SIGCHLD, &kwsysProcessesOldSigChldAction, 0) < 0) &&
+            (errno == EINTR));
+      while((sigaction(SIGINT, &kwsysProcessesOldSigIntAction, 0) < 0) &&
+            (errno == EINTR));
+      while((sigaction(SIGTERM, &kwsysProcessesOldSigTermAction, 0) < 0) &&
             (errno == EINTR));
 
       /* Free the table of process pointers since it is now empty.
@@ -2763,39 +2784,84 @@ static void kwsysProcessesSignalHandler(int signum
 #endif
   )
 {
-  (void)signum;
+  int i, procStatus, old_errno = errno;
 #if KWSYSPE_USE_SIGINFO
   (void)info;
   (void)ucontext;
 #endif
 
   /* Signal all process objects that a child has terminated.  */
-  {
-  int i;
-  for(i=0; i < kwsysProcesses.Count; ++i)
+  switch(signum)
     {
-    /* Set the pipe in a signalled state.  */
-    char buf = 1;
-    kwsysProcess* cp = kwsysProcesses.Processes[i];
-    kwsysProcess_ssize_t status=
-      read(cp->PipeReadEnds[KWSYSPE_PIPE_SIGNAL], &buf, 1);
-    (void)status;
-    status=write(cp->SignalPipe, &buf, 1);
-    (void)status;
+    case SIGCHLD:
+      for(i=0; i < kwsysProcesses.Count; ++i)
+        {
+        /* Set the pipe in a signalled state.  */
+        char buf = 1;
+        kwsysProcess* cp = kwsysProcesses.Processes[i];
+        kwsysProcess_ssize_t pipeStatus=
+          read(cp->PipeReadEnds[KWSYSPE_PIPE_SIGNAL], &buf, 1);
+        (void)pipeStatus;
+        pipeStatus=write(cp->SignalPipe, &buf, 1);
+        (void)pipeStatus;
+        }
+      break;
+    case SIGINT:
+    case SIGTERM:
+      /* Wait for all processes to terminate.  */
+      while(wait(&procStatus) >= 0 || errno != ECHILD)
+        {
+        }
+      /* Terminate the process, which is now in an inconsistent state
+         because we reaped all the PIDs that it may have been reaping
+         or may have reaped in the future.  Reraise the signal so that
+         the proper exit code is returned.  */
+      {
+      /* Install default signal handler.  */
+      struct sigaction defSigAction;
+      sigset_t unblockSet;
+      memset(&defSigAction, 0, sizeof(defSigAction));
+      defSigAction.sa_handler = SIG_DFL;
+      sigemptyset(&defSigAction.sa_mask);
+      while((sigaction(signum, &defSigAction, 0) < 0) &&
+            (errno == EINTR));
+      /* Unmask the signal.  */
+      sigemptyset(&unblockSet);
+      sigaddset(&unblockSet, signum);
+      sigprocmask(SIG_UNBLOCK, &unblockSet, 0);
+      /* Raise the signal again.  */
+      raise(signum);
+      /* We shouldn't get here... but if we do... */
+      _exit(1);
+      }
+      /* break omitted to silence unreachable code clang compiler warning.  */
     }
-  }
 
 #if !KWSYSPE_USE_SIGINFO
-  /* Re-Install our handler for SIGCHLD.  Repeat call until it is not
-     interrupted.  */
+  /* Re-Install our handler.  Repeat call until it is not interrupted.  */
   {
-  struct sigaction newSigChldAction;
-  memset(&newSigChldAction, 0, sizeof(struct sigaction));
+  struct sigaction newSigAction;
+  struct sigaction &oldSigAction;
+  memset(&newSigAction, 0, sizeof(struct sigaction));
   newSigChldAction.sa_handler = kwsysProcessesSignalHandler;
   newSigChldAction.sa_flags = SA_NOCLDSTOP;
-  while((sigaction(SIGCHLD, &newSigChldAction,
-                   &kwsysProcessesOldSigChldAction) < 0) &&
+  sigemptyset(&newSigAction.sa_mask);
+  switch(signum)
+    {
+    case SIGCHLD: oldSigAction = &kwsysProcessesOldSigChldAction; break;
+    case SIGINT:
+      sigaddset(&newSigAction.sa_mask, SIGTERM);
+      oldSigAction = &kwsysProcessesOldSigIntAction; break;
+    case SIGTERM:
+      sigaddset(&newSigAction.sa_mask, SIGINT);
+      oldSigAction = &kwsysProcessesOldSigTermAction; break;
+    default: return 0;
+    }
+  while((sigaction(signum, &newSigAction,
+                   oldSigAction) < 0) &&
         (errno == EINTR));
   }
 #endif
+
+  errno = old_errno;
 }

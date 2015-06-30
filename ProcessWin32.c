@@ -133,6 +133,12 @@ static kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1, kwsysProc
 static void kwsysProcessSetExitException(kwsysProcess* cp, int code);
 static void kwsysProcessKillTree(int pid);
 static void kwsysProcessDisablePipeThreads(kwsysProcess* cp);
+static int kwsysProcessesInitialize(void);
+static int kwsysTryEnterCreateProcessSection(void);
+static void kwsysLeaveCreateProcessSection(void);
+static int kwsysProcessesAdd(HANDLE hProcess);
+static void kwsysProcessesRemove(HANDLE hProcess);
+static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType);
 
 /*--------------------------------------------------------------------------*/
 /* A structure containing synchronization data for each thread.  */
@@ -320,6 +326,16 @@ kwsysProcess* kwsysProcess_New(void)
 
   /* Windows version number data.  */
   OSVERSIONINFO osv;
+
+  /* Initialize list of processes before we get any farther.  It's especially
+     important that the console Ctrl handler be added BEFORE starting the
+     first process.  This prevents the risk of an orphaned process being
+     started by the main thread while the default Ctrl handler is in
+     progress.  */
+  if(!kwsysProcessesInitialize())
+    {
+    return 0;
+    }
 
   /* Allocate a process control structure.  */
   cp = (kwsysProcess*)malloc(sizeof(kwsysProcess));
@@ -1487,7 +1503,8 @@ void kwsysProcess_Kill(kwsysProcess* cp)
   for(i=0; i < cp->NumberOfCommands; ++i)
     {
     kwsysProcessKillTree(cp->ProcessInformation[i].dwProcessId);
-    // close the handle if we kill it
+    /* Remove from global list of processes and close handles.  */
+    kwsysProcessesRemove(cp->ProcessInformation[i].hProcess);
     kwsysProcessCleanupHandle(&cp->ProcessInformation[i].hThread);
     kwsysProcessCleanupHandle(&cp->ProcessInformation[i].hProcess);
     }
@@ -1728,7 +1745,19 @@ static int kwsysProcessCreateChildHandle(PHANDLE out, HANDLE in, int isStdIn)
 int kwsysProcessCreate(kwsysProcess* cp, int index,
                        kwsysProcessCreateInformation* si)
 {
-  int res =
+  int res;
+
+  /* Check if we are currently exiting.  */
+  if (!kwsysTryEnterCreateProcessSection())
+    {
+    /* The Ctrl handler is currently working on exiting our process.  Rather
+    than return an error code, which could cause incorrect conclusions to be
+    reached by the caller, we simply hang.  (For example, a CMake try_run
+    configure step might cause the project to configure wrong.)  */
+    Sleep(INFINITE);
+    }
+
+  res =
 
     /* Create inherited copies the handles.  */
     kwsysProcessCreateChildHandle(&si->StartupInfo.hStdInput,
@@ -1757,6 +1786,19 @@ int kwsysProcessCreate(kwsysProcess* cp, int index,
     kwsysProcessCleanupHandle(&si->StartupInfo.hStdError);
     }
 
+  /* Add the process to the global list of processes. */
+  if (!kwsysProcessesAdd(cp->ProcessInformation[index].hProcess))
+    {
+    /* This failed for some reason.  Kill the suspended process. */
+    TerminateProcess(cp->ProcessInformation[index].hProcess, 1);
+    /* And clean up... */
+    kwsysProcessCleanupHandle(&cp->ProcessInformation[index].hProcess);
+    kwsysProcessCleanupHandle(&cp->ProcessInformation[index].hThread);
+    res = 0;
+    }
+
+  /* If the console Ctrl handler is waiting for us, this will release it... */
+  kwsysLeaveCreateProcessSection();
   return res;
 }
 
@@ -1778,6 +1820,9 @@ void kwsysProcessDestroy(kwsysProcess* cp, int event)
   /* Check the exit code of the process.  */
   GetExitCodeProcess(cp->ProcessInformation[index].hProcess,
                      &cp->CommandExitCodes[index]);
+
+  /* Remove from global list of processes.  */
+  kwsysProcessesRemove(cp->ProcessInformation[index].hProcess);
 
   /* Close the process handle for the terminated process.  */
   kwsysProcessCleanupHandle(&cp->ProcessInformation[index].hProcess);
@@ -1923,6 +1968,8 @@ void kwsysProcessCleanup(kwsysProcess* cp, int error)
         }
       for(i=0; i < cp->NumberOfCommands; ++i)
         {
+        /* Remove from global list of processes and close handles.  */
+        kwsysProcessesRemove(cp->ProcessInformation[i].hProcess);
         kwsysProcessCleanupHandle(&cp->ProcessInformation[i].hThread);
         kwsysProcessCleanupHandle(&cp->ProcessInformation[i].hProcess);
         }
@@ -2658,4 +2705,204 @@ static void kwsysProcessDisablePipeThreads(kwsysProcess* cp)
        reset immediately because the pipe is closed.  */
     ReleaseSemaphore(cp->Pipe[cp->CurrentIndex].Reader.Go, 1, 0);
     }
+}
+
+/*--------------------------------------------------------------------------*/
+/* Global set of executing processes for use by the Ctrl handler.
+   This global instance will be zero-initialized by the compiler.
+
+   Note that the console Ctrl handler runs on a background thread and so
+   everything it does must be thread safe.  Here, we track the hProcess
+   HANDLEs directly instead of kwsysProcess instances, so that we don't have
+   to make kwsysProcess thread safe.  */
+typedef struct kwsysProcessInstances_s
+{
+  /* Whether we have initialized key fields below, like critical sections.  */
+  int Initialized;
+
+  /* Ctrl handler runs on a different thread, so we must sync access.  */
+  CRITICAL_SECTION Lock;
+
+  int Exiting;
+  size_t Count;
+  size_t Size;
+  HANDLE* Processes;
+} kwsysProcessInstances;
+static kwsysProcessInstances kwsysProcesses;
+
+/*--------------------------------------------------------------------------*/
+/* Initialize critial section and set up console Ctrl handler.  You MUST call
+   this before using any other kwsysProcesses* functions below.  */
+static int kwsysProcessesInitialize(void)
+{
+  /* Initialize everything if not done already.  */
+  if(!kwsysProcesses.Initialized)
+    {
+    InitializeCriticalSection(&kwsysProcesses.Lock);
+
+    /* Set up console ctrl handler.  */
+    if(!SetConsoleCtrlHandler(kwsysCtrlHandler, TRUE))
+      {
+      return 0;
+      }
+
+    kwsysProcesses.Initialized = 1;
+    }
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+/* The Ctrl handler waits on the global list of processes.  To prevent an
+   orphaned process, do not create a new process if the Ctrl handler is
+   already running.  Do so by using this function to check if it is ok to
+   create a process.  */
+static int kwsysTryEnterCreateProcessSection(void)
+{
+  /* Enter main critical section; this means creating a process and the Ctrl
+     handler are mutually exclusive.  */
+  EnterCriticalSection(&kwsysProcesses.Lock);
+  /* Indicate to the caller if they can create a process.  */
+  if(kwsysProcesses.Exiting)
+    {
+    LeaveCriticalSection(&kwsysProcesses.Lock);
+    return 0;
+    }
+  else
+    {
+    return 1;
+    }
+}
+
+/*--------------------------------------------------------------------------*/
+/* Matching function on successful kwsysTryEnterCreateProcessSection return.
+   Make sure you called kwsysProcessesAdd if applicable before calling this.*/
+static void kwsysLeaveCreateProcessSection(void)
+{
+  LeaveCriticalSection(&kwsysProcesses.Lock);
+}
+
+/*--------------------------------------------------------------------------*/
+/* Add new process to global process list.  The Ctrl handler will wait for
+   the process to exit before it returns.  Do not close the process handle
+   until after calling kwsysProcessesRemove.  */
+static int kwsysProcessesAdd(HANDLE hProcess)
+{
+  if(!kwsysProcessesInitialize() || !hProcess ||
+      hProcess == INVALID_HANDLE_VALUE)
+    {
+    return 0;
+    }
+
+  /* Enter the critical section. */
+  EnterCriticalSection(&kwsysProcesses.Lock);
+
+  /* Make sure there is enough space for the new process handle.  */
+  if(kwsysProcesses.Count == kwsysProcesses.Size)
+    {
+    size_t newSize;
+    HANDLE *newArray;
+    /* Start with enough space for a small number of process handles
+       and double the size each time more is needed.  */
+    newSize = kwsysProcesses.Size? kwsysProcesses.Size*2 : 4;
+
+    /* Try allocating the new block of memory.  */
+    if(newArray = (HANDLE*)malloc(newSize*sizeof(HANDLE)))
+      {
+      /* Copy the old process handles to the new memory.  */
+      if(kwsysProcesses.Count > 0)
+        {
+        memcpy(newArray, kwsysProcesses.Processes,
+               kwsysProcesses.Count * sizeof(HANDLE));
+        }
+      }
+    else
+      {
+      /* Failed to allocate memory for the new process handle set.  */
+      LeaveCriticalSection(&kwsysProcesses.Lock);
+      return 0;
+      }
+
+    /* Free original array. */
+    free(kwsysProcesses.Processes);
+
+    /* Update original structure with new allocation. */
+    kwsysProcesses.Size = newSize;
+    kwsysProcesses.Processes = newArray;
+    }
+
+  /* Append the new process handle to the set.  */
+  kwsysProcesses.Processes[kwsysProcesses.Count++] = hProcess;
+
+  /* Leave critical section and return success. */
+  LeaveCriticalSection(&kwsysProcesses.Lock);
+
+  return 1;
+}
+
+/*--------------------------------------------------------------------------*/
+/* Removes process to global process list.  */
+static void kwsysProcessesRemove(HANDLE hProcess)
+{
+  size_t i;
+
+  if (!hProcess || hProcess == INVALID_HANDLE_VALUE)
+    {
+    return;
+    }
+
+  EnterCriticalSection(&kwsysProcesses.Lock);
+
+  /* Find the given process in the set.  */
+  for(i=0; i < kwsysProcesses.Count; ++i)
+    {
+    if(kwsysProcesses.Processes[i] == hProcess)
+      {
+      break;
+      }
+    }
+  if(i < kwsysProcesses.Count)
+    {
+    /* Found it!  Remove the process from the set.  */
+    --kwsysProcesses.Count;
+    for(; i < kwsysProcesses.Count; ++i)
+      {
+      kwsysProcesses.Processes[i] = kwsysProcesses.Processes[i+1];
+      }
+
+    /* If this was the last process, free the array.  */
+    if(kwsysProcesses.Count == 0)
+      {
+      kwsysProcesses.Size = 0;
+      free(kwsysProcesses.Processes);
+      kwsysProcesses.Processes = 0;
+      }
+    }
+
+  LeaveCriticalSection(&kwsysProcesses.Lock);
+}
+
+/*--------------------------------------------------------------------------*/
+static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType)
+{
+  (void)dwCtrlType;
+  /* Enter critical section.  */
+  EnterCriticalSection(&kwsysProcesses.Lock);
+
+  /* Set flag indicating that we are exiting.  */
+  kwsysProcesses.Exiting = 1;
+
+  /* Wait for each child process to exit.  This is the key step that prevents
+     us from leaving several orphaned children processes running in the
+     background when the user presses Ctrl+C.  */
+  if(kwsysProcesses.Count > 0) /* WaitForMultipleObjects forbids Count==0.  */
+    {
+    WaitForMultipleObjects((DWORD)kwsysProcesses.Count,
+                           kwsysProcesses.Processes, TRUE, INFINITE);
+    }
+
+  /* Leave critical section.  */
+  LeaveCriticalSection(&kwsysProcesses.Lock);
+
+  /* Continue on to default Ctrl handler (which calls ExitProcess).  */
+  return FALSE;
 }
