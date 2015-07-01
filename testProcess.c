@@ -35,15 +35,35 @@
 # pragma warn -8060 /* possibly incorrect assignment */
 #endif
 
+/* Platform-specific sleep functions. */
+
 #if defined(__BEOS__) && !defined(__ZETA__)
 /* BeOS 5 doesn't have usleep(), but it has snooze(), which is identical. */
 # include <be/kernel/OS.h>
-static inline void testProcess_usleep(unsigned int msec)
+static inline void testProcess_usleep(unsigned int usec)
 {
-  snooze(msec);
+  snooze(usec);
+}
+#elif defined(_WIN32)
+/* Windows can only sleep in millisecond intervals. */
+static void testProcess_usleep(unsigned int usec)
+{
+  Sleep(usec / 1000);
 }
 #else
 # define testProcess_usleep usleep
+#endif
+
+#if defined(_WIN32)
+static void testProcess_sleep(unsigned int sec)
+{
+  Sleep(sec*1000);
+}
+#else
+static void testProcess_sleep(unsigned int sec)
+{
+  sleep(sec);
+}
 #endif
 
 int runChild(const char* cmd[], int state, int exception, int value,
@@ -73,11 +93,7 @@ static int test3(int argc, const char* argv[])
   fprintf(stderr, "Output before sleep on stderr from timeout test.\n");
   fflush(stdout);
   fflush(stderr);
-#if defined(_WIN32)
-  Sleep(15000);
-#else
-  sleep(15);
-#endif
+  testProcess_sleep(15);
   fprintf(stdout, "Output after sleep on stdout from timeout test.\n");
   fprintf(stderr, "Output after sleep on stderr from timeout test.\n");
   return 0;
@@ -168,11 +184,7 @@ static int test7(int argc, const char* argv[])
   fflush(stdout);
   fflush(stderr);
   /* Sleep for 1 second.  */
-#if defined(_WIN32)
-  Sleep(1000);
-#else
-  sleep(1);
-#endif
+  testProcess_sleep(1);
   fprintf(stdout, "Output on stdout after sleep.\n");
   fprintf(stderr, "Output on stderr after sleep.\n");
   fflush(stdout);
@@ -217,11 +229,7 @@ static int test8_grandchild(int argc, const char* argv[])
      implemented.  */
   fclose(stdout);
   fclose(stderr);
-#if defined(_WIN32)
-  Sleep(15000);
-#else
-  sleep(15);
-#endif
+  testProcess_sleep(15);
   return 0;
 }
 
@@ -286,17 +294,13 @@ static int runChild2(kwsysProcess* kp,
       if(poll)
         {
         /* Delay to avoid busy loop during polling.  */
-#if defined(_WIN32)
-        Sleep(100);
-#else
         testProcess_usleep(100000);
-#endif
         }
       if(delay)
         {
         /* Purposely sleeping only on Win32 to let pipe fill up.  */
 #if defined(_WIN32)
-        Sleep(100);
+        testProcess_usleep(100000);
 #endif
         }
       }
