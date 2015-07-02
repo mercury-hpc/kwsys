@@ -136,7 +136,8 @@ static void kwsysProcessDisablePipeThreads(kwsysProcess* cp);
 static int kwsysProcessesInitialize(void);
 static int kwsysTryEnterCreateProcessSection(void);
 static void kwsysLeaveCreateProcessSection(void);
-static int kwsysProcessesAdd(HANDLE hProcess);
+static int kwsysProcessesAdd(HANDLE hProcess, DWORD dwProcessId,
+                             int newProcessGroup);
 static void kwsysProcessesRemove(HANDLE hProcess);
 static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType);
 
@@ -227,6 +228,9 @@ struct kwsysProcess_s
 
   /* Whether to merge stdout/stderr of the child.  */
   int MergeOutput;
+
+  /* Whether to create the process in a new process group.  */
+  int CreateProcessGroup;
 
   /* Mutex to protect the shared index used by threads to report data.  */
   HANDLE SharedIndexMutex;
@@ -852,6 +856,8 @@ int kwsysProcess_GetOption(kwsysProcess* cp, int optionId)
     case kwsysProcess_Option_HideWindow: return cp->HideWindow;
     case kwsysProcess_Option_MergeOutput: return cp->MergeOutput;
     case kwsysProcess_Option_Verbatim: return cp->Verbatim;
+    case kwsysProcess_Option_CreateProcessGroup:
+      return cp->CreateProcessGroup;
     default: return 0;
     }
 }
@@ -870,6 +876,8 @@ void kwsysProcess_SetOption(kwsysProcess* cp, int optionId, int value)
     case kwsysProcess_Option_HideWindow: cp->HideWindow = value; break;
     case kwsysProcess_Option_MergeOutput: cp->MergeOutput = value; break;
     case kwsysProcess_Option_Verbatim: cp->Verbatim = value; break;
+    case kwsysProcess_Option_CreateProcessGroup:
+      cp->CreateProcessGroup = value; break;
     default: break;
     }
 }
@@ -1476,6 +1484,52 @@ int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
 }
 
 /*--------------------------------------------------------------------------*/
+void kwsysProcess_Interrupt(kwsysProcess* cp)
+{
+  int i;
+  /* Make sure we are executing a process.  */
+  if(!cp || cp->State != kwsysProcess_State_Executing || cp->TimeoutExpired ||
+     cp->Killed)
+    {
+    KWSYSPE_DEBUG((stderr, "interrupt: child not executing\n"));
+    return;
+    }
+
+  /* Skip actually interrupting the child if it has already terminated.  */
+  if(cp->Terminated)
+    {
+    KWSYSPE_DEBUG((stderr, "interrupt: child already terminated\n"));
+    return;
+    }
+
+  /* Interrupt the children.  */
+  if (cp->CreateProcessGroup)
+    {
+    if(cp->ProcessInformation)
+      {
+      for(i=0; i < cp->NumberOfCommands; ++i)
+        {
+        /* Make sure the process handle isn't closed (e.g. from disowning). */
+        if(cp->ProcessInformation[i].hProcess)
+          {
+          /* The user created a process group for this process.  The group ID
+             is the process ID for the original process in the group.  Note
+             that we have to use Ctrl+Break: Ctrl+C is not allowed for process
+             groups.  */
+          GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT,
+                                   cp->ProcessInformation[i].dwProcessId);
+          }
+        }
+      }
+    }
+  else
+    {
+    /* No process group was created.  Kill our own process group...  */
+    GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, 0);
+    }
+}
+
+/*--------------------------------------------------------------------------*/
 void kwsysProcess_Kill(kwsysProcess* cp)
 {
   int i;
@@ -1745,6 +1799,7 @@ static int kwsysProcessCreateChildHandle(PHANDLE out, HANDLE in, int isStdIn)
 int kwsysProcessCreate(kwsysProcess* cp, int index,
                        kwsysProcessCreateInformation* si)
 {
+  DWORD creationFlags;
   int res;
 
   /* Check if we are currently exiting.  */
@@ -1757,6 +1812,14 @@ int kwsysProcessCreate(kwsysProcess* cp, int index,
     Sleep(INFINITE);
     }
 
+  /* Create the child in a suspended state so we can wait until all
+     children have been created before running any one.  */
+  creationFlags = CREATE_SUSPENDED;
+  if (cp->CreateProcessGroup)
+    {
+    creationFlags |= CREATE_NEW_PROCESS_GROUP;
+    }
+
   res =
 
     /* Create inherited copies the handles.  */
@@ -1767,9 +1830,7 @@ int kwsysProcessCreate(kwsysProcess* cp, int index,
     kwsysProcessCreateChildHandle(&si->StartupInfo.hStdError,
                                   si->hStdError, 0) &&
 
-    /* Create the child in a suspended state so we can wait until all
-       children have been created before running any one.  */
-    CreateProcessW(0, cp->Commands[index], 0, 0, TRUE, CREATE_SUSPENDED, 0,
+    CreateProcessW(0, cp->Commands[index], 0, 0, TRUE, creationFlags, 0,
                    0, &si->StartupInfo, &cp->ProcessInformation[index]);
 
   /* Close the inherited copies of the handles. */
@@ -1787,7 +1848,8 @@ int kwsysProcessCreate(kwsysProcess* cp, int index,
     }
 
   /* Add the process to the global list of processes. */
-  if (!kwsysProcessesAdd(cp->ProcessInformation[index].hProcess))
+  if (!kwsysProcessesAdd(cp->ProcessInformation[index].hProcess,
+      cp->ProcessInformation[index].dwProcessId, cp->CreateProcessGroup))
     {
     /* This failed for some reason.  Kill the suspended process. */
     TerminateProcess(cp->ProcessInformation[index].hProcess, 1);
@@ -2715,6 +2777,13 @@ static void kwsysProcessDisablePipeThreads(kwsysProcess* cp)
    everything it does must be thread safe.  Here, we track the hProcess
    HANDLEs directly instead of kwsysProcess instances, so that we don't have
    to make kwsysProcess thread safe.  */
+typedef struct kwsysProcessInstance_s
+{
+  HANDLE hProcess;
+  DWORD dwProcessId;
+  int NewProcessGroup; /* Whether the process was created in a new group.  */
+} kwsysProcessInstance;
+
 typedef struct kwsysProcessInstances_s
 {
   /* Whether we have initialized key fields below, like critical sections.  */
@@ -2726,7 +2795,7 @@ typedef struct kwsysProcessInstances_s
   int Exiting;
   size_t Count;
   size_t Size;
-  HANDLE* Processes;
+  kwsysProcessInstance* Processes;
 } kwsysProcessInstances;
 static kwsysProcessInstances kwsysProcesses;
 
@@ -2784,8 +2853,10 @@ static void kwsysLeaveCreateProcessSection(void)
 /*--------------------------------------------------------------------------*/
 /* Add new process to global process list.  The Ctrl handler will wait for
    the process to exit before it returns.  Do not close the process handle
-   until after calling kwsysProcessesRemove.  */
-static int kwsysProcessesAdd(HANDLE hProcess)
+   until after calling kwsysProcessesRemove.  The newProcessGroup parameter
+   must be set if the process was created with CREATE_NEW_PROCESS_GROUP.  */
+static int kwsysProcessesAdd(HANDLE hProcess, DWORD dwProcessid,
+                             int newProcessGroup)
 {
   if(!kwsysProcessesInitialize() || !hProcess ||
       hProcess == INVALID_HANDLE_VALUE)
@@ -2800,19 +2871,20 @@ static int kwsysProcessesAdd(HANDLE hProcess)
   if(kwsysProcesses.Count == kwsysProcesses.Size)
     {
     size_t newSize;
-    HANDLE *newArray;
+    kwsysProcessInstance *newArray;
     /* Start with enough space for a small number of process handles
        and double the size each time more is needed.  */
     newSize = kwsysProcesses.Size? kwsysProcesses.Size*2 : 4;
 
     /* Try allocating the new block of memory.  */
-    if(newArray = (HANDLE*)malloc(newSize*sizeof(HANDLE)))
+    if(newArray = (kwsysProcessInstance*)malloc(
+       newSize*sizeof(kwsysProcessInstance)))
       {
       /* Copy the old process handles to the new memory.  */
       if(kwsysProcesses.Count > 0)
         {
         memcpy(newArray, kwsysProcesses.Processes,
-               kwsysProcesses.Count * sizeof(HANDLE));
+               kwsysProcesses.Count * sizeof(kwsysProcessInstance));
         }
       }
     else
@@ -2830,8 +2902,11 @@ static int kwsysProcessesAdd(HANDLE hProcess)
     kwsysProcesses.Processes = newArray;
     }
 
-  /* Append the new process handle to the set.  */
-  kwsysProcesses.Processes[kwsysProcesses.Count++] = hProcess;
+  /* Append the new process information to the set.  */
+  kwsysProcesses.Processes[kwsysProcesses.Count].hProcess = hProcess;
+  kwsysProcesses.Processes[kwsysProcesses.Count].dwProcessId = dwProcessid;
+  kwsysProcesses.Processes[kwsysProcesses.Count++].NewProcessGroup =
+    newProcessGroup;
 
   /* Leave critical section and return success. */
   LeaveCriticalSection(&kwsysProcesses.Lock);
@@ -2855,7 +2930,7 @@ static void kwsysProcessesRemove(HANDLE hProcess)
   /* Find the given process in the set.  */
   for(i=0; i < kwsysProcesses.Count; ++i)
     {
-    if(kwsysProcesses.Processes[i] == hProcess)
+    if(kwsysProcesses.Processes[i].hProcess == hProcess)
       {
       break;
       }
@@ -2884,6 +2959,7 @@ static void kwsysProcessesRemove(HANDLE hProcess)
 /*--------------------------------------------------------------------------*/
 static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType)
 {
+  size_t i;
   (void)dwCtrlType;
   /* Enter critical section.  */
   EnterCriticalSection(&kwsysProcesses.Lock);
@@ -2891,13 +2967,26 @@ static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType)
   /* Set flag indicating that we are exiting.  */
   kwsysProcesses.Exiting = 1;
 
+  /* If some of our processes were created in a new process group, we must
+     manually interrupt them.  They won't otherwise receive a Ctrl+C/Break. */
+  for(i=0; i < kwsysProcesses.Count; ++i)
+    {
+    if(kwsysProcesses.Processes[i].NewProcessGroup)
+      {
+      DWORD groupId = kwsysProcesses.Processes[i].dwProcessId;
+      if(groupId)
+        {
+        GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, groupId);
+        }
+      }
+    }
+
   /* Wait for each child process to exit.  This is the key step that prevents
      us from leaving several orphaned children processes running in the
      background when the user presses Ctrl+C.  */
-  if(kwsysProcesses.Count > 0) /* WaitForMultipleObjects forbids Count==0.  */
+  for(i=0; i < kwsysProcesses.Count; ++i)
     {
-    WaitForMultipleObjects((DWORD)kwsysProcesses.Count,
-                           kwsysProcesses.Processes, TRUE, INFINITE);
+    WaitForSingleObject(kwsysProcesses.Processes[i].hProcess, INFINITE);
     }
 
   /* Leave critical section.  */
