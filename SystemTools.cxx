@@ -3690,6 +3690,11 @@ static int GetCasePathName(const kwsys_stl::string & pathIn,
   // Start with root component.
   kwsys_stl::vector<kwsys_stl::string>::size_type idx = 0;
   casePath = path_components[idx++];
+  // make sure drive letter is always upper case
+  if(casePath.size() > 1 && casePath[1] == ':')
+    {
+    casePath[0] = toupper(casePath[0]);
+    }
   const char* sep = "";
 
   // If network path, fill casePath with server/share so FindFirstFile
@@ -3745,21 +3750,15 @@ kwsys_stl::string SystemTools::GetActualCaseForPath(const kwsys_stl::string& p)
 #ifndef _WIN32
   return p;
 #else
-  kwsys_stl::string casePath = p;
-  // make sure drive letter is always upper case
-  if(casePath.size() > 1 && casePath[1] == ':')
-    {
-    casePath[0] = toupper(casePath[0]);
-    }
-
   // Check to see if actual case has already been called
   // for this path, and the result is stored in the LongPathMap
   SystemToolsTranslationMap::iterator i =
-    SystemTools::LongPathMap->find(casePath);
+    SystemTools::LongPathMap->find(p);
   if(i != SystemTools::LongPathMap->end())
     {
     return i->second;
     }
+  kwsys_stl::string casePath;
   int len = GetCasePathName(p, casePath);
   if(len == 0 || len > MAX_PATH+1)
     {
