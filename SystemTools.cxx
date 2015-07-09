@@ -385,6 +385,26 @@ class SystemToolsTranslationMap :
 {
 };
 
+#ifdef _WIN32
+struct SystemToolsPathCaseCmp
+{
+  bool operator()(kwsys_stl::string const& l, kwsys_stl::string const& r) const
+    {
+# ifdef _MSC_VER
+    return _stricmp(l.c_str(), r.c_str()) < 0;
+# elif defined(__GNUC__)
+    return strcasecmp(l.c_str(), r.c_str()) < 0;
+# else
+    return SystemTools::Strucmp(l.c_str(), r.c_str()) < 0;
+# endif
+    }
+};
+
+class SystemToolsPathCaseMap:
+  public kwsys_stl::map<kwsys_stl::string, kwsys_stl::string,
+                        SystemToolsPathCaseCmp> {};
+#endif
+
 // adds the elements of the env variable path to the arg passed in
 void SystemTools::GetPath(kwsys_stl::vector<kwsys_stl::string>& path, const char* env)
 {
@@ -3751,10 +3771,10 @@ kwsys_stl::string SystemTools::GetActualCaseForPath(const kwsys_stl::string& p)
   return p;
 #else
   // Check to see if actual case has already been called
-  // for this path, and the result is stored in the LongPathMap
-  SystemToolsTranslationMap::iterator i =
-    SystemTools::LongPathMap->find(p);
-  if(i != SystemTools::LongPathMap->end())
+  // for this path, and the result is stored in the PathCaseMap
+  SystemToolsPathCaseMap::iterator i =
+    SystemTools::PathCaseMap->find(p);
+  if(i != SystemTools::PathCaseMap->end())
     {
     return i->second;
     }
@@ -3764,7 +3784,7 @@ kwsys_stl::string SystemTools::GetActualCaseForPath(const kwsys_stl::string& p)
     {
     return p;
     }
-  (*SystemTools::LongPathMap)[p] = casePath;
+  (*SystemTools::PathCaseMap)[p] = casePath;
   return casePath;
 #endif
 }
@@ -5138,7 +5158,9 @@ bool SystemTools::ParseURL( const kwsys_stl::string& URL,
 // necessary.
 static unsigned int SystemToolsManagerCount;
 SystemToolsTranslationMap *SystemTools::TranslationMap;
-SystemToolsTranslationMap *SystemTools::LongPathMap;
+#ifdef _WIN32
+SystemToolsPathCaseMap *SystemTools::PathCaseMap;
+#endif
 #ifdef __CYGWIN__
 SystemToolsTranslationMap *SystemTools::Cyg2Win32Map;
 #endif
@@ -5186,7 +5208,9 @@ void SystemTools::ClassInitialize()
 #endif
   // Allocate the translation map first.
   SystemTools::TranslationMap = new SystemToolsTranslationMap;
-  SystemTools::LongPathMap = new SystemToolsTranslationMap;
+#ifdef _WIN32
+  SystemTools::PathCaseMap = new SystemToolsPathCaseMap;
+#endif
 #ifdef __CYGWIN__
   SystemTools::Cyg2Win32Map = new SystemToolsTranslationMap;
 #endif
@@ -5243,7 +5267,9 @@ void SystemTools::ClassInitialize()
 void SystemTools::ClassFinalize()
 {
   delete SystemTools::TranslationMap;
-  delete SystemTools::LongPathMap;
+#ifdef _WIN32
+  delete SystemTools::PathCaseMap;
+#endif
 #ifdef __CYGWIN__
   delete SystemTools::Cyg2Win32Map;
 #endif
