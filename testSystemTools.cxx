@@ -100,6 +100,8 @@ static bool CheckFileOperations()
   bool res = true;
   const kwsys_stl::string testNonExistingFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemToolsNonExistingFile");
+  const kwsys_stl::string testDotFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+    "/.");
   const kwsys_stl::string testBinFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemTools.bin");
   const kwsys_stl::string testTxtFile(TEST_SYSTEMTOOLS_SOURCE_DIR
@@ -114,6 +116,15 @@ static bool CheckFileOperations()
     kwsys_ios::cerr
       << "Problem with DetectFileType - failed to detect type of: "
       << testNonExistingFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (kwsys::SystemTools::DetectFileType(testDotFile.c_str()) !=
+      kwsys::SystemTools::FileTypeUnknown)
+    {
+    kwsys_ios::cerr
+      << "Problem with DetectFileType - failed to detect type of: "
+      << testDotFile << kwsys_ios::endl;
     res = false;
     }
 

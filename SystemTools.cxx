@@ -4230,6 +4230,11 @@ SystemTools::DetectFileType(const char *filename,
     return SystemTools::FileTypeUnknown;
     }
 
+  if (SystemTools::FileIsDirectory(filename))
+    {
+    return SystemTools::FileTypeUnknown;
+    }
+
   FILE *fp = Fopen(filename, "rb");
   if (!fp)
     {
