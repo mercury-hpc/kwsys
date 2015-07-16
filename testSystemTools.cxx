@@ -98,6 +98,8 @@ static bool CheckEscapeChars(kwsys_stl::string input,
 static bool CheckFileOperations()
 {
   bool res = true;
+  const kwsys_stl::string testNonExistingFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+    "/testSystemToolsNonExistingFile");
   const kwsys_stl::string testBinFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemTools.bin");
   const kwsys_stl::string testTxtFile(TEST_SYSTEMTOOLS_SOURCE_DIR
@@ -105,6 +107,15 @@ static bool CheckFileOperations()
   const kwsys_stl::string testNewDir(TEST_SYSTEMTOOLS_BINARY_DIR
     "/testSystemToolsNewDir");
   const kwsys_stl::string testNewFile(testNewDir + "/testNewFile.txt");
+
+  if (kwsys::SystemTools::DetectFileType(testNonExistingFile.c_str()) !=
+      kwsys::SystemTools::FileTypeUnknown)
+    {
+    kwsys_ios::cerr
+      << "Problem with DetectFileType - failed to detect type of: "
+      << testNonExistingFile << kwsys_ios::endl;
+    res = false;
+    }
 
   if (kwsys::SystemTools::DetectFileType(testBinFile.c_str()) !=
       kwsys::SystemTools::FileTypeBinary)
