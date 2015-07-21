@@ -1979,6 +1979,7 @@ static int kwsysProcessCreate(kwsysProcess* cp, int prIndex,
     kwsysProcessCleanupDescriptor(&pgidPipe[0]);
     return 0;
     }
+  kwsysProcessCleanupDescriptor(&pgidPipe[0]);
 
   /* Unmask signals.  */
   if(sigprocmask(SIG_SETMASK, &old_mask, 0) < 0)
