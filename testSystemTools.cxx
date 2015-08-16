@@ -30,6 +30,17 @@
 #include <testSystemTools.h>
 
 #include <string.h> /* strcmp */
+#if defined(_WIN32) && !defined(__CYGWIN__)
+# include <io.h> /* _umask (MSVC) / umask (Borland) */
+# ifdef _MSC_VER
+#  define umask _umask // Note this is still umask on Borland
+# endif
+#endif
+#include <sys/stat.h> /* umask (POSIX), _S_I* constants (Windows) */
+// Visual C++ does not define mode_t (note that Borland does, however).
+#if defined( _MSC_VER )
+typedef unsigned short mode_t;
+#endif
 
 //----------------------------------------------------------------------------
 static const char* toUnixPaths[][2] =
@@ -170,6 +181,135 @@ static bool CheckFileOperations()
     res = false;
     }
 
+  // Reset umask
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  // NOTE:  Windows doesn't support toggling _S_IREAD.
+  mode_t fullMask = _S_IWRITE;
+#else
+  // On a normal POSIX platform, we can toggle all permissions.
+  mode_t fullMask = S_IRWXU | S_IRWXG | S_IRWXO;
+#endif
+  mode_t orig_umask = umask(fullMask);
+
+  // Test file permissions without umask
+  mode_t origPerm, thisPerm;
+  if (!kwsys::SystemTools::GetPermissions(testNewFile, origPerm))
+    {
+    kwsys_ios::cerr
+      << "Problem with GetPermissions (1) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::SetPermissions(testNewFile, 0))
+    {
+    kwsys_ios::cerr
+      << "Problem with SetPermissions (1) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::GetPermissions(testNewFile, thisPerm))
+    {
+    kwsys_ios::cerr
+      << "Problem with GetPermissions (2) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if ((thisPerm & fullMask) != 0)
+    {
+    kwsys_ios::cerr
+      << "SetPermissions failed to set permissions (1) for: "
+      << testNewFile << ": actual = " << thisPerm << "; expected = "
+      << 0 << kwsys_ios::endl;
+    res = false;
+    }
+
+  // While we're at it, check proper TestFileAccess functionality.
+  if (kwsys::SystemTools::TestFileAccess(testNewFile,
+                                         kwsys::TEST_FILE_WRITE))
+    {
+    kwsys_ios::cerr
+      << "TestFileAccess incorrectly indicated that this is a writable file:"
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::TestFileAccess(testNewFile,
+                                          kwsys::TEST_FILE_OK))
+    {
+    kwsys_ios::cerr
+      << "TestFileAccess incorrectly indicated that this file does not exist:"
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  // Test restoring/setting full permissions.
+  if (!kwsys::SystemTools::SetPermissions(testNewFile, fullMask))
+    {
+    kwsys_ios::cerr
+      << "Problem with SetPermissions (2) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::GetPermissions(testNewFile, thisPerm))
+    {
+    kwsys_ios::cerr
+      << "Problem with GetPermissions (3) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if ((thisPerm & fullMask) != fullMask)
+    {
+    kwsys_ios::cerr
+      << "SetPermissions failed to set permissions (2) for: "
+      << testNewFile << ": actual = " << thisPerm << "; expected = "
+      << fullMask << kwsys_ios::endl;
+    res = false;
+    }
+
+  // Test setting file permissions while honoring umask
+  if (!kwsys::SystemTools::SetPermissions(testNewFile, fullMask, true))
+    {
+    kwsys_ios::cerr
+      << "Problem with SetPermissions (3) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if (!kwsys::SystemTools::GetPermissions(testNewFile, thisPerm))
+    {
+    kwsys_ios::cerr
+      << "Problem with GetPermissions (4) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  if ((thisPerm & fullMask) != 0)
+    {
+    kwsys_ios::cerr
+      << "SetPermissions failed to honor umask for: "
+      << testNewFile << ": actual = " << thisPerm << "; expected = "
+      << 0 << kwsys_ios::endl;
+    res = false;
+    }
+
+  // Restore umask
+  umask(orig_umask);
+
+  // Restore file permissions
+  if (!kwsys::SystemTools::SetPermissions(testNewFile, origPerm))
+    {
+    kwsys_ios::cerr
+      << "Problem with SetPermissions (4) for: "
+      << testNewFile << kwsys_ios::endl;
+    res = false;
+    }
+
+  // Remove the test file
   if (!kwsys::SystemTools::RemoveFile(testNewFile))
     {
     kwsys_ios::cerr
