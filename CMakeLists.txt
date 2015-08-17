@@ -91,6 +91,7 @@ ENDIF()
 IF(POLICY CMP0056)
   CMAKE_POLICY(SET CMP0056 NEW)
 ENDIF()
+SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 #-----------------------------------------------------------------------------
 # If a namespace is not specified, use "kwsys" and enable testing.
