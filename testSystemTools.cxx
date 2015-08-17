@@ -271,48 +271,48 @@ static bool CheckStringOperations()
     kwsys_ios::cerr
       << "Problem with CapitalizedWords "
       << '"' << test << '"' << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   test = "Mary Had A Little Lamb.";
-  if (kwsys::SystemTools::UnCapitalizedWords(test) != 
+  if (kwsys::SystemTools::UnCapitalizedWords(test) !=
       "mary had a little lamb.")
     {
     kwsys_ios::cerr
       << "Problem with UnCapitalizedWords "
       << '"' << test << '"' << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   test = "MaryHadTheLittleLamb.";
-  if (kwsys::SystemTools::AddSpaceBetweenCapitalizedWords(test) != 
+  if (kwsys::SystemTools::AddSpaceBetweenCapitalizedWords(test) !=
       "Mary Had The Little Lamb.")
     {
     kwsys_ios::cerr
       << "Problem with AddSpaceBetweenCapitalizedWords "
       << '"' << test << '"' << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
-  char * cres = 
+  char * cres =
     kwsys::SystemTools::AppendStrings("Mary Had A"," Little Lamb.");
   if (strcmp(cres,"Mary Had A Little Lamb."))
     {
     kwsys_ios::cerr
       << "Problem with AppendStrings "
       << "\"Mary Had A\" \" Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
   delete [] cres;
 
-  cres = 
+  cres =
     kwsys::SystemTools::AppendStrings("Mary Had"," A ","Little Lamb.");
   if (strcmp(cres,"Mary Had A Little Lamb."))
     {
     kwsys_ios::cerr
       << "Problem with AppendStrings "
       << "\"Mary Had\" \" A \" \"Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
   delete [] cres;
 
@@ -321,28 +321,28 @@ static bool CheckStringOperations()
     kwsys_ios::cerr
       << "Problem with CountChar "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
-  cres = 
+  cres =
     kwsys::SystemTools::RemoveChars("Mary Had A Little Lamb.","aeiou");
   if (strcmp(cres,"Mry Hd A Lttl Lmb."))
     {
     kwsys_ios::cerr
       << "Problem with RemoveChars "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
   delete [] cres;
 
-  cres = 
+  cres =
     kwsys::SystemTools::RemoveCharsButUpperHex("Mary Had A Little Lamb.");
   if (strcmp(cres,"A"))
     {
     kwsys_ios::cerr
       << "Problem with RemoveCharsButUpperHex "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
   delete [] cres;
 
@@ -354,7 +354,7 @@ static bool CheckStringOperations()
     kwsys_ios::cerr
       << "Problem with ReplaceChars "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
   delete [] cres2;
 
@@ -364,7 +364,7 @@ static bool CheckStringOperations()
     kwsys_ios::cerr
       << "Problem with StringStartsWith "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   if (!kwsys::SystemTools::StringEndsWith("Mary Had A Little Lamb.",
@@ -373,7 +373,7 @@ static bool CheckStringOperations()
     kwsys_ios::cerr
       << "Problem with StringEndsWith "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   cres = kwsys::SystemTools::DuplicateString("Mary Had A Little Lamb.");
@@ -382,18 +382,18 @@ static bool CheckStringOperations()
     kwsys_ios::cerr
       << "Problem with DuplicateString "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
   delete [] cres;
 
   test = "Mary Had A Little Lamb.";
-  if (kwsys::SystemTools::CropString(test,13) != 
+  if (kwsys::SystemTools::CropString(test,13) !=
       "Mary ...Lamb.")
     {
     kwsys_ios::cerr
       << "Problem with CropString "
       << "\"Mary Had A Little Lamb.\"" << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   kwsys_stl::vector<kwsys_stl::string> lines;
@@ -515,36 +515,36 @@ static bool CheckStringOperations()
 #endif
 
   if (kwsys::SystemTools::ConvertToWindowsOutputPath
-      ("L://Local Mojo/Hex Power Pack/Iffy Voodoo") != 
+      ("L://Local Mojo/Hex Power Pack/Iffy Voodoo") !=
       "\"L:\\Local Mojo\\Hex Power Pack\\Iffy Voodoo\"")
     {
     kwsys_ios::cerr
       << "Problem with ConvertToWindowsOutputPath "
       << "\"L://Local Mojo/Hex Power Pack/Iffy Voodoo\""
       << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
-  
+
   if (kwsys::SystemTools::ConvertToWindowsOutputPath
-      ("//grayson/Local Mojo/Hex Power Pack/Iffy Voodoo") != 
+      ("//grayson/Local Mojo/Hex Power Pack/Iffy Voodoo") !=
       "\"\\\\grayson\\Local Mojo\\Hex Power Pack\\Iffy Voodoo\"")
     {
     kwsys_ios::cerr
       << "Problem with ConvertToWindowsOutputPath "
       << "\"//grayson/Local Mojo/Hex Power Pack/Iffy Voodoo\""
       << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   if (kwsys::SystemTools::ConvertToUnixOutputPath
-      ("//Local Mojo/Hex Power Pack/Iffy Voodoo") != 
+      ("//Local Mojo/Hex Power Pack/Iffy Voodoo") !=
       "//Local\\ Mojo/Hex\\ Power\\ Pack/Iffy\\ Voodoo")
     {
     kwsys_ios::cerr
       << "Problem with ConvertToUnixOutputPath "
       << "\"//Local Mojo/Hex Power Pack/Iffy Voodoo\""
       << kwsys_ios::endl;
-    res = false;    
+    res = false;
     }
 
   return res;
@@ -672,7 +672,7 @@ int testSystemTools(int, char*[])
 
   for (cc = 0; checkEscapeChars[cc][0]; cc ++ )
     {
-    res &= CheckEscapeChars(checkEscapeChars[cc][0], checkEscapeChars[cc][1], 
+    res &= CheckEscapeChars(checkEscapeChars[cc][0], checkEscapeChars[cc][1],
                             *checkEscapeChars[cc][2], checkEscapeChars[cc][3]);
     }
 
