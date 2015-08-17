@@ -1233,13 +1233,11 @@ bool SystemTools::FileExists(const kwsys_stl::string& filename)
 //----------------------------------------------------------------------------
 bool SystemTools::FileExists(const char* filename, bool isFile)
 {
-  if(SystemTools::FileExists(filename))
+  if(!filename)
     {
-    // If isFile is set return not FileIsDirectory,
-    // so this will only be true if it is a file
-    return !isFile || !SystemTools::FileIsDirectory(filename);
+    return false;
     }
-  return false;
+  return SystemTools::FileExists(kwsys_stl::string(filename), isFile);
 }
 
 //----------------------------------------------------------------------------

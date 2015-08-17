@@ -292,7 +292,9 @@ public:
    * Return true if a file exists in the current directory.
    * If isFile = true, then make sure the file is a file and
    * not a directory.  If isFile = false, then return true
-   * if it is a file or a directory.
+   * if it is a file or a directory.  Note that the file will
+   * also be checked for read access.  (Currently, this check
+   * for read access is only done on POSIX systems.)
    */
   static bool FileExists(const char* filename, bool isFile);
   static bool FileExists(const kwsys_stl::string& filename, bool isFile);
