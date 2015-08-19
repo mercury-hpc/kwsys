@@ -21,6 +21,9 @@
 #include <@KWSYS_NAMESPACE@/String.hxx>
 
 #include <sys/types.h>
+#if !defined(_WIN32) || defined(__CYGWIN__)
+# include <unistd.h> // For access permissions for use with access()
+#endif
 
 // Required for va_list
 #include <stdarg.h>
@@ -71,6 +74,24 @@ public:
 // SystemTools. It will make sure SystemTools is initialized
 // before it is used and is the last static object destroyed.
 static SystemToolsManager SystemToolsManagerInstance;
+
+// Flags for use with TestFileAccess.  Use a typedef in case any operating
+// system in the future needs a special type.  These are flags that may be
+// combined using the | operator.
+typedef int TestFilePermissions;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  // On Windows (VC and Borland), no system header defines these constants...
+  static const TestFilePermissions TEST_FILE_OK = 0;
+  static const TestFilePermissions TEST_FILE_READ = 4;
+  static const TestFilePermissions TEST_FILE_WRITE = 2;
+  static const TestFilePermissions TEST_FILE_EXECUTE = 1;
+#else
+  // Standard POSIX constants
+  static const TestFilePermissions TEST_FILE_OK = F_OK;
+  static const TestFilePermissions TEST_FILE_READ = R_OK;
+  static const TestFilePermissions TEST_FILE_WRITE = W_OK;
+  static const TestFilePermissions TEST_FILE_EXECUTE = X_OK;
+#endif
 
 /** \class SystemTools
  * \brief A collection of useful platform-independent system functions.
@@ -300,6 +321,21 @@ public:
   static bool FileExists(const kwsys_stl::string& filename, bool isFile);
   static bool FileExists(const char* filename);
   static bool FileExists(const kwsys_stl::string& filename);
+
+  /**
+   * Test if a file exists and can be accessed with the requested
+   * permissions.  Symbolic links are followed.  Returns true if
+   * the access test was successful.
+   *
+   * On POSIX systems (including Cygwin), this maps to the access
+   * function.  On Windows systems, all existing files are
+   * considered readable, and writable files are considered to
+   * have the read-only file attribute cleared.
+   */
+  static bool TestFileAccess(const char* filename,
+                             TestFilePermissions permissions);
+  static bool TestFileAccess(const kwsys_stl::string& filename,
+                             TestFilePermissions permissions);
 
   /**
    * Converts Cygwin path to Win32 path. Uses dictionary container for

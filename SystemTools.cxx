@@ -1253,6 +1253,43 @@ bool SystemTools::FileExists(const kwsys_stl::string& filename, bool isFile)
 }
 
 //----------------------------------------------------------------------------
+bool SystemTools::TestFileAccess(const char* filename,
+                                 TestFilePermissions permissions)
+{
+  if(!filename)
+    {
+    return false;
+    }
+  return SystemTools::TestFileAccess(kwsys_stl::string(filename),
+                                     permissions);
+}
+
+//----------------------------------------------------------------------------
+bool SystemTools::TestFileAccess(const kwsys_stl::string& filename,
+                                 TestFilePermissions permissions)
+{
+  if(filename.empty())
+    {
+    return false;
+    }
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  // If execute set, change to read permission (all files on Windows
+  // are executable if they are readable).  The CRT will always fail
+  // if you pass an execute bit.
+  if(permissions & TEST_FILE_EXECUTE)
+    {
+    permissions &= ~TEST_FILE_EXECUTE;
+    permissions |= TEST_FILE_READ;
+    }
+  return _waccess(
+    SystemTools::ConvertToWindowsExtendedPath(filename).c_str(),
+    permissions) == 0;
+#else
+  return access(filename.c_str(), permissions) == 0;
+#endif
+}
+
+//----------------------------------------------------------------------------
 #ifdef __CYGWIN__
 bool SystemTools::PathCygwinToWin32(const char *path, char *win32_path)
 {
