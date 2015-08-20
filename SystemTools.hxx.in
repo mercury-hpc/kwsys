@@ -12,12 +12,13 @@
 #ifndef @KWSYS_NAMESPACE@_SystemTools_hxx
 #define @KWSYS_NAMESPACE@_SystemTools_hxx
 
-#include <@KWSYS_NAMESPACE@/ios/iosfwd>
+#include <@KWSYS_NAMESPACE@/Configure.hxx>
+
+#include <iosfwd>
 #include <@KWSYS_NAMESPACE@/stl/string>
 #include <@KWSYS_NAMESPACE@/stl/vector>
 #include <@KWSYS_NAMESPACE@/stl/map>
 
-#include <@KWSYS_NAMESPACE@/Configure.h>
 #include <@KWSYS_NAMESPACE@/String.hxx>
 
 #include <sys/types.h>
@@ -50,7 +51,6 @@ namespace @KWSYS_NAMESPACE@
 /* Define these macros temporarily to keep the code readable.  */
 #if !defined (KWSYS_NAMESPACE) && !@KWSYS_NAMESPACE@_NAME_IS_KWSYS
 # define kwsys_stl @KWSYS_NAMESPACE@_stl
-# define kwsys_ios @KWSYS_NAMESPACE@_ios
 #endif
 
 namespace @KWSYS_NAMESPACE@
@@ -539,7 +539,7 @@ public:
    * end-of-file was reached. If the has_newline argument is specified, it will
    * be true when the line read had a newline character.
    */
-  static bool GetLineFromStream(kwsys_ios::istream& istr,
+  static bool GetLineFromStream(std::istream& istr,
                                 kwsys_stl::string& line,
                                 bool* has_newline=0,
                                 long sizeLimit=-1);
@@ -1008,7 +1008,6 @@ private:
 /* Undefine temporary macros.  */
 #if !defined (KWSYS_NAMESPACE) && !@KWSYS_NAMESPACE@_NAME_IS_KWSYS
 # undef kwsys_stl
-# undef kwsys_ios
 #endif
 
 #endif

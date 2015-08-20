@@ -26,20 +26,20 @@
 # define KWSYS_STL_STRING_ISTREAM_DEFINED
 # define @KWSYS_NAMESPACE@_STL_STRING_ISTREAM_DEFINED
 # include <ctype.h> // isspace
-# include <@KWSYS_NAMESPACE@/ios/iostream>
+# include <iostream>
 # if defined(__WATCOMC__)
 namespace @KWSYS_NAMESPACE@
 {
-struct ios_istream_hack: public kwsys_ios::istream
-{ void eatwhite() { this->@KWSYS_NAMESPACE@_ios::istream::eatwhite(); } };
+struct ios_istream_hack: public std::istream
+{ void eatwhite() { this->std::istream::eatwhite(); } };
 }
 # endif
-inline @KWSYS_NAMESPACE@_ios::istream&
-operator>>(@KWSYS_NAMESPACE@_ios::istream& is,
+inline std::istream&
+operator>>(std::istream& is,
            @KWSYS_NAMESPACE@_stl::string& s)
 {
   // Keep track of the resulting state.
-  int state = @KWSYS_NAMESPACE@_ios::ios::goodbit;
+  int state = std::ios::goodbit;
 
   // Save the width setting and set it back to zero.
   size_t n = static_cast<size_t>(is.width(0));
@@ -53,7 +53,7 @@ operator>>(@KWSYS_NAMESPACE@_ios::istream& is,
 #else
   is.eatwhite();
 #endif
-  @KWSYS_NAMESPACE@_ios::istream& okay = is;
+  std::istream& okay = is;
 
   if(okay)
     {
@@ -73,8 +73,8 @@ operator>>(@KWSYS_NAMESPACE@_ios::istream& is,
       }
 
     // Set flags for resulting state.
-    if(is.peek() == EOF) { state |= @KWSYS_NAMESPACE@_ios::ios::eofbit; }
-    if(!success) { state |= @KWSYS_NAMESPACE@_ios::ios::failbit; }
+    if(is.peek() == EOF) { state |= std::ios::eofbit; }
+    if(!success) { state |= std::ios::failbit; }
     }
 
   // Set the final result state.
@@ -93,9 +93,9 @@ operator>>(@KWSYS_NAMESPACE@_ios::istream& is,
 #if !@KWSYS_NAMESPACE@_STL_STRING_HAVE_OSTREAM && !defined(@KWSYS_NAMESPACE@_STL_STRING_NO_OSTREAM) && !defined(KWSYS_STL_STRING_OSTREAM_DEFINED)
 # define KWSYS_STL_STRING_OSTREAM_DEFINED
 # define @KWSYS_NAMESPACE@_STL_STRING_OSTREAM_DEFINED
-# include <@KWSYS_NAMESPACE@/ios/iostream>
-inline @KWSYS_NAMESPACE@_ios::ostream&
-operator<<(@KWSYS_NAMESPACE@_ios::ostream& os,
+# include <iostream>
+inline std::ostream&
+operator<<(std::ostream& os,
            @KWSYS_NAMESPACE@_stl::string const& s)
 {
   return os << s.c_str();

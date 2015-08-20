@@ -18,8 +18,6 @@
 #include KWSYS_HEADER(stl/vector)
 #include KWSYS_HEADER(stl/map)
 #include KWSYS_HEADER(stl/set)
-#include KWSYS_HEADER(ios/sstream)
-#include KWSYS_HEADER(ios/iostream)
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
@@ -27,9 +25,10 @@
 # include "CommandLineArguments.hxx.in"
 # include "Configure.hxx.in"
 # include "kwsys_stl.hxx.in"
-# include "kwsys_ios_sstream.h.in"
-# include "kwsys_ios_iostream.h.in"
 #endif
+
+#include <sstream>
+#include <iostream>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +44,7 @@
 
 #if 0
 #  define CommandLineArguments_DEBUG(x) \
-  kwsys_ios::cout << __LINE__ << " CLA: " << x << kwsys_ios::endl
+  std::cout << __LINE__ << " CLA: " << x << std::endl
 #else
 #  define CommandLineArguments_DEBUG(x)
 #endif
@@ -288,7 +287,7 @@ int CommandLineArguments::Parse()
           }
         break;
       default:
-        kwsys_ios::cerr << "Got unknown argument type: \"" << cs->ArgumentType << "\"" << kwsys_ios::endl;
+        std::cerr << "Got unknown argument type: \"" << cs->ArgumentType << "\"" << std::endl;
         this->Internals->LastArgument --;
         return 0;
         }
@@ -313,7 +312,7 @@ int CommandLineArguments::Parse()
         }
       else
         {
-        kwsys_ios::cerr << "Got unknown argument: \"" << arg << "\"" << kwsys_ios::endl;
+        std::cerr << "Got unknown argument: \"" << arg << "\"" << std::endl;
         this->Internals->LastArgument --;
         return 0;
         }
@@ -518,7 +517,7 @@ unsigned int CommandLineArguments::GetLastArgument()
 //----------------------------------------------------------------------------
 void CommandLineArguments::GenerateHelp()
 {
-  kwsys_ios::ostringstream str;
+  std::ostringstream str;
   
   // Collapse all arguments into the map of vectors of all arguments that do
   // the same thing.
@@ -604,7 +603,7 @@ void CommandLineArguments::GenerateHelp()
     CommandLineArguments::Internal::SetOfStrings::iterator sit;
     for ( sit = mpit->second.begin(); sit != mpit->second.end(); sit++ )
       {
-      str << kwsys_ios::endl;
+      str << std::endl;
       char argument[100];
       sprintf(argument, "%s", sit->c_str());
       switch ( this->Internals->Callbacks[*sit].ArgumentType )
@@ -658,8 +657,8 @@ void CommandLineArguments::GenerateHelp()
           skip = cc;
           }
         }
-      str.write(ptr, static_cast<kwsys_ios::streamsize>(skip));
-      str << kwsys_ios::endl;
+      str.write(ptr, static_cast<std::streamsize>(skip));
+      str << std::endl;
       ptr += skip;
       len -= skip;
       cnt ++;
@@ -847,7 +846,7 @@ bool CommandLineArguments::PopulateVariable(CommandLineArgumentsCallbackStructur
       this->PopulateVariable(static_cast<kwsys_stl::vector<kwsys_stl::string>*>(cs->Variable), var);
       break;
     default:
-      kwsys_ios::cerr << "Got unknown variable type: \"" << cs->VariableType << "\"" << kwsys_ios::endl;
+      std::cerr << "Got unknown variable type: \"" << cs->VariableType << "\"" << std::endl;
       this->Internals->LastArgument --;
       return 0;
       }

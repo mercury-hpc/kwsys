@@ -893,23 +893,6 @@ IF(KWSYS_INSTALL_INCLUDE_DIR)
 ENDIF()
 
 #-----------------------------------------------------------------------------
-# Create streams header wrappers to give standard names by which they
-# may be included.
-FOREACH(header iostream fstream sstream iosfwd)
-  # Configure the header wrapper.
-  CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/kwsys_ios_${header}.h.in
-                 ${KWSYS_HEADER_DIR}/ios/${header}
-                 @ONLY IMMEDIATE)
-
-  # Create an install target for the header wrapper.
-  IF(KWSYS_INSTALL_INCLUDE_DIR)
-    INSTALL(FILES ${KWSYS_HEADER_DIR}/ios/${header}
-      DESTINATION ${KWSYS_INSTALL_INCLUDE_DIR}/${KWSYS_NAMESPACE}/ios
-      ${KWSYS_INSTALL_INCLUDE_OPTIONS})
-  ENDIF()
-ENDFOREACH()
-
-#-----------------------------------------------------------------------------
 # Build a list of classes and headers we need to implement the
 # selected components.  Initialize with required components.
 SET(KWSYS_CLASSES)

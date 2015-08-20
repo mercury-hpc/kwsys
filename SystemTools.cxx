@@ -31,9 +31,9 @@
 #include KWSYS_HEADER(FStream.hxx)
 #include KWSYS_HEADER(Encoding.hxx)
 
-#include KWSYS_HEADER(ios/iostream)
-#include KWSYS_HEADER(ios/fstream)
-#include KWSYS_HEADER(ios/sstream)
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include KWSYS_HEADER(stl/set)
 
@@ -44,9 +44,6 @@
 # include "Directory.hxx.in"
 # include "FStream.hxx.in"
 # include "Encoding.hxx.in"
-# include "kwsys_ios_iostream.h.in"
-# include "kwsys_ios_fstream.h.in"
-# include "kwsys_ios_sstream.h.in"
 #endif
 
 #ifdef _MSC_VER
@@ -2308,11 +2305,11 @@ bool SystemTools::FilesDiffer(const kwsys_stl::string& source,
 
 #if defined(_WIN32)
   kwsys::ifstream finSource(source.c_str(),
-                            (kwsys_ios::ios::binary |
-                             kwsys_ios::ios::in));
+                            (std::ios::binary |
+                             std::ios::in));
   kwsys::ifstream finDestination(destination.c_str(),
-                                 (kwsys_ios::ios::binary |
-                                  kwsys_ios::ios::in));
+                                 (std::ios::binary |
+                                  std::ios::in));
 #else
   kwsys::ifstream finSource(source.c_str());
   kwsys::ifstream finDestination(destination.c_str());
@@ -2328,13 +2325,13 @@ bool SystemTools::FilesDiffer(const kwsys_stl::string& source,
   while(nleft > 0)
     {
     // Read a block from each file.
-    kwsys_ios::streamsize nnext = (nleft > KWSYS_ST_BUFFER)? KWSYS_ST_BUFFER : static_cast<kwsys_ios::streamsize>(nleft);
+    std::streamsize nnext = (nleft > KWSYS_ST_BUFFER)? KWSYS_ST_BUFFER : static_cast<std::streamsize>(nleft);
     finSource.read(source_buf, nnext);
     finDestination.read(dest_buf, nnext);
 
     // If either failed to read assume they are different.
-    if(static_cast<kwsys_ios::streamsize>(finSource.gcount()) != nnext ||
-       static_cast<kwsys_ios::streamsize>(finDestination.gcount()) != nnext)
+    if(static_cast<std::streamsize>(finSource.gcount()) != nnext ||
+       static_cast<std::streamsize>(finDestination.gcount()) != nnext)
       {
       return true;
       }
@@ -2400,10 +2397,10 @@ bool SystemTools::CopyFileAlways(const kwsys_stl::string& source, const kwsys_st
 #if defined(_WIN32)
   kwsys::ifstream fin(Encoding::ToNarrow(
     SystemTools::ConvertToWindowsExtendedPath(source)).c_str(),
-                kwsys_ios::ios::in | kwsys_ios_binary);
+                std::ios::in | std::ios::binary);
 #else
   kwsys::ifstream fin(source.c_str(),
-                kwsys_ios::ios::in | kwsys_ios_binary);
+                std::ios::in | std::ios::binary);
 #endif
   if(!fin)
     {
@@ -2419,10 +2416,10 @@ bool SystemTools::CopyFileAlways(const kwsys_stl::string& source, const kwsys_st
 #if defined(_WIN32)
   kwsys::ofstream fout(Encoding::ToNarrow(
     SystemTools::ConvertToWindowsExtendedPath(real_destination)).c_str(),
-                     kwsys_ios::ios::out | kwsys_ios::ios::trunc | kwsys_ios_binary);
+                     std::ios::out | std::ios::trunc | std::ios::binary);
 #else
   kwsys::ofstream fout(real_destination.c_str(),
-                     kwsys_ios::ios::out | kwsys_ios::ios::trunc | kwsys_ios_binary);
+                     std::ios::out | std::ios::trunc | std::ios::binary);
 #endif
   if(!fout)
     {
@@ -3400,7 +3397,7 @@ bool SystemTools::FindProgramPath(const char* argv0,
   if(!SystemTools::FileExists(self))
     {
     failures.push_back(self);
-    kwsys_ios::ostringstream msg;
+    std::ostringstream msg;
     msg << "Can not find the command line program ";
     if (exeName)
       {
@@ -4618,7 +4615,7 @@ kwsys_stl::string SystemTools::MakeCidentifier(const kwsys_stl::string& s)
 // Due to a buggy stream library on the HP and another on Mac OS X, we
 // need this very carefully written version of getline.  Returns true
 // if any data were read before the end-of-file was reached.
-bool SystemTools::GetLineFromStream(kwsys_ios::istream& is,
+bool SystemTools::GetLineFromStream(std::istream& is,
                                     kwsys_stl::string& line,
                                     bool* has_newline /* = 0 */,
                                     long sizeLimit /* = -1 */)
@@ -4650,7 +4647,7 @@ bool SystemTools::GetLineFromStream(kwsys_ios::istream& is,
   // been reached.  Clear the fail bit just before reading.
   while(!haveNewline &&
         leftToRead != 0 &&
-        (is.clear(is.rdstate() & ~kwsys_ios::ios::failbit),
+        (is.clear(is.rdstate() & ~std::ios::failbit),
          is.getline(buffer, bufferSize), is.gcount() > 0))
     {
     // We have read at least one byte.

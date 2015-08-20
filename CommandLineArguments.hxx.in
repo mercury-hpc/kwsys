@@ -64,7 +64,7 @@ struct CommandLineArgumentsCallbackStructure;
  *                 "This is help string for --something");
  * if ( !arg.Parse() )
  *   {
- *   kwsys_ios::cerr << "Problem parsing arguments" << kwsys_ios::endl;
+ *   std::cerr << "Problem parsing arguments" << std::endl;
  *   res = 1;
  *   }
  * 

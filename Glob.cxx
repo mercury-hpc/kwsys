@@ -341,7 +341,7 @@ bool Glob::RecurseDirectory(kwsys_stl::string::size_type start,
 void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
   const kwsys_stl::string& dir, GlobMessages* messages)
 {
-  //kwsys_ios::cout << "ProcessDirectory: " << dir << kwsys_ios::endl;
+  //std::cout << "ProcessDirectory: " << dir << std::endl;
   bool last = ( start == this->Internals->Expressions.size()-1 );
   if ( last && this->Recurse )
     {
@@ -384,10 +384,10 @@ void Glob::ProcessDirectory(kwsys_stl::string::size_type start,
     fname = kwsys::SystemTools::LowerCase(fname);
 #endif
 
-    //kwsys_ios::cout << "Look at file: " << fname << kwsys_ios::endl;
-    //kwsys_ios::cout << "Match: "
-    // << this->Internals->TextExpressions[start].c_str() << kwsys_ios::endl;
-    //kwsys_ios::cout << "Real name: " << realname << kwsys_ios::endl;
+    //std::cout << "Look at file: " << fname << std::endl;
+    //std::cout << "Match: "
+    // << this->Internals->TextExpressions[start].c_str() << std::endl;
+    //std::cout << "Real name: " << realname << std::endl;
 
     if( (!last && !kwsys::SystemTools::FileIsDirectory(realname))
       || (!this->ListDirs && last &&
@@ -444,8 +444,8 @@ bool Glob::FindFiles(const kwsys_stl::string& inexpr, GlobMessages* messages)
     }
   if ( last_slash > 0 )
     {
-    //kwsys_ios::cout << "I can skip: " << fexpr.substr(0, last_slash)
-    // << kwsys_ios::endl;
+    //std::cout << "I can skip: " << fexpr.substr(0, last_slash)
+    // << std::endl;
     skip = last_slash;
     }
   if ( skip == 0 )

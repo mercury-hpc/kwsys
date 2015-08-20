@@ -11,15 +11,15 @@
 ============================================================================*/
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(CommandLineArguments.hxx)
-#include KWSYS_HEADER(ios/iostream)
 #include KWSYS_HEADER(stl/vector)
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
 # include "CommandLineArguments.hxx.in"
-# include "kwsys_ios_iostream.h.in"
 #endif
+
+#include <iostream>
 
 #include <stddef.h> /* size_t */
 #include <string.h> /* strcmp */
@@ -28,10 +28,10 @@ static void* random_ptr = reinterpret_cast<void*>(0x123);
 
 static int argument(const char* arg, const char* value, void* call_data)
 {
-  kwsys_ios::cout << "Got argument: \"" << arg << "\" value: \"" << (value?value:"(null)") << "\"" << kwsys_ios::endl;
+  std::cout << "Got argument: \"" << arg << "\" value: \"" << (value?value:"(null)") << "\"" << std::endl;
   if ( call_data != random_ptr )
     {
-    kwsys_ios::cerr << "Problem processing call_data" << kwsys_ios::endl;
+    std::cerr << "Problem processing call_data" << std::endl;
     return 0;
     }
   return 1;
@@ -39,10 +39,10 @@ static int argument(const char* arg, const char* value, void* call_data)
 
 static int unknown_argument(const char* argument, void* call_data)
 {
-  kwsys_ios::cout << "Got unknown argument: \"" << argument << "\"" << kwsys_ios::endl;
+  std::cout << "Got unknown argument: \"" << argument << "\"" << std::endl;
   if ( call_data != random_ptr )
     {
-    kwsys_ios::cerr << "Problem processing call_data" << kwsys_ios::endl;
+    std::cerr << "Problem processing call_data" << std::endl;
     return 0;
     }
   return 1;
@@ -122,47 +122,47 @@ int testCommandLineArguments(int argc, char* argv[])
 
   if ( !arg.Parse() )
     {
-    kwsys_ios::cerr << "Problem parsing arguments" << kwsys_ios::endl;
+    std::cerr << "Problem parsing arguments" << std::endl;
     res = 1;
     }
-  kwsys_ios::cout << "Help: " << arg.GetHelp() << kwsys_ios::endl;
+  std::cout << "Help: " << arg.GetHelp() << std::endl;
 
-  kwsys_ios::cout << "Some int variable was set to: " << some_int_variable << kwsys_ios::endl;
-  kwsys_ios::cout << "Some double variable was set to: " << some_double_variable << kwsys_ios::endl;
+  std::cout << "Some int variable was set to: " << some_int_variable << std::endl;
+  std::cout << "Some double variable was set to: " << some_double_variable << std::endl;
   if ( some_string_variable && strcmp(some_string_variable, "test string with space") == 0)
     {
-    kwsys_ios::cout << "Some string variable was set to: " << some_string_variable << kwsys_ios::endl;
+    std::cout << "Some string variable was set to: " << some_string_variable << std::endl;
     delete [] some_string_variable;
     }
   else
     {
-    kwsys_ios::cerr << "Problem setting string variable" << kwsys_ios::endl;
+    std::cerr << "Problem setting string variable" << std::endl;
     res = 1;
     }
   size_t cc;
 #define CompareTwoLists(list1, list_valid, lsize) \
   if ( list1.size() != lsize ) \
     { \
-    kwsys_ios::cerr << "Problem setting " #list1 ". Size is: " << list1.size() \
-     << " should be: " << lsize << kwsys_ios::endl; \
+    std::cerr << "Problem setting " #list1 ". Size is: " << list1.size() \
+     << " should be: " << lsize << std::endl; \
     res = 1; \
     } \
   else \
     { \
-    kwsys_ios::cout << #list1 " argument set:"; \
+    std::cout << #list1 " argument set:"; \
     for ( cc =0; cc < lsize; ++ cc ) \
       { \
-      kwsys_ios::cout << " " << list1[cc]; \
+      std::cout << " " << list1[cc]; \
       if ( !CompareTwoItemsOnList(list1[cc], list_valid[cc]) ) \
         { \
-        kwsys_ios::cerr << "Problem setting " #list1 ". Value of " \
+        std::cerr << "Problem setting " #list1 ". Value of " \
         << cc << " is: [" << list1[cc] << "] <> [" \
-        << list_valid[cc] << "]" << kwsys_ios::endl; \
+        << list_valid[cc] << "]" << std::endl; \
         res = 1; \
         break; \
         } \
       } \
-    kwsys_ios::cout << kwsys_ios::endl; \
+    std::cout << std::endl; \
     }
 
   CompareTwoLists(numbers_argument, valid_numbers, 10);
@@ -171,12 +171,12 @@ int testCommandLineArguments(int argc, char* argv[])
   CompareTwoLists(strings_argument, valid_strings, 4);
   CompareTwoLists(stl_strings_argument, valid_stl_strings, 4);
 
-  kwsys_ios::cout << "Some STL String variable was set to: " << some_stl_string_variable << kwsys_ios::endl;
-  kwsys_ios::cout << "Some bool variable was set to: " << some_bool_variable << kwsys_ios::endl;
-  kwsys_ios::cout << "Some bool variable was set to: " << some_bool_variable1 << kwsys_ios::endl;
-  kwsys_ios::cout << "bool_arg1 variable was set to: " << bool_arg1 << kwsys_ios::endl;
-  kwsys_ios::cout << "bool_arg2 variable was set to: " << bool_arg2 << kwsys_ios::endl;
-  kwsys_ios::cout << kwsys_ios::endl;
+  std::cout << "Some STL String variable was set to: " << some_stl_string_variable << std::endl;
+  std::cout << "Some bool variable was set to: " << some_bool_variable << std::endl;
+  std::cout << "Some bool variable was set to: " << some_bool_variable1 << std::endl;
+  std::cout << "bool_arg1 variable was set to: " << bool_arg1 << std::endl;
+  std::cout << "bool_arg2 variable was set to: " << bool_arg2 << std::endl;
+  std::cout << std::endl;
 
   for ( cc = 0; cc < strings_argument.size(); ++ cc )
     {

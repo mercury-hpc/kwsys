@@ -37,12 +37,8 @@
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(stl/string)
 #include KWSYS_HEADER(stl/vector)
-#include KWSYS_HEADER(ios/iosfwd)
 #include KWSYS_HEADER(SystemInformation.hxx)
 #include KWSYS_HEADER(Process.h)
-#include KWSYS_HEADER(ios/iostream)
-#include KWSYS_HEADER(ios/sstream)
-#include KWSYS_HEADER(ios/fstream)
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
@@ -52,11 +48,11 @@
 # include "Configure.hxx.in"
 # include "kwsys_stl.hxx.in"
 # include "kwsys_stl_vector.in"
-# include "kwsys_stl_iosfwd.in"
-# include "kwsys_ios_sstream.h.in"
-# include "kwsys_ios_iostream.h.in"
-# include "kwsys_ios_fstream.h.in"
 #endif
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 #if defined(_WIN32)
 # include <windows.h>
@@ -635,7 +631,7 @@ bool SystemInformation::DoesCPUSupportFeature(long int i)
 
 kwsys_stl::string SystemInformation::GetCPUDescription()
 {
-  kwsys_ios::ostringstream oss;
+  std::ostringstream oss;
   oss
     << this->GetNumberOfPhysicalCPU()
     << " core ";
@@ -725,7 +721,7 @@ int SystemInformation::GetOSIsApple()
 
 kwsys_stl::string SystemInformation::GetOSDescription()
 {
-  kwsys_ios::ostringstream oss;
+  std::ostringstream oss;
   oss
     << this->GetOSName()
     << " "
@@ -781,7 +777,7 @@ kwsys_stl::string SystemInformation::GetMemoryDescription(
       const char *hostLimitEnvVarName,
       const char *procLimitEnvVarName)
 {
-  kwsys_ios::ostringstream oss;
+  std::ostringstream oss;
   oss
     << "Host Total: "
     << iostreamLongLong(this->GetHostMemoryTotal())
@@ -990,7 +986,7 @@ int NameValue(
       {
       continue;
       }
-    kwsys_ios::istringstream is(lines[i].substr(at+name.size()));
+    std::istringstream is(lines[i].substr(at+name.size()));
     is >> value;
     return 0;
     }
@@ -1085,10 +1081,10 @@ void StacktraceSignalHandler(
       void * /*sigContext*/)
 {
 #if defined(__linux) || defined(__APPLE__)
-  kwsys_ios::ostringstream oss;
+  std::ostringstream oss;
   oss
-     << kwsys_ios::endl
-     << "=========================================================" << kwsys_ios::endl
+     << std::endl
+     << "=========================================================" << std::endl
      << "Process id " << getpid() << " ";
   switch (sigNo)
     {
@@ -1281,11 +1277,11 @@ void StacktraceSignalHandler(
       break;
     }
   oss
-    << kwsys_ios::endl
-    << "Program Stack:" << kwsys_ios::endl
+    << std::endl
+    << "Program Stack:" << std::endl
     << SystemInformationImplementation::GetProgramStack(2,0)
-    << "=========================================================" << kwsys_ios::endl;
-  kwsys_ios::cerr << oss.str() << kwsys_ios::endl;
+    << "=========================================================" << std::endl;
+  std::cerr << oss.str() << std::endl;
 
   // restore the previously registered handlers
   // and abort
@@ -1379,17 +1375,17 @@ private:
 };
 
 // --------------------------------------------------------------------------
-kwsys_ios::ostream &operator<<(
-      kwsys_ios::ostream &os,
+std::ostream &operator<<(
+      std::ostream &os,
       const SymbolProperties &sp)
 {
 #if defined(KWSYS_SYSTEMINFORMATION_HAS_SYMBOL_LOOKUP)
   os
-    << kwsys_ios::hex << sp.GetAddress() << " : "
+    << std::hex << sp.GetAddress() << " : "
     << sp.GetFunction()
     << " [(" << sp.GetBinary() << ") "
     << sp.GetSourceFile() << ":"
-    << kwsys_ios::dec << sp.GetLineNumber() << "]";
+    << std::dec << sp.GetLineNumber() << "]";
 #elif defined(KWSYS_SYSTEMINFORMATION_HAS_BACKTRACE)
   void *addr = sp.GetAddress();
   char **syminfo = backtrace_symbols(&addr,1);
@@ -1899,7 +1895,7 @@ const char * SystemInformationImplementation::GetVendorID()
 /** Return the type ID of the CPU */
 kwsys_stl::string SystemInformationImplementation::GetTypeID()
 {
-  kwsys_ios::ostringstream str;
+  std::ostringstream str;
   str << this->ChipID.Type;
   return str.str();
 }
@@ -1907,7 +1903,7 @@ kwsys_stl::string SystemInformationImplementation::GetTypeID()
 /** Return the family of the CPU present */
 kwsys_stl::string SystemInformationImplementation::GetFamilyID()
 {
-  kwsys_ios::ostringstream str;
+  std::ostringstream str;
   str << this->ChipID.Family;
   return str.str();
 }
@@ -1915,7 +1911,7 @@ kwsys_stl::string SystemInformationImplementation::GetFamilyID()
 // Return the model of CPU present */
 kwsys_stl::string SystemInformationImplementation::GetModelID()
 {
-  kwsys_ios::ostringstream str;
+  std::ostringstream str;
   str << this->ChipID.Model;
   return str.str();
 }
@@ -1929,7 +1925,7 @@ kwsys_stl::string SystemInformationImplementation::GetModelName()
 /** Return the stepping code of the CPU present. */
 kwsys_stl::string SystemInformationImplementation::GetSteppingCode()
 {
-  kwsys_ios::ostringstream str;
+  std::ostringstream str;
   str << this->ChipID.Revision;
   return str.str();
 }
@@ -3185,7 +3181,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   FILE *fd = fopen("/proc/cpuinfo", "r" );
   if ( !fd )
     {
-    kwsys_ios::cout << "Problem opening /proc/cpuinfo" << kwsys_ios::endl;
+    std::cout << "Problem opening /proc/cpuinfo" << std::endl;
     return false;
     }
 
@@ -3645,7 +3641,7 @@ SystemInformationImplementation::GetProcMemoryUsed()
 #elif defined(__APPLE__)
   SystemInformation::LongLong memUsed=0;
   pid_t pid=getpid();
-  kwsys_ios::ostringstream oss;
+  std::ostringstream oss;
   oss << "ps -o rss= -p " << pid;
   FILE *file=popen(oss.str().c_str(),"r");
   if (file==0)
@@ -3670,7 +3666,7 @@ SystemInformationImplementation::GetProcMemoryUsed()
     {
     return -2;
     }
-  kwsys_ios::istringstream iss(oss.str());
+  std::istringstream iss(oss.str());
   iss >> memUsed;
   return memUsed;
 #else
@@ -3752,7 +3748,7 @@ kwsys_stl::string SystemInformationImplementation::GetProgramStack(
 #endif
     ;
 
-  kwsys_ios::ostringstream oss;
+  std::ostringstream oss;
 #if defined(KWSYS_SYSTEMINFORMATION_HAS_BACKTRACE)
   void *stackSymbols[256];
   int nFrames=backtrace(stackSymbols,256);
@@ -3761,7 +3757,7 @@ kwsys_stl::string SystemInformationImplementation::GetProgramStack(
     SymbolProperties symProps;
     symProps.SetReportPath(wholePath);
     symProps.Initialize(stackSymbols[i]);
-    oss << symProps << kwsys_ios::endl;
+    oss << symProps << std::endl;
     }
 #else
   (void)firstFrame;
@@ -3892,7 +3888,7 @@ bool SystemInformationImplementation::QueryLinuxMemory()
   int errorFlag = uname(&unameInfo);
   if( errorFlag!=0 )
     {
-    kwsys_ios::cout << "Problem calling uname(): " << strerror(errno) << kwsys_ios::endl;
+    std::cout << "Problem calling uname(): " << strerror(errno) << std::endl;
     return false;
     }
 
@@ -3916,7 +3912,7 @@ bool SystemInformationImplementation::QueryLinuxMemory()
   FILE *fd = fopen("/proc/meminfo", "r" );
   if ( !fd )
     {
-    kwsys_ios::cout << "Problem opening /proc/meminfo" << kwsys_ios::endl;
+    std::cout << "Problem opening /proc/meminfo" << std::endl;
     return false;
     }
 
@@ -3954,7 +3950,7 @@ bool SystemInformationImplementation::QueryLinuxMemory()
       }
     else
       {
-      kwsys_ios::cout << "Problem parsing /proc/meminfo" << kwsys_ios::endl;
+      std::cout << "Problem parsing /proc/meminfo" << std::endl;
       fclose(fd);
       return false;
       }
@@ -3987,7 +3983,7 @@ bool SystemInformationImplementation::QueryLinuxMemory()
       }
     else
       {
-      kwsys_ios::cout << "Problem parsing /proc/meminfo" << kwsys_ios::endl;
+      std::cout << "Problem parsing /proc/meminfo" << std::endl;
       fclose(fd);
       return false;
       }
@@ -4644,12 +4640,12 @@ kwsys_stl::string SystemInformationImplementation::RunProcess(kwsys_stl::vector<
       } break;
     case kwsysProcess_State_Error:
       {
-      kwsys_ios::cerr << "Error: Could not run " << args[0] << ":\n";
-      kwsys_ios::cerr << kwsysProcess_GetErrorString(gp) << "\n";
+      std::cerr << "Error: Could not run " << args[0] << ":\n";
+      std::cerr << kwsysProcess_GetErrorString(gp) << "\n";
       } break;
     case kwsysProcess_State_Exception:
       {
-      kwsys_ios::cerr << "Error: " << args[0]
+      std::cerr << "Error: " << args[0]
                 << " terminated with an exception: "
                 << kwsysProcess_GetExceptionString(gp) << "\n";
       } break;
@@ -4659,14 +4655,14 @@ kwsys_stl::string SystemInformationImplementation::RunProcess(kwsys_stl::vector<
     case kwsysProcess_State_Killed:
       {
       // Should not get here.
-      kwsys_ios::cerr << "Unexpected ending state after running " << args[0]
-                << kwsys_ios::endl;
+      std::cerr << "Unexpected ending state after running " << args[0]
+                << std::endl;
       } break;
     }
   kwsysProcess_Delete(gp);
   if(result)
     {
-    kwsys_ios::cerr << "Error " << args[0] << " returned :" << result << "\n";
+    std::cerr << "Error " << args[0] << " returned :" << result << "\n";
     }
   return buffer;
 }
