@@ -342,8 +342,6 @@ ENDIF()
 # capabilities and parent project's request.  Enforce 0/1 as only
 # possible values for configuration into Configure.hxx.
 
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_CSTDDEF
-  "Checking whether header cstddef is available" DIRECT)
 KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_NULL_TEMPLATE_ARGS
   "Checking whether \"<>\" is needed for template friends" INVERT)
 KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_MEMBER_TEMPLATES
@@ -728,17 +726,6 @@ IF(KWSYS_INSTALL_DOC_DIR)
   INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Copyright.txt
     DESTINATION ${KWSYS_INSTALL_DOC_DIR}/${KWSYS_NAMESPACE}
     ${KWSYS_INSTALL_LICENSE_OPTIONS})
-ENDIF()
-
-#-----------------------------------------------------------------------------
-# Provide cstddef header.
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/kwsys_cstddef.hxx.in
-               ${KWSYS_HEADER_DIR}/cstddef
-               @ONLY IMMEDIATE)
-IF(KWSYS_INSTALL_INCLUDE_DIR)
-  INSTALL(FILES ${KWSYS_HEADER_DIR}/cstddef
-    DESTINATION ${KWSYS_INSTALL_INCLUDE_DIR}/${KWSYS_NAMESPACE}
-    ${KWSYS_INSTALL_INCLUDE_OPTIONS})
 ENDIF()
 
 #-----------------------------------------------------------------------------

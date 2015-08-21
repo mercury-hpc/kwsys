@@ -38,7 +38,7 @@
 #define @KWSYS_NAMESPACE@_hash_fun_hxx
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
-#include <@KWSYS_NAMESPACE@/cstddef>        // size_t
+#include <stddef.h>        // size_t
 #include <string>
 
 namespace @KWSYS_NAMESPACE@

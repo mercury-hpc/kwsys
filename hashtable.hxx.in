@@ -44,7 +44,7 @@
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
 
-#include <@KWSYS_NAMESPACE@/cstddef>        // size_t
+#include <stddef.h>   // size_t
 #include <algorithm>  // lower_bound
 #include <functional> // unary_function
 #include <iterator>   // iterator_traits

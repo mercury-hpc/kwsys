@@ -14,12 +14,6 @@
 int main() { return 0; }
 #endif
 
-#ifdef TEST_KWSYS_CXX_HAS_CSTDDEF
-#include <cstddef>
-void f(size_t) {}
-int main() { return 0; }
-#endif
-
 #ifdef TEST_KWSYS_CXX_HAS_LONG_LONG
 long long f(long long n) { return n; }
 int main()
