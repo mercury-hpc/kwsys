@@ -360,8 +360,8 @@ public:
 
   const_iterator end() const { return const_iterator(0, this); }
 
-  friend bool operator==@KWSYS_NAMESPACE@_CXX_NULL_TEMPLATE_ARGS(const hashtable&,
-                                                                 const hashtable&);
+  friend bool operator==<>(const hashtable&,
+                           const hashtable&);
 
 public:
 
@@ -393,7 +393,6 @@ public:
   std::pair<iterator, bool> insert_unique_noresize(const value_type& __obj);
   iterator insert_equal_noresize(const value_type& __obj);
 
-#if @KWSYS_NAMESPACE@_CXX_HAS_MEMBER_TEMPLATES
   template <class _InputIterator>
   void insert_unique(_InputIterator __f, _InputIterator __l)
   {
@@ -445,42 +444,6 @@ public:
     for ( ; __n > 0; --__n, ++__f)
       insert_equal_noresize(*__f);
   }
-
-#else
-  void insert_unique(const value_type* __f, const value_type* __l)
-  {
-    size_type __n = __l - __f;
-    resize(_M_num_elements + __n);
-    for ( ; __n > 0; --__n, ++__f)
-      insert_unique_noresize(*__f);
-  }
-
-  void insert_equal(const value_type* __f, const value_type* __l)
-  {
-    size_type __n = __l - __f;
-    resize(_M_num_elements + __n);
-    for ( ; __n > 0; --__n, ++__f)
-      insert_equal_noresize(*__f);
-  }
-
-  void insert_unique(const_iterator __f, const_iterator __l)
-  {
-    size_type __n = 0;
-    std::distance(__f, __l, __n);
-    resize(_M_num_elements + __n);
-    for ( ; __n > 0; --__n, ++__f)
-      insert_unique_noresize(*__f);
-  }
-
-  void insert_equal(const_iterator __f, const_iterator __l)
-  {
-    size_type __n = 0;
-    std::distance(__f, __l, __n);
-    resize(_M_num_elements + __n);
-    for ( ; __n > 0; --__n, ++__f)
-      insert_equal_noresize(*__f);
-  }
-#endif
 
   reference find_or_insert(const value_type& __obj);
 
@@ -682,7 +645,7 @@ inline void swap(hashtable<_Val, _Key, _HF, _Extract, _EqKey, _All>& __ht1,
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-std::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator, bool>
+std::pair<typename hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator, bool>
 hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>
   ::insert_unique_noresize(const value_type& __obj)
 {
@@ -745,8 +708,8 @@ hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::find_or_insert(const value_type& __obj)
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-std::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator,
-     @KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator>
+std::pair<typename hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator,
+          typename hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator>
 hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::equal_range(const key_type& __key)
 {
   typedef std::pair<iterator, iterator> _Pii;
@@ -767,8 +730,8 @@ hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::equal_range(const key_type& __key)
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-std::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator,
-     @KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator>
+std::pair<typename hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator,
+          typename hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator>
 hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>
   ::equal_range(const key_type& __key) const
 {
@@ -1019,14 +982,6 @@ void hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>
 }
 
 } // namespace @KWSYS_NAMESPACE@
-
-// Normally the comparison operators should be found in the @KWSYS_NAMESPACE@
-// namespace by argument dependent lookup.  For compilers that do not
-// support it we must bring them into the global namespace now.
-#if !@KWSYS_NAMESPACE@_CXX_HAS_ARGUMENT_DEPENDENT_LOOKUP
-using @KWSYS_NAMESPACE@::operator==;
-using @KWSYS_NAMESPACE@::operator!=;
-#endif
 
 // Undo warning suppression.
 #if defined(__clang__) && defined(__has_warning)

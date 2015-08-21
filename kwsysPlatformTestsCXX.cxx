@@ -32,69 +32,6 @@ int main()
 }
 #endif
 
-#ifdef TEST_KWSYS_CXX_HAS_NULL_TEMPLATE_ARGS
-template <class T> class A;
-template <class T> int f(A<T>&);
-template <class T> class A
-{
-public:
-  // "friend int f<>(A<T>&)" would conform
-  friend int f(A<T>&);
-private:
-  int x;
-};
-
-template <class T> int f(A<T>& a) { return a.x = 0; }
-template int f(A<int>&);
-
-int main()
-{
-  A<int> a;
-  return f(a);
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_HAS_MEMBER_TEMPLATES
-template <class U>
-class A
-{
-public:
-  U u;
-  A(): u(0) {}
-  template <class V> V m(V* p) { return *p = u; }
-};
-
-int main()
-{
-  A<short> a;
-  int s = 1;
-  return a.m(&s);
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_HAS_FULL_SPECIALIZATION
-template <class T> struct A {};
-template <> struct A<int*>
-{
-  static int f() { return 0; }
-};
-int main() { return A<int*>::f(); }
-#endif
-
-#ifdef TEST_KWSYS_CXX_HAS_ARGUMENT_DEPENDENT_LOOKUP
-namespace N
-{
-  class A {};
-  int f(A*) { return 0; }
-}
-void f(void*);
-int main()
-{
-  N::A* a = 0;
-  return f(a);
-}
-#endif
-
 #ifdef TEST_KWSYS_STAT_HAS_ST_MTIM
 #include <sys/types.h>
 #include <sys/stat.h>

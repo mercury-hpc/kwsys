@@ -342,15 +342,6 @@ ENDIF()
 # capabilities and parent project's request.  Enforce 0/1 as only
 # possible values for configuration into Configure.hxx.
 
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_NULL_TEMPLATE_ARGS
-  "Checking whether \"<>\" is needed for template friends" INVERT)
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_MEMBER_TEMPLATES
-  "Checking for member template support" DIRECT)
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_FULL_SPECIALIZATION
-  "Checking for standard template specialization syntax" DIRECT)
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_ARGUMENT_DEPENDENT_LOOKUP
-  "Checking whether argument dependent lookup is supported" DIRECT)
-
 IF(UNIX)
   KWSYS_PLATFORM_CXX_TEST(KWSYS_STAT_HAS_ST_MTIM
     "Checking whether struct stat has st_mtim member" DIRECT)
