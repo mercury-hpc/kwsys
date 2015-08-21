@@ -12,16 +12,6 @@
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(Configure.hxx)
 
-// Configure the implementation for the current streams library.
-#if !KWSYS_IOS_USE_ANSI
-# define ios_base ios
-# if defined(__HP_aCC)
-#  define protected public
-#  include <iostream.h> // Hack access to some private stream methods.
-#  undef protected
-# endif
-#endif
-
 // Include the streams library.
 #include <iostream>
 #include KWSYS_HEADER(IOStream.hxx)
@@ -139,18 +129,11 @@ IOStreamScanTemplate(std::istream& is, T& value, char type)
   int state = std::ios_base::goodbit;
 
   // Skip leading whitespace.
-# if KWSYS_IOS_USE_ANSI
   std::istream::sentry okay(is);
-# else
-  is.eatwhite();
-  std::istream& okay = is;
-# endif
 
   if(okay)
     {
-#   if KWSYS_IOS_USE_ANSI
     try {
-#   endif
     // Copy the string to a buffer and construct the format string.
     char buffer[KWSYS_IOS_INT64_MAX_DIG];
 #   if defined(_MSC_VER)
@@ -176,16 +159,10 @@ IOStreamScanTemplate(std::istream& is, T& value, char type)
     if(is.peek() == EOF) { state |= std::ios_base::eofbit; }
     if(!success) { state |= std::ios_base::failbit; }
     else { value = result; }
-#   if KWSYS_IOS_USE_ANSI
     } catch(...) { state |= std::ios_base::badbit; }
-#   endif
     }
 
-# if KWSYS_IOS_USE_ANSI
   is.setstate(std::ios_base::iostate(state));
-# else
-  is.clear(state);
-# endif
   return is;
 }
 
@@ -194,16 +171,10 @@ template <class T>
 std::ostream&
 IOStreamPrintTemplate(std::ostream& os, T value, char type)
 {
-# if KWSYS_IOS_USE_ANSI
   std::ostream::sentry okay(os);
-# else
-  std::ostream& okay = os;
-# endif
   if(okay)
     {
-#   if KWSYS_IOS_USE_ANSI
     try {
-#   endif
     // Construct the format string.
     char format[8];
     char* f = format;
@@ -227,9 +198,7 @@ IOStreamPrintTemplate(std::ostream& os, T value, char type)
     char buffer[2*KWSYS_IOS_INT64_MAX_DIG];
     sprintf(buffer, format, value);
     os << buffer;
-#   if KWSYS_IOS_USE_ANSI
     } catch(...) { os.clear(os.rdstate() | std::ios_base::badbit); }
-#   endif
     }
   return os;
 }

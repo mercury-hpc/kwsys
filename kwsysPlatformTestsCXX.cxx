@@ -18,52 +18,21 @@
 # endif
 #endif
 
-// Setup for tests that use iostreams.
-#if defined(KWSYS_IOS_USE_ANSI) && defined(KWSYS_IOS_HAVE_STD)
-# if defined(_MSC_VER)
-#  pragma warning (push,1)
-# endif
-# if KWSYS_IOS_USE_ANSI
-#  include <iostream>
-# else
-#  include <iostream.h>
-# endif
-# if defined(_MSC_VER)
-#  pragma warning (pop)
-# endif
-# if KWSYS_IOS_HAVE_STD
-#  define kwsys_ios std
-# else
-#  define kwsys_ios
-# endif
-#endif
-
 #ifdef TEST_KWSYS_STL_HAVE_STD
 #include <list>
 void f(std ::list<int>*) {}
 int main() { return 0; }
 #endif
 
-#ifdef TEST_KWSYS_IOS_USE_ANSI
-#include <iosfwd>
-int main() { return 0; }
-#endif
-
-#ifdef TEST_KWSYS_IOS_HAVE_STD
-#include <iosfwd>
-void f(std ::ostream*) {}
-int main() { return 0; }
-#endif
-
 #ifdef TEST_KWSYS_STL_STRING_HAVE_OSTREAM
-# include <iostream.h>
+# include <iostream>
 # include <string>
 void f(ostream& os, const kwsys_stl::string& s) { os << s; }
 int main() { return 0; }
 #endif
 
 #ifdef TEST_KWSYS_STL_STRING_HAVE_ISTREAM
-# include <iostream.h>
+# include <iostream>
 # include <string>
 void f(istream& is, kwsys_stl::string& s) { is >> s; }
 int main() { return 0; }
@@ -297,50 +266,54 @@ int main()
 #endif
 
 #ifdef TEST_KWSYS_IOS_HAS_ISTREAM_LONG_LONG
-int test_istream(kwsys_ios::istream& is, long long& x)
+# include <iostream>
+int test_istream(std::istream& is, long long& x)
 {
   return (is >> x)? 1:0;
 }
 int main()
 {
   long long x = 0;
-  return test_istream(kwsys_ios::cin, x);
+  return test_istream(std::cin, x);
 }
 #endif
 
 #ifdef TEST_KWSYS_IOS_HAS_OSTREAM_LONG_LONG
-int test_ostream(kwsys_ios::ostream& os, long long x)
+# include <iostream>
+int test_ostream(std::ostream& os, long long x)
 {
   return (os << x)? 1:0;
 }
 int main()
 {
   long long x = 0;
-  return test_ostream(kwsys_ios::cout, x);
+  return test_ostream(std::cout, x);
 }
 #endif
 
 #ifdef TEST_KWSYS_IOS_HAS_ISTREAM___INT64
-int test_istream(kwsys_ios::istream& is, __int64& x)
+# include <iostream>
+int test_istream(std::istream& is, __int64& x)
 {
   return (is >> x)? 1:0;
 }
 int main()
 {
   __int64 x = 0;
-  return test_istream(kwsys_ios::cin, x);
+  return test_istream(std::cin, x);
 }
 #endif
 
 #ifdef TEST_KWSYS_IOS_HAS_OSTREAM___INT64
-int test_ostream(kwsys_ios::ostream& os, __int64 x)
+# include <iostream>
+int test_ostream(std::ostream& os, __int64 x)
 {
   return (os << x)? 1:0;
 }
 int main()
 {
   __int64 x = 0;
-  return test_ostream(kwsys_ios::cout, x);
+  return test_ostream(std::cout, x);
 }
 #endif
 
