@@ -39,7 +39,7 @@
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
 #include <@KWSYS_NAMESPACE@/cstddef>        // size_t
-#include <@KWSYS_NAMESPACE@/stl/string>     // string
+#include <string>
 
 namespace @KWSYS_NAMESPACE@
 {
@@ -66,14 +66,14 @@ struct hash<const char*> {
 };
 
 @KWSYS_NAMESPACE@_CXX_DEFINE_SPECIALIZATION
-  struct hash<@KWSYS_NAMESPACE@_stl::string> {
-  size_t operator()(const @KWSYS_NAMESPACE@_stl::string & __s) const { return _stl_hash_string(__s.c_str()); }
+  struct hash<std::string> {
+  size_t operator()(const std::string & __s) const { return _stl_hash_string(__s.c_str()); }
 };
 
 #if !defined(__BORLANDC__)
 @KWSYS_NAMESPACE@_CXX_DEFINE_SPECIALIZATION
-  struct hash<const @KWSYS_NAMESPACE@_stl::string> {
-  size_t operator()(const @KWSYS_NAMESPACE@_stl::string & __s) const { return _stl_hash_string(__s.c_str()); }
+  struct hash<const std::string> {
+  size_t operator()(const std::string & __s) const { return _stl_hash_string(__s.c_str()); }
 };
 #endif
 

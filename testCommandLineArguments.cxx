@@ -11,7 +11,6 @@
 ============================================================================*/
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(CommandLineArguments.hxx)
-#include KWSYS_HEADER(stl/vector)
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
@@ -20,6 +19,7 @@
 #endif
 
 #include <iostream>
+#include <vector>
 
 #include <stddef.h> /* size_t */
 #include <string.h> /* strcmp */
@@ -53,8 +53,8 @@ static bool CompareTwoItemsOnList(int i1, int i2) { return i1 == i2; }
 static bool CompareTwoItemsOnList(double i1, double i2) { return i1 == i2; }
 static bool CompareTwoItemsOnList(const char* i1,
   const char* i2) { return strcmp(i1, i2) == 0; }
-static bool CompareTwoItemsOnList(const kwsys_stl::string& i1,
-  const kwsys_stl::string& i2) { return i1 == i2; }
+static bool CompareTwoItemsOnList(const std::string& i1,
+  const std::string& i2) { return i1 == i2; }
 
 int testCommandLineArguments(int argc, char* argv[])
 {
@@ -74,26 +74,26 @@ int testCommandLineArguments(int argc, char* argv[])
   int some_int_variable = 10;
   double some_double_variable = 10.10;
   char* some_string_variable = 0;
-  kwsys_stl::string some_stl_string_variable = "";
+  std::string some_stl_string_variable = "";
   bool some_bool_variable = false;
   bool some_bool_variable1 = false;
   bool bool_arg1 = false;
   int bool_arg2 = 0;
 
-  kwsys_stl::vector<int> numbers_argument;
+  std::vector<int> numbers_argument;
   int valid_numbers[] = { 5, 1, 8, 3, 7, 1, 3, 9, 7, 1 };
 
-  kwsys_stl::vector<double> doubles_argument;
+  std::vector<double> doubles_argument;
   double valid_doubles[] = { 12.5, 1.31, 22 };
 
-  kwsys_stl::vector<bool> bools_argument;
+  std::vector<bool> bools_argument;
   bool valid_bools[] = { true, true, false };
 
-  kwsys_stl::vector<char*> strings_argument;
+  std::vector<char*> strings_argument;
   const char* valid_strings[] = { "andy", "bill", "brad", "ken" };
 
-  kwsys_stl::vector<kwsys_stl::string> stl_strings_argument;
-  kwsys_stl::string valid_stl_strings[] = { "ken", "brad", "bill", "andy" };
+  std::vector<std::string> stl_strings_argument;
+  std::string valid_stl_strings[] = { "ken", "brad", "bill", "andy" };
 
   typedef kwsys::CommandLineArguments argT;
 

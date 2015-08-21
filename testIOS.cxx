@@ -10,17 +10,12 @@
   See the License for more information.
 ============================================================================*/
 #include "kwsysPrivate.h"
-#include KWSYS_HEADER(stl/vector)
-
-// Work-around CMake dependency scanning limitation.  This must
-// duplicate the above list of headers.
-#if 0
-# include "kwsys_stl_vector.h.in"
-#endif
+#include KWSYS_HEADER(Configure.hxx)
 
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <vector>
 #include <string.h> /* strlen */
 
 int testIOS(int, char*[])
@@ -55,7 +50,7 @@ int testIOS(int, char*[])
     }
 
   std::istringstream istr(" 10 20 str ");
-  kwsys_stl::string s;
+  std::string s;
   int x;
   if(istr >> x)
     {

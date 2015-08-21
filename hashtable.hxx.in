@@ -45,12 +45,12 @@
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
 
 #include <@KWSYS_NAMESPACE@/cstddef>        // size_t
-#include <@KWSYS_NAMESPACE@/stl/algorithm>  // lower_bound
-#include <@KWSYS_NAMESPACE@/stl/functional> // unary_function
-#include <@KWSYS_NAMESPACE@/stl/iterator>   // iterator_traits
-#include <@KWSYS_NAMESPACE@/stl/memory>     // allocator
-#include <@KWSYS_NAMESPACE@/stl/utility>    // pair
-#include <@KWSYS_NAMESPACE@/stl/vector>     // vector
+#include <algorithm>  // lower_bound
+#include <functional> // unary_function
+#include <iterator>   // iterator_traits
+#include <memory>     // allocator
+#include <utility>    // pair
+#include <vector>     // vector
 
 #if defined(_MSC_VER)
 # pragma warning (push)
@@ -74,11 +74,11 @@
 #endif
 
 #if @KWSYS_NAMESPACE@_STL_HAS_ALLOCATOR_TEMPLATE
-# define @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(T) @KWSYS_NAMESPACE@_stl::allocator< T >
+# define @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(T) std::allocator< T >
 #elif @KWSYS_NAMESPACE@_STL_HAS_ALLOCATOR_NONTEMPLATE
-# define @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(T) @KWSYS_NAMESPACE@_stl::allocator
+# define @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(T) std::allocator
 #else
-# define @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(T) @KWSYS_NAMESPACE@_stl::alloc
+# define @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(T) std::alloc
 #endif
 
 #if @KWSYS_NAMESPACE@_STL_HAS_ALLOCATOR_OBJECTS
@@ -341,7 +341,7 @@ struct _Hashtable_iterator {
           const_iterator;
   typedef _Hashtable_node<_Val> _Node;
 
-  typedef @KWSYS_NAMESPACE@_stl::forward_iterator_tag iterator_category;
+  typedef std::forward_iterator_tag iterator_category;
   typedef _Val value_type;
   typedef ptrdiff_t difference_type;
   typedef size_t size_type;
@@ -378,7 +378,7 @@ struct _Hashtable_const_iterator {
           const_iterator;
   typedef _Hashtable_node<_Val> _Node;
 
-  typedef @KWSYS_NAMESPACE@_stl::forward_iterator_tag iterator_category;
+  typedef std::forward_iterator_tag iterator_category;
   typedef _Val value_type;
   typedef ptrdiff_t difference_type;
   typedef size_t size_type;
@@ -427,7 +427,7 @@ static inline size_t _stl_next_prime(size_t __n)
 {
   const unsigned long* __first = get_stl_prime_list();
   const unsigned long* __last = get_stl_prime_list() + (int)_stl_num_primes;
-  const unsigned long* pos = @KWSYS_NAMESPACE@_stl::lower_bound(__first, __last, __n);
+  const unsigned long* pos = std::lower_bound(__first, __last, __n);
   return pos == __last ? *(__last - 1) : *pos;
 }
 
@@ -477,7 +477,7 @@ public:
 private:
   typedef typename _Alloc::template rebind<_Node>::other _M_node_allocator_type;
   typedef typename _Alloc::template rebind<_Node*>::other _M_node_ptr_allocator_type;
-  typedef @KWSYS_NAMESPACE@_stl::vector<_Node*,_M_node_ptr_allocator_type> _M_buckets_type;
+  typedef std::vector<_Node*,_M_node_ptr_allocator_type> _M_buckets_type;
 #else
 public:
   typedef hash_allocator<_Val, _Alloc> allocator_type;
@@ -489,7 +489,7 @@ private:
 # else
   typedef _Alloc _M_node_ptr_allocator_type;
 # endif
-  typedef @KWSYS_NAMESPACE@_stl::vector<_Node*,_M_node_ptr_allocator_type> _M_buckets_type;
+  typedef std::vector<_Node*,_M_node_ptr_allocator_type> _M_buckets_type;
 #endif
 
 private:
@@ -576,11 +576,11 @@ public:
 
   void swap(hashtable& __ht)
   {
-    @KWSYS_NAMESPACE@_stl::swap(_M_hash, __ht._M_hash);
-    @KWSYS_NAMESPACE@_stl::swap(_M_equals, __ht._M_equals);
-    @KWSYS_NAMESPACE@_stl::swap(_M_get_key, __ht._M_get_key);
+    std::swap(_M_hash, __ht._M_hash);
+    std::swap(_M_equals, __ht._M_equals);
+    std::swap(_M_get_key, __ht._M_get_key);
     _M_buckets.swap(__ht._M_buckets);
-    @KWSYS_NAMESPACE@_stl::swap(_M_num_elements, __ht._M_num_elements);
+    std::swap(_M_num_elements, __ht._M_num_elements);
   }
 
   iterator begin()
@@ -621,7 +621,7 @@ public:
     return __result;
   }
 
-  @KWSYS_NAMESPACE@_stl::pair<iterator, bool> insert_unique(const value_type& __obj)
+  std::pair<iterator, bool> insert_unique(const value_type& __obj)
   {
     resize(_M_num_elements + 1);
     return insert_unique_noresize(__obj);
@@ -633,18 +633,18 @@ public:
     return insert_equal_noresize(__obj);
   }
 
-  @KWSYS_NAMESPACE@_stl::pair<iterator, bool> insert_unique_noresize(const value_type& __obj);
+  std::pair<iterator, bool> insert_unique_noresize(const value_type& __obj);
   iterator insert_equal_noresize(const value_type& __obj);
 
 #if @KWSYS_NAMESPACE@_STL_HAS_ITERATOR_TRAITS
 # define @KWSYS_NAMESPACE@_HASH_ITERATOR_CATEGORY(T,I) \
-  typename @KWSYS_NAMESPACE@_stl::iterator_traits< T >::iterator_category()
+  typename std::iterator_traits< T >::iterator_category()
 #elif @KWSYS_NAMESPACE@_STL_HAS_ITERATOR_CATEGORY
 # define @KWSYS_NAMESPACE@_HASH_ITERATOR_CATEGORY(T,I) \
-  @KWSYS_NAMESPACE@_stl::iterator_category( I )
+  std::iterator_category( I )
 #elif @KWSYS_NAMESPACE@_STL_HAS___ITERATOR_CATEGORY
 # define @KWSYS_NAMESPACE@_HASH_ITERATOR_CATEGORY(T,I) \
-  @KWSYS_NAMESPACE@_stl::__iterator_category( I )
+  std::__iterator_category( I )
 #endif
 
 #if @KWSYS_NAMESPACE@_CXX_HAS_MEMBER_TEMPLATES && defined(@KWSYS_NAMESPACE@_HASH_ITERATOR_CATEGORY)
@@ -664,7 +664,7 @@ public:
 
   template <class _InputIterator>
   void insert_unique(_InputIterator __f, _InputIterator __l,
-                     @KWSYS_NAMESPACE@_stl::input_iterator_tag)
+                     std::input_iterator_tag)
   {
     for ( ; __f != __l; ++__f)
       insert_unique(*__f);
@@ -672,7 +672,7 @@ public:
 
   template <class _InputIterator>
   void insert_equal(_InputIterator __f, _InputIterator __l,
-                    @KWSYS_NAMESPACE@_stl::input_iterator_tag)
+                    std::input_iterator_tag)
   {
     for ( ; __f != __l; ++__f)
       insert_equal(*__f);
@@ -680,10 +680,10 @@ public:
 
   template <class _ForwardIterator>
   void insert_unique(_ForwardIterator __f, _ForwardIterator __l,
-                     @KWSYS_NAMESPACE@_stl::forward_iterator_tag)
+                     std::forward_iterator_tag)
   {
     size_type __n = 0;
-    @KWSYS_NAMESPACE@_stl::distance(__f, __l, __n);
+    std::distance(__f, __l, __n);
     resize(_M_num_elements + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_unique_noresize(*__f);
@@ -691,10 +691,10 @@ public:
 
   template <class _ForwardIterator>
   void insert_equal(_ForwardIterator __f, _ForwardIterator __l,
-                    @KWSYS_NAMESPACE@_stl::forward_iterator_tag)
+                    std::forward_iterator_tag)
   {
     size_type __n = 0;
-    @KWSYS_NAMESPACE@_stl::distance(__f, __l, __n);
+    std::distance(__f, __l, __n);
     resize(_M_num_elements + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_equal_noresize(*__f);
@@ -720,7 +720,7 @@ public:
   void insert_unique(const_iterator __f, const_iterator __l)
   {
     size_type __n = 0;
-    @KWSYS_NAMESPACE@_stl::distance(__f, __l, __n);
+    std::distance(__f, __l, __n);
     resize(_M_num_elements + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_unique_noresize(*__f);
@@ -729,7 +729,7 @@ public:
   void insert_equal(const_iterator __f, const_iterator __l)
   {
     size_type __n = 0;
-    @KWSYS_NAMESPACE@_stl::distance(__f, __l, __n);
+    std::distance(__f, __l, __n);
     resize(_M_num_elements + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_equal_noresize(*__f);
@@ -771,10 +771,10 @@ public:
     return __result;
   }
 
-  @KWSYS_NAMESPACE@_stl::pair<iterator, iterator>
+  std::pair<iterator, iterator>
   equal_range(const key_type& __key);
 
-  @KWSYS_NAMESPACE@_stl::pair<const_iterator, const_iterator>
+  std::pair<const_iterator, const_iterator>
   equal_range(const key_type& __key) const;
 
   size_type erase(const key_type& __key);
@@ -936,7 +936,7 @@ inline void swap(hashtable<_Val, _Key, _HF, _Extract, _EqKey, _All>& __ht1,
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-@KWSYS_NAMESPACE@_stl::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator, bool>
+std::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator, bool>
 hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>
   ::insert_unique_noresize(const value_type& __obj)
 {
@@ -945,13 +945,13 @@ hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>
 
   for (_Node* __cur = __first; __cur; __cur = __cur->_M_next)
     if (_M_equals(_M_get_key(__cur->_M_val), _M_get_key(__obj)))
-      return @KWSYS_NAMESPACE@_stl::pair<iterator, bool>(iterator(__cur, this), false);
+      return std::pair<iterator, bool>(iterator(__cur, this), false);
 
   _Node* __tmp = _M_new_node(__obj);
   __tmp->_M_next = __first;
   _M_buckets[__n] = __tmp;
   ++_M_num_elements;
-  return @KWSYS_NAMESPACE@_stl::pair<iterator, bool>(iterator(__tmp, this), true);
+  return std::pair<iterator, bool>(iterator(__tmp, this), true);
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
@@ -999,11 +999,11 @@ hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::find_or_insert(const value_type& __obj)
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-@KWSYS_NAMESPACE@_stl::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator,
+std::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator,
      @KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::iterator>
 hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::equal_range(const key_type& __key)
 {
-  typedef @KWSYS_NAMESPACE@_stl::pair<iterator, iterator> _Pii;
+  typedef std::pair<iterator, iterator> _Pii;
   const size_type __n = _M_bkt_num_key(__key);
 
   for (_Node* __first = _M_buckets[__n]; __first; __first = __first->_M_next)
@@ -1021,12 +1021,12 @@ hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::equal_range(const key_type& __key)
 }
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-@KWSYS_NAMESPACE@_stl::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator,
+std::pair<@KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator,
      @KWSYS_NAMESPACE@_CXX_DECL_TYPENAME hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>::const_iterator>
 hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>
   ::equal_range(const key_type& __key) const
 {
-  typedef @KWSYS_NAMESPACE@_stl::pair<const_iterator, const_iterator> _Pii;
+  typedef std::pair<const_iterator, const_iterator> _Pii;
   const size_type __n = _M_bkt_num_key(__key);
 
   for (const _Node* __first = _M_buckets[__n] ;

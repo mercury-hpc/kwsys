@@ -12,7 +12,6 @@
 #include "kwsysPrivate.h"
 
 #include KWSYS_HEADER(DynamicLoader.hxx)
-#include KWSYS_HEADER(stl/string)
 
 #if defined(__BEOS__) || defined(__HAIKU__)
 #include <be/kernel/OS.h>  /* disable_debugger() API. */
@@ -24,16 +23,17 @@
 # include "DynamicLoader.hxx.in"
 #endif
 
+#include <string>
 #include <iostream>
 
 // Include with <> instead of "" to avoid getting any in-source copy
 // left on disk.
 #include <testSystemTools.h>
 
-static kwsys_stl::string GetLibName(const char* lname)
+static std::string GetLibName(const char* lname)
 {
   // Construct proper name of lib
-  kwsys_stl::string slname;
+  std::string slname;
   slname = EXECUTABLE_OUTPUT_PATH;
 #ifdef CMAKE_INTDIR
   slname += "/";
@@ -117,7 +117,7 @@ int testDynamicLoader(int argc, char *argv[])
   res += TestDynamicLoader("libdl.so", "TestDynamicLoader",1,0,1);
 #endif
   // Now try on the generated library
-  kwsys_stl::string libname = GetLibName(KWSYS_NAMESPACE_STRING "TestDynload");
+  std::string libname = GetLibName(KWSYS_NAMESPACE_STRING "TestDynload");
   res += TestDynamicLoader(libname.c_str(), "dummy",1,0,1);
   res += TestDynamicLoader(libname.c_str(), "TestDynamicLoaderSymbolPointer",1,1,1);
   res += TestDynamicLoader(libname.c_str(), "_TestDynamicLoaderSymbolPointer",1,0,1);

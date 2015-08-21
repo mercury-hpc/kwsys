@@ -62,10 +62,10 @@ static const char* toUnixPaths[][2] =
     {0, 0}
 };
 
-static bool CheckConvertToUnixSlashes(kwsys_stl::string input,
-                                      kwsys_stl::string output)
+static bool CheckConvertToUnixSlashes(std::string input,
+                                      std::string output)
 {
-  kwsys_stl::string result = input;
+  std::string result = input;
   kwsys::SystemTools::ConvertToUnixSlashes(result);
   if ( result != output )
     {
@@ -86,12 +86,12 @@ static const char* checkEscapeChars[][4] =
   {0, 0, 0, 0}
 };
 
-static bool CheckEscapeChars(kwsys_stl::string input,
+static bool CheckEscapeChars(std::string input,
                              const char *chars_to_escape,
                              char escape_char,
-                             kwsys_stl::string output)
+                             std::string output)
 {
-  kwsys_stl::string result = kwsys::SystemTools::EscapeChars(
+  std::string result = kwsys::SystemTools::EscapeChars(
     input.c_str(), chars_to_escape, escape_char);
   if (result != output)
     {
@@ -108,17 +108,17 @@ static bool CheckEscapeChars(kwsys_stl::string input,
 static bool CheckFileOperations()
 {
   bool res = true;
-  const kwsys_stl::string testNonExistingFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+  const std::string testNonExistingFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemToolsNonExistingFile");
-  const kwsys_stl::string testDotFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+  const std::string testDotFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/.");
-  const kwsys_stl::string testBinFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+  const std::string testBinFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemTools.bin");
-  const kwsys_stl::string testTxtFile(TEST_SYSTEMTOOLS_SOURCE_DIR
+  const std::string testTxtFile(TEST_SYSTEMTOOLS_SOURCE_DIR
     "/testSystemTools.cxx");
-  const kwsys_stl::string testNewDir(TEST_SYSTEMTOOLS_BINARY_DIR
+  const std::string testNewDir(TEST_SYSTEMTOOLS_BINARY_DIR
     "/testSystemToolsNewDir");
-  const kwsys_stl::string testNewFile(testNewDir + "/testNewFile.txt");
+  const std::string testNewFile(testNewDir + "/testNewFile.txt");
 
   if (kwsys::SystemTools::DetectFileType(testNonExistingFile.c_str()) !=
       kwsys::SystemTools::FileTypeUnknown)
@@ -317,7 +317,7 @@ static bool CheckFileOperations()
     res = false;
     }
 
-  kwsys_stl::string const testFileMissing(testNewDir + "/testMissingFile.txt");
+  std::string const testFileMissing(testNewDir + "/testMissingFile.txt");
   if (!kwsys::SystemTools::RemoveFile(testFileMissing))
     {
     std::string const& msg = kwsys::SystemTools::GetLastSystemError();
@@ -326,7 +326,7 @@ static bool CheckFileOperations()
     res = false;
     }
 
-  kwsys_stl::string const testFileMissingDir(testNewDir + "/missing/file.txt");
+  std::string const testFileMissingDir(testNewDir + "/missing/file.txt");
   if (!kwsys::SystemTools::RemoveFile(testFileMissingDir))
     {
     std::string const& msg = kwsys::SystemTools::GetLastSystemError();
@@ -348,14 +348,14 @@ static bool CheckFileOperations()
   // Perform the same file and directory creation and deletion tests but
   // with paths > 256 characters in length.
 
-  const kwsys_stl::string testNewLongDir(
+  const std::string testNewLongDir(
     TEST_SYSTEMTOOLS_BINARY_DIR "/"
     "012345678901234567890123456789012345678901234567890123456789"
     "012345678901234567890123456789012345678901234567890123456789"
     "012345678901234567890123456789012345678901234567890123456789"
     "012345678901234567890123456789012345678901234567890123456789"
     "01234567890123");
-  const kwsys_stl::string testNewLongFile(testNewLongDir + "/"
+  const std::string testNewLongFile(testNewLongDir + "/"
     "012345678901234567890123456789012345678901234567890123456789"
     "012345678901234567890123456789012345678901234567890123456789"
     "012345678901234567890123456789012345678901234567890123456789"
@@ -404,7 +404,7 @@ static bool CheckStringOperations()
 {
   bool res = true;
 
-  kwsys_stl::string test = "mary had a little lamb.";
+  std::string test = "mary had a little lamb.";
   if (kwsys::SystemTools::CapitalizedWords(test) != "Mary Had A Little Lamb.")
     {
     std::cerr
@@ -535,7 +535,7 @@ static bool CheckStringOperations()
     res = false;
     }
 
-  kwsys_stl::vector<kwsys_stl::string> lines;
+  std::vector<std::string> lines;
   kwsys::SystemTools::Split("Mary Had A Little Lamb.",lines,' ');
   if (lines[0] != "Mary" || lines[1] != "Had" ||
       lines[2] != "A" || lines[3] != "Little" || lines[4] != "Lamb.")
@@ -691,7 +691,7 @@ static bool CheckStringOperations()
 
 //----------------------------------------------------------------------------
 
-static bool CheckPutEnv(const kwsys_stl::string& env, const char* name, const char* value)
+static bool CheckPutEnv(const std::string& env, const char* name, const char* value)
 {
   if(!kwsys::SystemTools::PutEnv(env))
     {
@@ -743,11 +743,11 @@ static bool CheckEnvironmentOperations()
 
 
 static bool CheckRelativePath(
-  const kwsys_stl::string& local,
-  const kwsys_stl::string& remote,
-  const kwsys_stl::string& expected)
+  const std::string& local,
+  const std::string& remote,
+  const std::string& expected)
 {
-  kwsys_stl::string result = kwsys::SystemTools::RelativePath(local, remote);
+  std::string result = kwsys::SystemTools::RelativePath(local, remote);
   if(expected != result)
     {
     std::cerr << "RelativePath(" << local << ", " << remote
@@ -769,10 +769,10 @@ static bool CheckRelativePaths()
 }
 
 static bool CheckCollapsePath(
-  const kwsys_stl::string& path,
-  const kwsys_stl::string& expected)
+  const std::string& path,
+  const std::string& expected)
 {
-  kwsys_stl::string result = kwsys::SystemTools::CollapseFullPath(path);
+  std::string result = kwsys::SystemTools::CollapseFullPath(path);
   if(expected != result)
     {
     std::cerr << "CollapseFullPath(" << path
@@ -802,7 +802,7 @@ int testSystemTools(int, char*[])
     }
 
   // Special check for ~
-  kwsys_stl::string output;
+  std::string output;
   if(kwsys::SystemTools::GetEnv("HOME", output))
     {
     output += "/foo bar/lala";

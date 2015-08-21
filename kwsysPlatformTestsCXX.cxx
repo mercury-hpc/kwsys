@@ -9,21 +9,6 @@
   implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the License for more information.
 ============================================================================*/
-// Setup for tests that use result of stl namespace test.
-#if defined(KWSYS_STL_HAVE_STD)
-# if KWSYS_STL_HAVE_STD
-#  define kwsys_stl std
-# else
-#  define kwsys_stl
-# endif
-#endif
-
-#ifdef TEST_KWSYS_STL_HAVE_STD
-#include <list>
-void f(std ::list<int>*) {}
-int main() { return 0; }
-#endif
-
 #ifdef TEST_KWSYS_CXX_HAS_CSTDIO
 #include <cstdio>
 int main() { return 0; }
@@ -119,21 +104,21 @@ int main()
 #ifdef TEST_KWSYS_STL_HAS_ITERATOR_TRAITS
 #include <iterator>
 #include <list>
-void f(kwsys_stl::iterator_traits<kwsys_stl::list<int>::iterator>::iterator_category const&) {}
+void f(std::iterator_traits<std::list<int>::iterator>::iterator_category const&) {}
 int main() { return 0; }
 #endif
 
 #ifdef TEST_KWSYS_STL_HAS_ITERATOR_CATEGORY
 #include <iterator>
 #include <list>
-void f(kwsys_stl::list<int>::iterator x) { kwsys_stl::iterator_category(x); }
+void f(std::list<int>::iterator x) { std::iterator_category(x); }
 int main() { return 0; }
 #endif
 
 #ifdef TEST_KWSYS_STL_HAS___ITERATOR_CATEGORY
 #include <iterator>
 #include <list>
-void f(kwsys_stl::list<int>::iterator x) { kwsys_stl::__iterator_category(x); }
+void f(std::list<int>::iterator x) { std::__iterator_category(x); }
 int main() { return 0; }
 #endif
 
@@ -146,14 +131,14 @@ void f(const Alloc&)
 }
 int main()
 {
-  f(kwsys_stl::allocator<char>());
+  f(std::allocator<char>());
   return 0;
 }
 #endif
 
 #ifdef TEST_KWSYS_STL_HAS_ALLOCATOR_NONTEMPLATE
 #include <memory>
-void f(kwsys_stl::allocator::size_type const&) {}
+void f(std::allocator::size_type const&) {}
 int main() { return 0; }
 #endif
 
@@ -166,33 +151,33 @@ void f(const T&, const Alloc&)
 }
 int main()
 {
-  f(0, kwsys_stl::allocator<char>());
+  f(0, std::allocator<char>());
   return 0;
 }
 #endif
 
 #ifdef TEST_KWSYS_STL_HAS_ALLOCATOR_MAX_SIZE_ARGUMENT
 #include <memory>
-void f(kwsys_stl::allocator<char> const& a)
+void f(std::allocator<char> const& a)
 {
   a.max_size(sizeof(int));
 }
 int main()
 {
-  f(kwsys_stl::allocator<char>());
+  f(std::allocator<char>());
   return 0;
 }
 #endif
 
 #ifdef TEST_KWSYS_STL_HAS_ALLOCATOR_OBJECTS
 #include <vector>
-void f(kwsys_stl::vector<int> const& v1)
+void f(std::vector<int> const& v1)
 {
-  kwsys_stl::vector<int>(1, 1, v1.get_allocator());
+  std::vector<int>(1, 1, v1.get_allocator());
 }
 int main()
 {
-  f(kwsys_stl::vector<int>());
+  f(std::vector<int>());
   return 0;
 }
 #endif

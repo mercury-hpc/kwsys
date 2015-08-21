@@ -342,14 +342,9 @@ ENDIF()
 # capabilities and parent project's request.  Enforce 0/1 as only
 # possible values for configuration into Configure.hxx.
 
-KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAVE_STD
-  "Checking whether STL classes are in std namespace" DIRECT)
-
 KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_CSTDDEF
   "Checking whether header cstddef is available" DIRECT)
 
-SET(KWSYS_PLATFORM_CXX_TEST_DEFINES
-  -DKWSYS_STL_HAVE_STD=${KWSYS_STL_HAVE_STD})
 KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAS_ITERATOR_TRAITS
   "Checking whether stl has iterator_traits" DIRECT)
 IF(KWSYS_STL_HAS_ITERATOR_TRAITS)
@@ -769,41 +764,6 @@ IF(KWSYS_INSTALL_DOC_DIR)
 ENDIF()
 
 #-----------------------------------------------------------------------------
-# Create STL header wrappers to block warnings in the STL headers and
-# give standard names by which they may be included.
-FOREACH(header
-  algorithm
-  deque
-  exception
-  functional
-  iterator
-  list
-  map
-  memory
-  new
-  numeric
-  queue
-  set
-  stack
-  stdexcept
-  string
-  utility
-  vector
-  )
-  # Configure the header wrapper.
-  SET(KWSYS_STL_HEADER "${header}")
-  CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/kwsys_stl.hxx.in
-                 ${KWSYS_HEADER_DIR}/stl/${header}
-                 @ONLY IMMEDIATE)
-
-  # Create an install target for the header wrapper.
-  IF(KWSYS_INSTALL_INCLUDE_DIR)
-    INSTALL(FILES ${KWSYS_HEADER_DIR}/stl/${header}
-      DESTINATION ${KWSYS_INSTALL_INCLUDE_DIR}/${KWSYS_NAMESPACE}/stl
-      ${KWSYS_INSTALL_INCLUDE_OPTIONS})
-  ENDIF()
-ENDFOREACH()
-
 # Provide cstddef header.
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/kwsys_cstddef.hxx.in
                ${KWSYS_HEADER_DIR}/cstddef

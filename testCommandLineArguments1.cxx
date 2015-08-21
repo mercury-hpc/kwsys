@@ -11,7 +11,6 @@
 ============================================================================*/
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(CommandLineArguments.hxx)
-#include KWSYS_HEADER(stl/vector)
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
@@ -20,6 +19,8 @@
 #endif
 
 #include <iostream>
+#include <vector>
+
 #include <assert.h> /* assert */
 #include <string.h> /* strcmp */
 
@@ -30,7 +31,7 @@ int testCommandLineArguments1(int argc, char* argv[])
 
   int n = 0;
   char* m = 0;
-  kwsys_stl::string p;
+  std::string p;
   int res = 0;
 
   typedef kwsys::CommandLineArguments argT;

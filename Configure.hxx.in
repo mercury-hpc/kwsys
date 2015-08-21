@@ -15,18 +15,8 @@
 /* Include C configuration.  */
 #include <@KWSYS_NAMESPACE@/Configure.h>
 
-/* Whether STL is in std namespace.  */
-#define @KWSYS_NAMESPACE@_STL_HAVE_STD @KWSYS_STL_HAVE_STD@
-
 /* Whether wstring is available.  */
 #define @KWSYS_NAMESPACE@_STL_HAS_WSTRING @KWSYS_STL_HAS_WSTRING@
-
-/* Define the stl namespace macro.  */
-#if @KWSYS_NAMESPACE@_STL_HAVE_STD
-# define @KWSYS_NAMESPACE@_stl std
-#else
-# define @KWSYS_NAMESPACE@_stl
-#endif
 
 /* Whether the cstddef header is available.  */
 #define @KWSYS_NAMESPACE@_CXX_HAS_CSTDDEF @KWSYS_CXX_HAS_CSTDDEF@
@@ -95,11 +85,9 @@
    access to the macros without a configured namespace.  */
 #if defined(KWSYS_NAMESPACE)
 # if !@KWSYS_NAMESPACE@_NAME_IS_KWSYS
-#  define kwsys_stl @KWSYS_NAMESPACE@_stl
 #  define kwsys     @KWSYS_NAMESPACE@
 # endif
 # define KWSYS_NAME_IS_KWSYS            @KWSYS_NAMESPACE@_NAME_IS_KWSYS
-# define KWSYS_STL_HAVE_STD             @KWSYS_NAMESPACE@_STL_HAVE_STD
 # define KWSYS_STAT_HAS_ST_MTIM         @KWSYS_NAMESPACE@_STAT_HAS_ST_MTIM
 # define KWSYS_CXX_HAS_CSTDDEF          @KWSYS_NAMESPACE@_CXX_HAS_CSTDDEF
 # define KWSYS_CXX_NULL_TEMPLATE_ARGS   @KWSYS_NAMESPACE@_CXX_NULL_TEMPLATE_ARGS
