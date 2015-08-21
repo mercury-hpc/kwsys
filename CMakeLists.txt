@@ -311,6 +311,15 @@ IF(NOT CMAKE_COMPILER_IS_GNUCXX)
     ENDIF()
   ENDIF()
 ENDIF()
+IF(KWSYS_STANDALONE)
+  IF(CMAKE_CXX_COMPILER_ID STREQUAL SunPro)
+    IF(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.13)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++03")
+    ELSE()
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -library=stlport4")
+    ENDIF()
+  ENDIF()
+ENDIF()
 
 #-----------------------------------------------------------------------------
 # Configure Large File Support.
