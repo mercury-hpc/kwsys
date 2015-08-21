@@ -67,7 +67,7 @@ struct _Identity : public std::unary_function<_Tp,_Tp>
 template <class _Value,
           class _HashFcn  = hash<_Value>,
           class _EqualKey = std::equal_to<_Value>,
-          class _Alloc = @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(char) >
+          class _Alloc = std::allocator<char> >
 class hash_set;
 
 template <class _Value, class _HashFcn, class _EqualKey, class _Alloc>
@@ -255,7 +255,7 @@ swap(hash_set<_Val,_HashFcn,_EqualKey,_Alloc>& __hs1,
 template <class _Value,
           class _HashFcn = hash<_Value>,
           class _EqualKey = std::equal_to<_Value>,
-          class _Alloc = @KWSYS_NAMESPACE@_HASH_DEFAULT_ALLOCATOR(char) >
+          class _Alloc = std::allocator<char> >
 class hash_multiset;
 
 template <class _Val, class _HashFcn, class _EqualKey, class _Alloc>
