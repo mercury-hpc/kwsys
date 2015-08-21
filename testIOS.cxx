@@ -15,7 +15,6 @@
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "kwsys_stl_string.hxx.in"
 # include "kwsys_stl_vector.h.in"
 #endif
 

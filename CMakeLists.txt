@@ -350,8 +350,6 @@ KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_CSTDDEF
 
 SET(KWSYS_PLATFORM_CXX_TEST_DEFINES
   -DKWSYS_STL_HAVE_STD=${KWSYS_STL_HAVE_STD})
-KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_STRING_HAVE_NEQ_CHAR
-  "Checking whether stl string has operator!= for char*" DIRECT)
 KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAS_ITERATOR_TRAITS
   "Checking whether stl has iterator_traits" DIRECT)
 IF(KWSYS_STL_HAS_ITERATOR_TRAITS)
@@ -383,17 +381,6 @@ ELSE()
 ENDIF()
 KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAS_ALLOCATOR_OBJECTS
   "Checking whether stl containers support allocator objects." DIRECT)
-IF(NOT WATCOM)
-  # ANSI streams always have string operators.
-  SET(KWSYS_STL_STRING_HAVE_OSTREAM 1)
-  SET(KWSYS_STL_STRING_HAVE_ISTREAM 1)
-ELSE()
-  # There may not be string operators for old streams.
-  KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_STRING_HAVE_OSTREAM
-    "Checking whether stl string has ostream operator<<" DIRECT)
-  KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_STRING_HAVE_ISTREAM
-    "Checking whether stl string has istream operator>>" DIRECT)
-ENDIF()
 
 KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_NULL_TEMPLATE_ARGS
   "Checking whether \"<>\" is needed for template friends" INVERT)
@@ -784,7 +771,6 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Create STL header wrappers to block warnings in the STL headers and
 # give standard names by which they may be included.
-SET(KWSYS_STL_HEADER_EXTRA_string 1)
 FOREACH(header
   algorithm
   deque
@@ -806,20 +792,6 @@ FOREACH(header
   )
   # Configure the header wrapper.
   SET(KWSYS_STL_HEADER "${header}")
-  IF(KWSYS_STL_HEADER_EXTRA_${header})
-    SET(KWSYS_STL_HEADER_EXTRA
-      "#define ${KWSYS_NAMESPACE}_stl_${header}_including_hxx\n# include <${KWSYS_NAMESPACE}/stl/${header}.hxx>\n#undef ${KWSYS_NAMESPACE}_stl_${header}_including_hxx\n")
-    CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/kwsys_stl_${header}.hxx.in
-                   ${KWSYS_HEADER_DIR}/stl/${header}.hxx
-                   @ONLY IMMEDIATE)
-    IF(KWSYS_INSTALL_INCLUDE_DIR)
-      INSTALL(FILES ${KWSYS_HEADER_DIR}/stl/${header}.hxx
-        DESTINATION ${KWSYS_INSTALL_INCLUDE_DIR}/${KWSYS_NAMESPACE}/stl
-        ${KWSYS_INSTALL_INCLUDE_OPTIONS})
-    ENDIF()
-  ELSE()
-    SET(KWSYS_STL_HEADER_EXTRA "")
-  ENDIF()
   CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/kwsys_stl.hxx.in
                  ${KWSYS_HEADER_DIR}/stl/${header}
                  @ONLY IMMEDIATE)

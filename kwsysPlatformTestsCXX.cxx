@@ -24,26 +24,6 @@ void f(std ::list<int>*) {}
 int main() { return 0; }
 #endif
 
-#ifdef TEST_KWSYS_STL_STRING_HAVE_OSTREAM
-# include <iostream>
-# include <string>
-void f(ostream& os, const kwsys_stl::string& s) { os << s; }
-int main() { return 0; }
-#endif
-
-#ifdef TEST_KWSYS_STL_STRING_HAVE_ISTREAM
-# include <iostream>
-# include <string>
-void f(istream& is, kwsys_stl::string& s) { is >> s; }
-int main() { return 0; }
-#endif
-
-#ifdef TEST_KWSYS_STL_STRING_HAVE_NEQ_CHAR
-# include <string>
-bool f(const kwsys_stl::string& s) { return s != ""; }
-int main() { return 0; }
-#endif
-
 #ifdef TEST_KWSYS_CXX_HAS_CSTDIO
 #include <cstdio>
 int main() { return 0; }
