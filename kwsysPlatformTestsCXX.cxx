@@ -55,33 +55,6 @@ void f(std ::ostream*) {}
 int main() { return 0; }
 #endif
 
-#ifdef TEST_KWSYS_IOS_USE_SSTREAM
-#include <sstream>
-#if defined(__GNUC__) && __GNUC__ == 2 && __GNUC_MINOR__ == 96
-# error "GCC 2.96 stringstream is buggy"
-#endif
-int main()
-{
-  std ::ostringstream ostr;
-  ostr << "hello";
-  if(ostr.str().size() == 5)
-    {
-    return 0;
-    }
-  return -1;
-}
-#endif
-
-#ifdef TEST_KWSYS_IOS_USE_STRSTREAM_H
-#include <strstream.h>
-int main() { return 0; }
-#endif
-
-#ifdef TEST_KWSYS_IOS_USE_STRSTREA_H
-#include <strstrea.h>
-int main() { return 0; }
-#endif
-
 #ifdef TEST_KWSYS_STL_STRING_HAVE_OSTREAM
 # include <iostream.h>
 # include <string>
