@@ -4879,11 +4879,8 @@ std::string SystemTools::GetOperatingSystemNameAndVersion()
   OSVERSIONINFOEXA osvi;
   BOOL bOsVersionInfoEx;
 
-  // Try calling GetVersionEx using the OSVERSIONINFOEX structure.
-  // If that fails, try using the OSVERSIONINFO structure.
-
-  ZeroMemory(&osvi, sizeof(OSVERSIONINFOEXA));
-  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXA);
+  ZeroMemory(&osvi, sizeof(osvi));
+  osvi.dwOSVersionInfoSize = sizeof(osvi);
 
 #ifdef KWSYS_WINDOWS_DEPRECATED_GetVersionEx
 # pragma warning (push)
@@ -4893,14 +4890,10 @@ std::string SystemTools::GetOperatingSystemNameAndVersion()
 #  pragma warning (disable:4996)
 # endif
 #endif
-  bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi);
+  bOsVersionInfoEx = GetVersionExA((OSVERSIONINFOA *)&osvi);
   if (!bOsVersionInfoEx)
     {
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    if (!GetVersionEx((OSVERSIONINFO *)&osvi))
-      {
-      return 0;
-      }
+    return 0;
     }
 #ifdef KWSYS_WINDOWS_DEPRECATED_GetVersionEx
 # pragma warning (pop)
