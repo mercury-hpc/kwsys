@@ -32,7 +32,7 @@ int main()
 }
 #endif
 
-#ifdef TEST_KWSYS_STAT_HAS_ST_MTIM
+#ifdef TEST_KWSYS_CXX_STAT_HAS_ST_MTIM
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

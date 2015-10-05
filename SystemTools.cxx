@@ -1368,7 +1368,7 @@ bool SystemTools::Touch(const std::string& filename, bool create)
 # if KWSYS_CXX_HAS_UTIMES
   struct timeval times[2] =
     {
-#  if KWSYS_STAT_HAS_ST_MTIM
+#  if KWSYS_CXX_STAT_HAS_ST_MTIM
       {st.st_atim.tv_sec, st.st_atim.tv_nsec/1000}, /* tv_sec, tv_usec */
 #  else
       {st.st_atime, 0},
@@ -1408,7 +1408,7 @@ bool SystemTools::FileTimeCompare(const std::string& f1,
     {
     return false;
     }
-# if KWSYS_STAT_HAS_ST_MTIM
+# if KWSYS_CXX_STAT_HAS_ST_MTIM
   // Compare using nanosecond resolution.
   if(s1.st_mtim.tv_sec < s2.st_mtim.tv_sec)
     {
