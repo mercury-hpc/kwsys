@@ -1366,15 +1366,15 @@ bool SystemTools::Touch(const std::string& filename, bool create)
   struct timeval mtime;
   gettimeofday(&mtime, 0);
 # if KWSYS_CXX_HAS_UTIMES
-  struct timeval times[2] =
-    {
+  struct timeval atime;
 #  if KWSYS_CXX_STAT_HAS_ST_MTIM
-      {st.st_atim.tv_sec, st.st_atim.tv_nsec/1000}, /* tv_sec, tv_usec */
+  atime.tv_sec = st.st_atim.tv_sec;
+  atime.tv_usec = st.st_atim.tv_nsec/1000;
 #  else
-      {st.st_atime, 0},
+  atime.tv_sec = st.st_atime;
+  atime.tv_usec = 0;
 #  endif
-      mtime
-    };
+  struct timeval times[2] = { atime, mtime };
   if(utimes(filename.c_str(), times) < 0)
     {
     return false;
