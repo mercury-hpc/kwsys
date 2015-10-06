@@ -1370,6 +1370,9 @@ bool SystemTools::Touch(const std::string& filename, bool create)
 #  if KWSYS_CXX_STAT_HAS_ST_MTIM
   atime.tv_sec = st.st_atim.tv_sec;
   atime.tv_usec = st.st_atim.tv_nsec/1000;
+#  elif KWSYS_CXX_STAT_HAS_ST_MTIMESPEC
+  atime.tv_sec = st.st_atimespec.tv_sec;
+  atime.tv_usec = st.st_atimespec.tv_nsec/1000;
 #  else
   atime.tv_sec = st.st_atime;
   atime.tv_usec = 0;
@@ -1423,6 +1426,24 @@ bool SystemTools::FileTimeCompare(const std::string& f1,
     *result = -1;
     }
   else if(s1.st_mtim.tv_nsec > s2.st_mtim.tv_nsec)
+    {
+    *result = 1;
+    }
+# elif KWSYS_CXX_STAT_HAS_ST_MTIMESPEC
+  // Compare using nanosecond resolution.
+  if(s1.st_mtimespec.tv_sec < s2.st_mtimespec.tv_sec)
+    {
+    *result = -1;
+    }
+  else if(s1.st_mtimespec.tv_sec > s2.st_mtimespec.tv_sec)
+    {
+    *result = 1;
+    }
+  else if(s1.st_mtimespec.tv_nsec < s2.st_mtimespec.tv_nsec)
+    {
+    *result = -1;
+    }
+  else if(s1.st_mtimespec.tv_nsec > s2.st_mtimespec.tv_nsec)
     {
     *result = 1;
     }

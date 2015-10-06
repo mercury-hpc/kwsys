@@ -45,6 +45,19 @@ int main()
 }
 #endif
 
+#ifdef TEST_KWSYS_CXX_STAT_HAS_ST_MTIMESPEC
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+int main()
+{
+  struct stat stat1;
+  (void)stat1.st_mtimespec.tv_sec;
+  (void)stat1.st_mtimespec.tv_nsec;
+  return 0;
+}
+#endif
+
 #ifdef TEST_KWSYS_CXX_SAME_LONG_AND___INT64
 void function(long**) {}
 int main()
