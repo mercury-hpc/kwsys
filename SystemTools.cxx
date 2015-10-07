@@ -453,11 +453,13 @@ class SystemToolsStatic
 {
 public:
   typedef std::map<std::string, std::string> StringMap;
+#if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
   /**
    * Path translation table from dir to refdir
    * Each time 'dir' will be found it will be replace by 'refdir'
    */
   StringMap TranslationMap;
+#endif
 #ifdef _WIN32
   static std::string GetCasePathName(std::string const& pathIn);
   static std::string GetActualCaseForPathCached(std::string const& path);
@@ -3349,6 +3351,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_relative)
   return SystemTools::CollapseFullPath(in_relative, KWSYS_NULLPTR);
 }
 
+#if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
 void SystemTools::AddTranslationPath(const std::string& a,
                                      const std::string& b)
 {
@@ -3412,6 +3415,7 @@ void SystemTools::CheckTranslationPath(std::string& path)
   // Remove the trailing slash we added before.
   path.pop_back();
 }
+#endif
 
 static void SystemToolsAppendComponents(
   std::vector<std::string>& out_components,
@@ -3482,6 +3486,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   // Transform the path back to a string.
   std::string newPath = SystemTools::JoinPath(out_components);
 
+#if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
   // Update the translation table with this potentially new path.  I am not
   // sure why this line is here, it seems really questionable, but yet I
   // would put good money that if I remove it something will break, basically
@@ -3497,6 +3502,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   // SystemTools::AddTranslationPath(newPath, in_path);
 
   SystemTools::CheckTranslationPath(newPath);
+#endif
 #ifdef _WIN32
   newPath = SystemTools::Statics->GetActualCaseForPathCached(newPath);
   SystemTools::ConvertToUnixSlashes(newPath);
@@ -4737,10 +4743,11 @@ void SystemTools::ClassInitialize()
   // Create statics singleton instance
   SystemTools::Statics = new SystemToolsStatic;
 
+#if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
 // Add some special translation paths for unix.  These are not added
 // for windows because drive letters need to be maintained.  Also,
 // there are not sym-links and mount points on windows anyway.
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#  if !defined(_WIN32) || defined(__CYGWIN__)
   // The tmp path is frequently a logical path so always keep it:
   SystemTools::AddKeepPath("/tmp/");
 
@@ -4778,6 +4785,7 @@ void SystemTools::ClassInitialize()
       }
     }
   }
+#  endif
 #endif
 }
 
