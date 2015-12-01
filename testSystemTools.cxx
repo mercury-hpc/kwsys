@@ -172,11 +172,59 @@ static bool CheckFileOperations()
       << testNewDir << std::endl;
     res = false;
     }
+  // calling it again should just return true
+  if (!kwsys::SystemTools::MakeDirectory(testNewDir))
+    {
+    std::cerr
+      << "Problem with second call to MakeDirectory for: "
+      << testNewDir << std::endl;
+    res = false;
+    }
+  // calling with 0 pointer should return false
+  if (kwsys::SystemTools::MakeDirectory(0))
+    {
+    std::cerr
+      << "Problem with MakeDirectory(0)"
+      << std::endl;
+    res = false;
+    }
+  // calling with an empty string should return false
+  if (kwsys::SystemTools::MakeDirectory(std::string()))
+    {
+    std::cerr
+      << "Problem with MakeDirectory(std::string())"
+      << std::endl;
+    res = false;
+    }
+  // remove it
+  if (!kwsys::SystemTools::RemoveADirectory(testNewDir))
+    {
+    std::cerr
+      << "Problem with RemoveADirectory for: "
+      << testNewDir << std::endl;
+    res = false;
+    }
+  // create it using the char* version
+  if (!kwsys::SystemTools::MakeDirectory(testNewDir.c_str()))
+    {
+    std::cerr
+      << "Problem with second call to MakeDirectory as C string for: "
+      << testNewDir << std::endl;
+    res = false;
+    }
 
   if (!kwsys::SystemTools::Touch(testNewFile.c_str(), true))
     {
     std::cerr
       << "Problem with Touch for: "
+      << testNewFile << std::endl;
+    res = false;
+    }
+  // calling MakeDirectory with something that is no file should fail
+  if (kwsys::SystemTools::MakeDirectory(testNewFile))
+    {
+    std::cerr
+      << "Problem with to MakeDirectory for: "
       << testNewFile << std::endl;
     res = false;
     }
