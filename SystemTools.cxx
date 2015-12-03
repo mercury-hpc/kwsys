@@ -2997,11 +2997,10 @@ std::string SystemTools::FindProgram(
 #endif
 
   // now try just the name
-  tryPath = name;
-  if(SystemTools::FileExists(tryPath) &&
-     !SystemTools::FileIsDirectory(tryPath))
+  if(SystemTools::FileExists(name) &&
+     !SystemTools::FileIsDirectory(name))
     {
-    return SystemTools::CollapseFullPath(tryPath);
+    return SystemTools::CollapseFullPath(name);
     }
   // now construct the path
   std::vector<std::string> path;
