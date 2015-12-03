@@ -2969,19 +2969,14 @@ std::string SystemTools::FindProgram(
   const std::vector<std::string>& userPaths,
   bool no_system_path)
 {
-  std::vector<std::string> extensions;
   std::string tryPath;
 
 #if defined (_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
-  bool hasExtension = false;
+  std::vector<std::string> extensions;
   // check to see if the name already has a .xxx at
   // the end of it
-  if(name.size() > 3 && name[name.size()-4] == '.')
-    {
-    hasExtension = true;
-    }
   // on windows try .com then .exe
-  if(!hasExtension)
+  if(name.size() <= 3 || name[name.size()-4] != '.')
     {
     extensions.push_back(".com");
     extensions.push_back(".exe");
@@ -3043,6 +3038,7 @@ std::string SystemTools::FindProgram(
     // Remove double quotes from the path on windows
     SystemTools::ReplaceString(*p, "\"", "");
 #endif
+#if defined (_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
     // first try with extensions
     for(std::vector<std::string>::iterator ext
           = extensions.begin(); ext != extensions.end(); ++ext)
@@ -3055,6 +3051,7 @@ std::string SystemTools::FindProgram(
         return SystemTools::CollapseFullPath(tryPath);
         }
       }
+#endif
     // now try it without them
     tryPath = *p;
     tryPath += name;
