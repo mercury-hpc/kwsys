@@ -2987,8 +2987,7 @@ std::string SystemTools::FindProgram(
       {
       tryPath = name;
       tryPath += *i;
-      if(SystemTools::FileExists(tryPath) &&
-          !SystemTools::FileIsDirectory(tryPath))
+      if(SystemTools::FileExists(tryPath, true))
         {
         return SystemTools::CollapseFullPath(tryPath);
         }
@@ -2997,8 +2996,7 @@ std::string SystemTools::FindProgram(
 #endif
 
   // now try just the name
-  if(SystemTools::FileExists(name) &&
-     !SystemTools::FileIsDirectory(name))
+  if(SystemTools::FileExists(name, true))
     {
     return SystemTools::CollapseFullPath(name);
     }
