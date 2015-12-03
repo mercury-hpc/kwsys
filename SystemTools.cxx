@@ -2402,8 +2402,7 @@ bool SystemTools::CopyFileAlways(const std::string& source, const std::string& d
     // name as the source in that directory.
 
     std::string destination_dir;
-    if(SystemTools::FileExists(destination) &&
-       SystemTools::FileIsDirectory(destination))
+    if(SystemTools::FileIsDirectory(destination))
       {
       destination_dir = real_destination;
       SystemTools::ConvertToUnixSlashes(real_destination);
@@ -3127,8 +3126,7 @@ std::string SystemTools
     tryPath = *p;
     tryPath += name;
     tryPath += ".framework";
-    if(SystemTools::FileExists(tryPath)
-       && SystemTools::FileIsDirectory(tryPath))
+    if(SystemTools::FileIsDirectory(tryPath))
       {
       return SystemTools::CollapseFullPath(tryPath);
       }
