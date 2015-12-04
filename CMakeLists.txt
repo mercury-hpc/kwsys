@@ -425,13 +425,6 @@ IF(KWSYS_USE_FundamentalType)
     ENDIF()
   ENDFOREACH()
 
-  IF(KWSYS_USE___INT64)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_CAN_CONVERT_UI64_TO_DOUBLE
-      "Checking whether unsigned __int64 can convert to double" DIRECT)
-  ELSE()
-    SET(KWSYS_CAN_CONVERT_UI64_TO_DOUBLE 1)
-  ENDIF()
-
   # Check signedness of "char" type.
   KWSYS_PLATFORM_CXX_TEST_RUN(KWSYS_CHAR_IS_SIGNED
     "Checking whether char is signed" DIRECT)
