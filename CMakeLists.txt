@@ -124,7 +124,6 @@ IF(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
   SET(KWSYS_USE_FStream 1)
   SET(KWSYS_USE_String 1)
   SET(KWSYS_USE_SystemInformation 1)
-  SET(KWSYS_USE_CPU 1)
 ENDIF()
 
 # Enforce component dependencies.
@@ -742,7 +741,7 @@ ENDFOREACH()
 
 # Add selected C components.
 FOREACH(c
-    Process Base64 Encoding FundamentalType MD5 Terminal System String CPU
+    Process Base64 Encoding FundamentalType MD5 Terminal System String
     )
   IF(KWSYS_USE_${c})
     # Use the corresponding header file.
