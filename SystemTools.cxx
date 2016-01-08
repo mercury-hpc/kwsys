@@ -4492,7 +4492,6 @@ bool SystemTools::GetShortPath(const std::string& path, std::string& shortPath)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
   std::string tempPath = path;  // create a buffer
-  DWORD ret;
 
   // if the path passed in has quotes around it, first remove the quotes
   if (!path.empty() && path[0] == '"' && *path.rbegin() == '"')
@@ -4501,12 +4500,12 @@ bool SystemTools::GetShortPath(const std::string& path, std::string& shortPath)
     }
 
   std::wstring wtempPath = Encoding::ToWide(tempPath);
-  std::vector<wchar_t> buffer(wtempPath.size()+1);
-  buffer[0] = 0;
+  DWORD ret = GetShortPathNameW(wtempPath.c_str(), NULL, 0);
+  std::vector<wchar_t> buffer(ret);
   ret = GetShortPathNameW(wtempPath.c_str(),
-    &buffer[0], static_cast<DWORD>(wtempPath.size()));
+                          &buffer[0], static_cast<DWORD>(buffer.size()));
 
-  if(buffer[0] == 0 || ret > wtempPath.size())
+  if (ret == 0)
     {
     return false;
     }
