@@ -43,7 +43,6 @@
 #if 0
 # include "SystemInformation.hxx.in"
 # include "Process.h.in"
-# include "Configure.hxx.in"
 #endif
 
 #include <iostream>

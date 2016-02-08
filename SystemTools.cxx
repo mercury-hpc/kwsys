@@ -39,6 +39,7 @@
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
+# include "RegularExpression.hxx.in"
 # include "SystemTools.hxx.in"
 # include "Directory.hxx.in"
 # include "FStream.hxx.in"

@@ -17,7 +17,7 @@
    duplicate the above list of headers.  */
 #if 0
 # include "Process.h.in"
-# include "Encoding_c.h.in"
+# include "Encoding.h.in"
 #endif
 
 /*
