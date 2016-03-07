@@ -4632,7 +4632,7 @@ std::string SystemInformationImplementation::RunProcess(std::vector<const char*>
   double timeout = 255;
   int pipe; // pipe id as returned by kwsysProcess_WaitForData()
 
-  while( ( pipe = kwsysProcess_WaitForData(gp,&data,&length,&timeout),
+  while( ( static_cast<void>(pipe = kwsysProcess_WaitForData(gp,&data,&length,&timeout)),
            (pipe == kwsysProcess_Pipe_STDOUT || pipe == kwsysProcess_Pipe_STDERR) ) ) // wait for 1s
     {
       buffer.append(data, length);
