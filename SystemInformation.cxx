@@ -176,13 +176,13 @@ typedef struct rlimit ResourceLimitType;
 # if defined(KWSYS_IOS_HAS_OSTREAM_LONG_LONG)
 #  define iostreamLongLong(x) (x)
 # else
-#  define iostreamLongLong(x) ((long)x)
+#  define iostreamLongLong(x) ((long)(x))
 # endif
 #elif defined(KWSYS_USE___INT64)
 # if defined(KWSYS_IOS_HAS_OSTREAM___INT64)
 #  define iostreamLongLong(x) (x)
 # else
-#  define iostreamLongLong(x) ((long)x)
+#  define iostreamLongLong(x) ((long)(x))
 # endif
 #else
 # error "No Long Long"
@@ -860,7 +860,7 @@ void SystemInformation::RunMemoryCheck()
 // --------------------------------------------------------------
 // SystemInformationImplementation starts here
 
-#define STORE_TLBCACHE_INFO(x,y)  x = (x < y) ? y : x
+#define STORE_TLBCACHE_INFO(x,y)  x = (x < (y)) ? (y) : x
 #define TLBCACHE_INFO_UNITS      (15)
 #define CLASSICAL_CPU_FREQ_LOOP    10000000
 #define RDTSC_INSTRUCTION      _asm _emit 0x0f _asm _emit 0x31
