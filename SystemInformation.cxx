@@ -1583,7 +1583,7 @@ SystemInformationImplementation::~SystemInformationImplementation()
 
 void SystemInformationImplementation::RunCPUCheck()
 {
-#ifdef WIN32
+#ifdef _WIN32
   // Check to see if this processor supports CPUID.
   bool supportsCPUID = DoesCPUSupportCPUID();
 
@@ -2056,7 +2056,7 @@ bool SystemInformationImplementation::DoesCPUSupportFeature(long int dwFeature)
 
 void SystemInformationImplementation::Delay(unsigned int uiMS)
 {
-#ifdef WIN32
+#ifdef _WIN32
   LARGE_INTEGER Frequency, StartCounter, EndCounter;
   __int64 x;
 
