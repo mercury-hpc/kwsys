@@ -2855,6 +2855,7 @@ static bool DeleteJunction(const std::wstring& source)
   return false;
 #endif
 }
+
 #endif
 
 bool SystemTools::RemoveFile(const std::string& source)
