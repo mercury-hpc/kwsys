@@ -2884,9 +2884,9 @@ bool SystemTools::RemoveFile(const std::string& source)
     SetLastError(err);
     return false;
     }
-  if (IsJunction(ws) && !DeleteJunction(ws))
+  if (IsJunction(ws) && DeleteJunction(ws))
     {
-    return false;
+    return true;
     }
   if (DeleteFileW(ws.c_str()) ||
       GetLastError() == ERROR_FILE_NOT_FOUND ||
