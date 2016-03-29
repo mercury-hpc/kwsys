@@ -2339,7 +2339,7 @@ bool SystemInformationImplementation::RetrieveClassicalCPUCacheDetails()
         case 13: TLBCacheUnit = ((TLBCacheData[3] & 0x00FF0000) >> 16); break;
         case 14: TLBCacheUnit = ((TLBCacheData[3] & 0xFF000000) >> 24); break;
 
-        // Default case - an error has occured.
+        // Default case - an error has occurred.
         default: return false;
         }
 
@@ -2401,7 +2401,7 @@ bool SystemInformationImplementation::RetrieveClassicalCPUCacheDetails()
         case 0x96: STORE_TLBCACHE_INFO (TLBCode, 262144); break;  // <-- FIXME: IA-64 Only
         case 0x9b: STORE_TLBCACHE_INFO (TLBCode, 262144); break;  // <-- FIXME: IA-64 Only
 
-        // Default case - an error has occured.
+        // Default case - an error has occurred.
         default: return false;
         }
       }
