@@ -844,6 +844,8 @@ public:
   static const char* GetEnv(const std::string& key);
   static bool GetEnv(const char* key, std::string& result);
   static bool GetEnv(const std::string& key, std::string& result);
+  static bool HasEnv(const char* key);
+  static bool HasEnv(const std::string& key);
 
   /** Put a string into the environment
       of the form var=value */

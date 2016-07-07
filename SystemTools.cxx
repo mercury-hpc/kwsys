@@ -573,6 +573,22 @@ bool SystemTools::GetEnv(const std::string& key, std::string& result)
   return SystemTools::GetEnv(key.c_str(), result);
 }
 
+bool SystemTools::HasEnv(const char* key)
+{
+#if defined(_WIN32)
+  const std::wstring wkey = Encoding::ToWide(key);
+  const wchar_t* v = _wgetenv(wkey.c_str());
+#else
+  const char* v = getenv(key);
+#endif
+  return v != 0;
+}
+
+bool SystemTools::HasEnv(const std::string& key)
+{
+  return SystemTools::HasEnv(key.c_str());
+}
+
 //----------------------------------------------------------------------------
 
 #if KWSYS_CXX_HAS_UNSETENV
