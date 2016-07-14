@@ -388,10 +388,13 @@ class SystemToolsTranslationMap :
 {
 };
 
+/* Type of character storing the environment.  */
+typedef char envchar;
+
 /* Order by environment key only (VAR from VAR=VALUE).  */
 struct kwsysEnvCompare
 {
-  bool operator() (const char* l, const char* r) const
+  bool operator() (const envchar* l, const envchar* r) const
     {
     const char* leq = strchr(l, '=');
     const char* req = strchr(r, '=');
@@ -408,20 +411,20 @@ struct kwsysEnvCompare
     }
 };
 
-class kwsysEnvSet: public std::set<const char*, kwsysEnvCompare>
+class kwsysEnvSet: public std::set<const envchar*, kwsysEnvCompare>
 {
 public:
   class Free
   {
-    const char* Env;
+    const envchar* Env;
   public:
-    Free(const char* env): Env(env) {}
-    ~Free() { free(const_cast<char*>(this->Env)); }
+    Free(const envchar* env): Env(env) {}
+    ~Free() { free(const_cast<envchar*>(this->Env)); }
   };
 
-  const char* Release(const char* env)
+  const envchar* Release(const envchar* env)
     {
-    const char* old = 0;
+    const envchar* old = 0;
     iterator i = this->find(env);
     if(i != this->end())
       {
@@ -680,7 +683,7 @@ public:
     for(iterator i = this->begin(); i != this->end(); ++i)
       {
       kwsysUnPutEnv(*i);
-      free(const_cast<char*>(*i));
+      free(const_cast<envchar*>(*i));
       }
     }
   bool Put(const char* env)
