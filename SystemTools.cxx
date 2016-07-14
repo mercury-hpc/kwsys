@@ -505,7 +505,9 @@ void SystemTools::GetPath(std::vector<std::string>& path, const char* env)
 
 const char* SystemTools::GetEnv(const char* key)
 {
-  return getenv(key);
+  const char *v = 0;
+  v = getenv(key);
+  return v;
 }
 
 const char* SystemTools::GetEnv(const std::string& key)
@@ -521,10 +523,7 @@ bool SystemTools::GetEnv(const char* key, std::string& result)
     result = v;
     return true;
     }
-  else
-    {
-    return false;
-    }
+  return false;
 }
 
 bool SystemTools::GetEnv(const std::string& key, std::string& result)
@@ -688,16 +687,14 @@ public:
     }
   bool Put(const char* env)
     {
-    Free oldEnv(this->Release(env));
-    static_cast<void>(oldEnv);
     char* newEnv = strdup(env);
+    Free oldEnv(this->Release(newEnv));
     this->insert(newEnv);
     return putenv(newEnv) == 0;
     }
   bool UnPut(const char* env)
     {
     Free oldEnv(this->Release(env));
-    static_cast<void>(oldEnv);
     return kwsysUnPutEnv(env) == 0;
     }
 };
