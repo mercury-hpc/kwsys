@@ -531,12 +531,6 @@ bool SystemTools::GetEnv(const std::string& key, std::string& result)
 
 //----------------------------------------------------------------------------
 
-#if defined(__CYGWIN__) || defined(__GLIBC__)
-# define KWSYS_PUTENV_NAME  /* putenv("A")  removes A.  */
-#elif defined(_WIN32)
-# define KWSYS_PUTENV_EMPTY /* putenv("A=") removes A. */
-#endif
-
 #if KWSYS_CXX_HAS_UNSETENV
 /* unsetenv("A") removes A from the environment.
    On older platforms it returns void instead of int.  */
@@ -555,18 +549,15 @@ static int kwsysUnPutEnv(const std::string& env)
   return 0;
 }
 
-#elif defined(KWSYS_PUTENV_EMPTY) || defined(KWSYS_PUTENV_NAME)
-/* putenv("A=") or putenv("A") removes A from the environment.  */
+#elif defined(__CYGWIN__) || defined(__GLIBC__)
+/* putenv("A") removes A from the environment.  It must not put the
+   memory in the environment because it does not have any "=" syntax.  */
 static int kwsysUnPutEnv(const std::string& env)
 {
   int err = 0;
   size_t pos = env.find('=');
   size_t const len = pos == env.npos ? env.size() : pos;
-# ifdef KWSYS_PUTENV_EMPTY
-  size_t const sz = len + 2;
-# else
   size_t const sz = len + 1;
-# endif
   char local_buf[256];
   char* buf = sz > sizeof(local_buf) ? (char*)malloc(sz) : local_buf;
   if(!buf)
@@ -574,20 +565,11 @@ static int kwsysUnPutEnv(const std::string& env)
     return -1;
     }
   strncpy(buf, env.c_str(), len);
-# ifdef KWSYS_PUTENV_EMPTY
-  buf[len] = '=';
-  buf[len+1] = 0;
-  if(putenv(buf) < 0)
-    {
-    err = errno;
-    }
-# else
   buf[len] = 0;
   if(putenv(buf) < 0 && errno != EINVAL)
     {
     err = errno;
     }
-# endif
   if(buf != local_buf)
     {
     free(buf);
@@ -598,6 +580,29 @@ static int kwsysUnPutEnv(const std::string& env)
     return -1;
     }
   return 0;
+}
+
+#elif defined(_WIN32)
+/* putenv("A=") places "A=" in the environment, which is as close to
+   removal as we can get with the putenv API.  We have to leak the
+   most recent value placed in the environment for each variable name
+   on program exit in case exit routines access it.  */
+
+static kwsysEnvSet kwsysUnPutEnvSet;
+
+static int kwsysUnPutEnv(std::string env)
+{
+  size_t const pos = env.find('=');
+  size_t const len = pos == env.npos ? env.size() : pos;
+  env.resize(len+1, '=');
+  char* newEnv = strdup(env.c_str());
+  if(!newEnv)
+    {
+    return -1;
+    }
+  kwsysEnvSet::Free oldEnv(kwsysUnPutEnvSet.Release(newEnv));
+  kwsysUnPutEnvSet.insert(newEnv);
+  return putenv(newEnv);
 }
 
 #else
