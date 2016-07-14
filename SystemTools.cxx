@@ -388,6 +388,50 @@ class SystemToolsTranslationMap :
 {
 };
 
+/* Order by environment key only (VAR from VAR=VALUE).  */
+struct kwsysEnvCompare
+{
+  bool operator() (const char* l, const char* r) const
+    {
+    const char* leq = strchr(l, '=');
+    const char* req = strchr(r, '=');
+    size_t llen = leq? (leq-l) : strlen(l);
+    size_t rlen = req? (req-r) : strlen(r);
+    if(llen == rlen)
+      {
+      return strncmp(l,r,llen) < 0;
+      }
+    else
+      {
+      return strcmp(l,r) < 0;
+      }
+    }
+};
+
+class kwsysEnvSet: public std::set<const char*, kwsysEnvCompare>
+{
+public:
+  class Free
+  {
+    const char* Env;
+  public:
+    Free(const char* env): Env(env) {}
+    ~Free() { free(const_cast<char*>(this->Env)); }
+  };
+
+  const char* Release(const char* env)
+    {
+    const char* old = 0;
+    iterator i = this->find(env);
+    if(i != this->end())
+      {
+      old = *i;
+      this->erase(i);
+      }
+    return old;
+    }
+};
+
 #ifdef _WIN32
 struct SystemToolsPathCaseCmp
 {
@@ -623,55 +667,16 @@ bool SystemTools::UnPutEnv(const std::string& env)
 #  pragma warning disable 444 /* base has non-virtual destructor */
 # endif
 
-/* Order by environment key only (VAR from VAR=VALUE).  */
-struct kwsysEnvCompare
+class kwsysEnv: public kwsysEnvSet
 {
-  bool operator() (const char* l, const char* r) const
-    {
-    const char* leq = strchr(l, '=');
-    const char* req = strchr(r, '=');
-    size_t llen = leq? (leq-l) : strlen(l);
-    size_t rlen = req? (req-r) : strlen(r);
-    if(llen == rlen)
-      {
-      return strncmp(l,r,llen) < 0;
-      }
-    else
-      {
-      return strcmp(l,r) < 0;
-      }
-    }
-};
-
-class kwsysEnv: public std::set<const char*, kwsysEnvCompare>
-{
-  class Free
-  {
-    const char* Env;
-  public:
-    Free(const char* env): Env(env) {}
-    ~Free() { free(const_cast<char*>(this->Env)); }
-  };
 public:
-  typedef std::set<const char*, kwsysEnvCompare> derived;
   ~kwsysEnv()
     {
-    for(derived::iterator i = this->begin(); i != this->end(); ++i)
+    for(iterator i = this->begin(); i != this->end(); ++i)
       {
       kwsysUnPutEnv(*i);
       free(const_cast<char*>(*i));
       }
-    }
-  const char* Release(const char* env)
-    {
-    const char* old = 0;
-    derived::iterator i = this->find(env);
-    if(i != this->end())
-      {
-      old = *i;
-      this->erase(i);
-      }
-    return old;
     }
   bool Put(const char* env)
     {
