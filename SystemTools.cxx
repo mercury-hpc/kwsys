@@ -389,13 +389,31 @@ class SystemToolsTranslationMap :
 };
 
 /* Type of character storing the environment.  */
+#if defined(_WIN32)
+typedef wchar_t envchar;
+#else
 typedef char envchar;
+#endif
 
 /* Order by environment key only (VAR from VAR=VALUE).  */
 struct kwsysEnvCompare
 {
   bool operator() (const envchar* l, const envchar* r) const
     {
+#if defined(_WIN32)
+    const wchar_t* leq = wcschr(l, L'=');
+    const wchar_t* req = wcschr(r, L'=');
+    size_t llen = leq? (leq-l) : wcslen(l);
+    size_t rlen = req? (req-r) : wcslen(r);
+    if(llen == rlen)
+      {
+      return wcsncmp(l,r,llen) < 0;
+      }
+    else
+      {
+      return wcscmp(l,r) < 0;
+      }
+#else
     const char* leq = strchr(l, '=');
     const char* req = strchr(r, '=');
     size_t llen = leq? (leq-l) : strlen(l);
@@ -408,6 +426,7 @@ struct kwsysEnvCompare
       {
       return strcmp(l,r) < 0;
       }
+#endif
     }
 };
 
@@ -453,6 +472,9 @@ struct SystemToolsPathCaseCmp
 class SystemToolsPathCaseMap:
   public std::map<std::string, std::string,
                         SystemToolsPathCaseCmp> {};
+
+class SystemToolsEnvMap :
+    public std::map<std::string,std::string> {};
 #endif
 
 // adds the elements of the env variable path to the arg passed in
@@ -506,7 +528,17 @@ void SystemTools::GetPath(std::vector<std::string>& path, const char* env)
 const char* SystemTools::GetEnv(const char* key)
 {
   const char *v = 0;
+#if defined(_WIN32)
+  std::string env;
+  if (SystemTools::GetEnv(key, env))
+    {
+    std::string& menv = (*SystemTools::EnvMap)[key];
+    menv = env;
+    v = menv.c_str();
+    }
+#else
   v = getenv(key);
+#endif
   return v;
 }
 
@@ -517,12 +549,22 @@ const char* SystemTools::GetEnv(const std::string& key)
 
 bool SystemTools::GetEnv(const char* key, std::string& result)
 {
+#if defined(_WIN32)
+  const std::wstring wkey = Encoding::ToWide(key);
+  const wchar_t* wv = _wgetenv(wkey.c_str());
+  if (wv)
+    {
+    result = Encoding::ToNarrow(wv);
+    return true;
+    }
+#else
   const char* v = getenv(key);
   if(v)
     {
     result = v;
     return true;
     }
+#endif
   return false;
 }
 
@@ -592,19 +634,20 @@ static int kwsysUnPutEnv(const std::string& env)
 
 static kwsysEnvSet kwsysUnPutEnvSet;
 
-static int kwsysUnPutEnv(std::string env)
+static int kwsysUnPutEnv(std::string const& env)
 {
-  size_t const pos = env.find('=');
-  size_t const len = pos == env.npos ? env.size() : pos;
-  env.resize(len+1, '=');
-  char* newEnv = strdup(env.c_str());
+  std::wstring wEnv = Encoding::ToWide(env);
+  size_t const pos = wEnv.find('=');
+  size_t const len = pos == wEnv.npos ? wEnv.size() : pos;
+  wEnv.resize(len+1, L'=');
+  wchar_t* newEnv = _wcsdup(wEnv.c_str());
   if(!newEnv)
     {
     return -1;
     }
   kwsysEnvSet::Free oldEnv(kwsysUnPutEnvSet.Release(newEnv));
   kwsysUnPutEnvSet.insert(newEnv);
-  return putenv(newEnv);
+  return _wputenv(newEnv);
 }
 
 #else
@@ -681,20 +724,39 @@ public:
     {
     for(iterator i = this->begin(); i != this->end(); ++i)
       {
+#if defined(_WIN32)
+      const std::string s = Encoding::ToNarrow(*i);
+      kwsysUnPutEnv(s.c_str());
+#else
       kwsysUnPutEnv(*i);
+#endif
       free(const_cast<envchar*>(*i));
       }
     }
   bool Put(const char* env)
     {
+#if defined(_WIN32)
+    const std::wstring wEnv = Encoding::ToWide(env);
+    wchar_t* newEnv = _wcsdup(wEnv.c_str());
+#else
     char* newEnv = strdup(env);
+#endif
     Free oldEnv(this->Release(newEnv));
     this->insert(newEnv);
+#if defined(_WIN32)
+    return _wputenv(newEnv) == 0;
+#else
     return putenv(newEnv) == 0;
+#endif
     }
   bool UnPut(const char* env)
     {
+#if defined(_WIN32)
+    const std::wstring wEnv = Encoding::ToWide(env);
+    Free oldEnv(this->Release(wEnv.c_str()));
+#else
     Free oldEnv(this->Release(env));
+#endif
     return kwsysUnPutEnv(env) == 0;
     }
 };
@@ -5381,6 +5443,7 @@ static unsigned int SystemToolsManagerCount;
 SystemToolsTranslationMap *SystemTools::TranslationMap;
 #ifdef _WIN32
 SystemToolsPathCaseMap *SystemTools::PathCaseMap;
+SystemToolsEnvMap *SystemTools::EnvMap;
 #endif
 #ifdef __CYGWIN__
 SystemToolsTranslationMap *SystemTools::Cyg2Win32Map;
@@ -5431,6 +5494,7 @@ void SystemTools::ClassInitialize()
   SystemTools::TranslationMap = new SystemToolsTranslationMap;
 #ifdef _WIN32
   SystemTools::PathCaseMap = new SystemToolsPathCaseMap;
+  SystemTools::EnvMap = new SystemToolsEnvMap;
 #endif
 #ifdef __CYGWIN__
   SystemTools::Cyg2Win32Map = new SystemToolsTranslationMap;
@@ -5490,6 +5554,7 @@ void SystemTools::ClassFinalize()
   delete SystemTools::TranslationMap;
 #ifdef _WIN32
   delete SystemTools::PathCaseMap;
+  delete SystemTools::EnvMap;
 #endif
 #ifdef __CYGWIN__
   delete SystemTools::Cyg2Win32Map;
