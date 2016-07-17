@@ -30,136 +30,162 @@ namespace @KWSYS_NAMESPACE@
       typedef std::basic_filebuf<CharType,Traits> my_base_type;
       basic_filebuf *open(char const *s,std::ios_base::openmode mode)
       {
+        const std::wstring wstr = Encoding::ToWide(s);
         return static_cast<basic_filebuf*>(
-          my_base_type::open(Encoding::ToWide(s).c_str(), mode)
+          my_base_type::open(wstr.c_str(), mode)
           );
       }
   };
 
   template<typename CharType,typename Traits = std::char_traits<CharType> >
-  class basic_ifstream : public std::basic_istream<CharType,Traits>
+  class basic_efilebuf
   {
+    public:
+      typedef basic_filebuf<CharType,Traits> internal_buffer_type;
+
+      basic_efilebuf()
+      {
+        buf_ = 0;
+      }
+
+      bool _open(char const *file_name,std::ios_base::openmode mode)
+      {
+        if (is_open()) {
+          return false;
+        }
+        const bool success = buf_->open(file_name,mode) != 0;
+        return success;
+      }
+
+      bool is_open()
+      {
+        if (!buf_) {
+          return false;
+        }
+        return buf_->is_open();
+      }
+
+      bool is_open() const
+      {
+        if (!buf_) {
+          return false;
+        }
+        return buf_->is_open();
+      }
+
+      bool _close()
+      {
+        bool success = false;
+        if (buf_) {
+          success = buf_->close() != 0;
+        }
+        return success;
+      }
+
+      static void _set_state(bool success, std::basic_ios<CharType,Traits> *ios)
+      {
+        if (!success) {
+          ios->setstate(std::ios_base::failbit);
+        } else {
+          ios->clear();
+        }
+      }
+
+      ~basic_efilebuf()
+     {
+       if (buf_) {
+         delete buf_;
+       }
+     }
+
+    protected:
+      internal_buffer_type* buf_;
+  };
+
+template<typename CharType,typename Traits = std::char_traits<CharType> >
+class basic_ifstream : public std::basic_istream<CharType,Traits>,
+                       public basic_efilebuf<CharType,Traits>
+{
+  using basic_efilebuf<CharType,Traits>::is_open;
+
   public:
-    typedef basic_filebuf<CharType,Traits> internal_buffer_type;
+    typedef typename basic_efilebuf<CharType, Traits>::internal_buffer_type internal_buffer_type;
     typedef std::basic_istream<CharType,Traits> internal_stream_type;
 
     basic_ifstream() : internal_stream_type(new internal_buffer_type())
     {
-      buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
+      this->buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
     }
     explicit basic_ifstream(char const *file_name,
                             std::ios_base::openmode mode = std::ios_base::in)
       : internal_stream_type(new internal_buffer_type())
     {
-      buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
+      this->buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
       open(file_name,mode);
     }
+
     void open(char const *file_name,std::ios_base::openmode mode = std::ios_base::in)
     {
-      if(!buf_->open(file_name,mode | std::ios_base::in))
-        {
-        this->setstate(std::ios_base::failbit);
-        }
-      else
-        {
-        this->clear();
-        }
+      mode = mode | std::ios_base::in;
+      this->_set_state(this->_open(file_name, mode), this);
     }
-    bool is_open()
-    {
-      return buf_->is_open();
-    }
-    bool is_open() const
-    {
-      return buf_->is_open();
-    }
+
     void close()
     {
-      if(!buf_->close())
-        {
-        this->setstate(std::ios_base::failbit);
-        }
-      else
-      {
-        this->clear();
-      }
+      this->_set_state(this->_close(), this);
     }
 
     internal_buffer_type *rdbuf() const
     {
-      return buf_;
+      return this->buf_;
     }
 
     ~basic_ifstream() @KWSYS_NAMESPACE@_FStream_NOEXCEPT
     {
-      buf_->close();
-      delete buf_;
+      close();
     }
-
-  private:
-    internal_buffer_type* buf_;
 };
 
 template<typename CharType,typename Traits = std::char_traits<CharType> >
-class basic_ofstream : public std::basic_ostream<CharType,Traits>
+class basic_ofstream : public std::basic_ostream<CharType,Traits>,
+                       public basic_efilebuf<CharType,Traits>
 {
+  using basic_efilebuf<CharType,Traits>::is_open;
+
   public:
-  typedef basic_filebuf<CharType,Traits> internal_buffer_type;
+  typedef typename basic_efilebuf<CharType, Traits>::internal_buffer_type internal_buffer_type;
   typedef std::basic_ostream<CharType,Traits> internal_stream_type;
 
   basic_ofstream() : internal_stream_type(new internal_buffer_type())
   {
-  buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
+    this->buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
   }
   explicit basic_ofstream(char const *file_name,std::ios_base::openmode mode = std::ios_base::out) :
   internal_stream_type(new internal_buffer_type())
   {
-    buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
+    this->buf_ = static_cast<internal_buffer_type *>(internal_stream_type::rdbuf());
     open(file_name,mode);
   }
   void open(char const *file_name,std::ios_base::openmode mode = std::ios_base::out)
   {
-    if(!buf_->open(file_name,mode | std::ios_base::out))
-    {
-    this->setstate(std::ios_base::failbit);
-    }
-    else
-    {
-    this->clear();
-    }
+    mode = mode | std::ios_base::out;
+    this->_set_state(this->_open(file_name, mode), this);
   }
-  bool is_open()
-  {
-    return buf_->is_open();
-  }
-  bool is_open() const
-  {
-    return buf_->is_open();
-  }
+
   void close()
   {
-    if(!buf_->close())
-      {
-      this->setstate(std::ios_base::failbit);
-      }
-    else
-      {
-      this->clear();
-      }
+    this->_set_state(this->_close(), this);
   }
 
   internal_buffer_type *rdbuf() const
   {
-    return buf_.get();
-  }
-  ~basic_ofstream() @KWSYS_NAMESPACE@_FStream_NOEXCEPT
-  {
-    buf_->close();
-    delete buf_;
+    return this->buf_;
   }
 
-  private:
-  internal_buffer_type* buf_;
+  ~basic_ofstream() @KWSYS_NAMESPACE@_FStream_NOEXCEPT
+  {
+    close();
+  }
 };
 
   typedef basic_ifstream<char> ifstream;
