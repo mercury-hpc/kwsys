@@ -44,7 +44,8 @@ static UINT TestCodepage = KWSYS_ENCODING_DEFAULT_CODEPAGE;
 static const DWORD waitTimeout = 10 * 1000;
 static STARTUPINFO startupInfo;
 static PROCESS_INFORMATION processInfo;
-static HANDLE syncEvent;
+static HANDLE beforeInputEvent;
+static HANDLE afterOutputEvent;
 static std::string encodedInputTestString;
 static std::string encodedTestString;
 
@@ -259,9 +260,8 @@ static int testPipe()
 
     if (createProcess(inPipeRead, outPipeWrite, errPipeWrite)) {
       try {
-        Sleep(100);
         DWORD status;
-        if ((status = WaitForSingleObject(syncEvent, waitTimeout)) != WAIT_OBJECT_0) {
+        if ((status = WaitForSingleObject(afterOutputEvent, waitTimeout)) != WAIT_OBJECT_0) {
           std::cerr.setf(std::ios::hex, std::ios::basefield);
           std::cerr << "WaitForSingleObject returned unexpected status 0x" << status << std::endl;
           std::cerr.unsetf(std::ios::hex);
@@ -347,9 +347,8 @@ static int testFile()
     if (createProcess(inFile, outFile, errFile)) {
       DWORD bytesRead = 0;
       try {
-        Sleep(100);
         DWORD status;
-        if ((status = WaitForSingleObject(syncEvent, waitTimeout)) != WAIT_OBJECT_0) {
+        if ((status = WaitForSingleObject(afterOutputEvent, waitTimeout)) != WAIT_OBJECT_0) {
           std::cerr.setf(std::ios::hex, std::ios::basefield);
           std::cerr << "WaitForSingleObject returned unexpected status 0x" << status << std::endl;
           std::cerr.unsetf(std::ios::hex);
@@ -540,7 +539,7 @@ static int testConsole()
   if (createProcess(NULL, NULL, NULL)) {
     try {
       DWORD status;
-      if ((status = WaitForSingleObject(syncEvent, waitTimeout)) != WAIT_OBJECT_0) {
+      if ((status = WaitForSingleObject(beforeInputEvent, waitTimeout)) != WAIT_OBJECT_0) {
         std::cerr.setf(std::ios::hex, std::ios::basefield);
         std::cerr << "WaitForSingleObject returned unexpected status 0x" << status << std::endl;
         std::cerr.unsetf(std::ios::hex);
@@ -561,7 +560,7 @@ static int testConsole()
                               &eventsWritten) || eventsWritten == 0) {
         throw std::runtime_error("WriteConsoleInput failed!");
       }
-      if ((status = WaitForSingleObject(syncEvent, waitTimeout)) != WAIT_OBJECT_0) {
+      if ((status = WaitForSingleObject(afterOutputEvent, waitTimeout)) != WAIT_OBJECT_0) {
         std::cerr.setf(std::ios::hex, std::ios::basefield);
         std::cerr << "WaitForSingleObject returned unexpected status 0x" << status << std::endl;
         std::cerr.unsetf(std::ios::hex);
@@ -625,12 +624,18 @@ int testConsoleBuf(int, char*[])
   int ret = 0;
 
 #if defined(_WIN32)
-  syncEvent = CreateEventW(NULL,
-                           FALSE,  // auto-reset event
-                           FALSE,  // initial state is nonsignaled
-                           SyncEventName);  // object name
-  if (!syncEvent) {
-    std::cerr << "CreateEvent failed " << GetLastError() << std::endl;
+  beforeInputEvent = CreateEventW(NULL,
+                       FALSE,  // auto-reset event
+                       FALSE,  // initial state is nonsignaled
+                       BeforeInputEventName);  // object name
+  if (!beforeInputEvent) {
+    std::cerr << "CreateEvent#1 failed " << GetLastError() << std::endl;
+    return 1;
+  }
+
+  afterOutputEvent = CreateEventW(NULL, FALSE, FALSE, AfterOutputEventName);
+  if (!afterOutputEvent) {
+    std::cerr << "CreateEvent#2 failed " << GetLastError() << std::endl;
     return 1;
   }
 
@@ -642,7 +647,8 @@ int testConsoleBuf(int, char*[])
   ret |= testFile();
   ret |= testConsole();
 
-  CloseHandle(syncEvent);
+  CloseHandle(beforeInputEvent);
+  CloseHandle(afterOutputEvent);
 #endif
 
   return ret;
