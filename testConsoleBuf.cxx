@@ -479,14 +479,14 @@ static int testConsole()
     securityAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
     securityAttributes.bInheritHandle = TRUE;
     securityAttributes.lpSecurityDescriptor = NULL;
-    hIn  = CreateFileW(L"CONIN$", GENERIC_READ | GENERIC_WRITE, 0,
+    hIn = CreateFileW(L"CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
                        &securityAttributes, OPEN_EXISTING, 0, NULL);
-    hOut = CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE, 0,
     if (hIn == INVALID_HANDLE_VALUE) {
       DWORD lastError = GetLastError();
       std::cerr << "CreateFile(CONIN$)" << std::endl;
       displayError(lastError);
     }
+    hOut = CreateFileW(L"CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
                        &securityAttributes, OPEN_EXISTING, 0, NULL);
     if (hOut == INVALID_HANDLE_VALUE) {
       DWORD lastError = GetLastError();
@@ -555,6 +555,8 @@ static int testConsole()
       }
       writeInputKeyEvent(&inputBuffer[i*2], VK_RETURN);
       DWORD eventsWritten = 0;
+      // We need to wait a bit before writing to console so child process have started waiting for input on stdin.
+      Sleep(300);
       if (!WriteConsoleInputW(hIn, inputBuffer, sizeof(inputBuffer) /
                                                 sizeof(inputBuffer[0]),
                               &eventsWritten) || eventsWritten == 0) {
