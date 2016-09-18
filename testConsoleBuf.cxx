@@ -31,6 +31,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <iostream>
+#include <iomanip>
 #include <stdexcept>
 #include "testConsoleBuf.hxx"
 
@@ -66,6 +67,43 @@ static void displayError(DWORD errorCode) {
     std::cerr << "FormatMessage() failed with error: 0x" << GetLastError() << "!" << std::endl;
   }
   std::cerr.unsetf(std::ios::hex);
+}
+
+std::basic_streambuf<char> *errstream(const char *unused) {
+  static_cast<void>(unused);
+  return std::cerr.rdbuf();
+}
+
+std::basic_streambuf<wchar_t> *errstream(const wchar_t *unused) {
+  static_cast<void>(unused);
+  return std::wcerr.rdbuf();
+}
+
+//----------------------------------------------------------------------------
+template<typename T>
+static void dumpBuffers(const T *expected, const T *received, size_t size) {
+  std::basic_ostream<T> err(errstream(expected));
+  err << "Expected output: '" << std::basic_string<T>(expected, size) << "'" << std::endl;
+  if (err.fail()) {
+    err.clear();
+    err << "--- Error while outputting ---" << std::endl;
+  }
+  err << "Received output: '" << std::basic_string<T>(received, size) << "'" << std::endl;
+  if (err.fail()) {
+    err.clear();
+    err << "--- Error while outputting ---" << std::endl;
+  }
+  std::cerr << "Expected output | Received output" << std::endl;
+  for (size_t i = 0; i < size; i++) {
+    std::cerr << std::setbase(16) << std::setfill('0') << "     " <<
+    "0x" << std::setw(8) << static_cast<unsigned int>(expected[i]) << " | " <<
+    "0x" << std::setw(8) << static_cast<unsigned int>(received[i]);
+    if (static_cast<unsigned int>(expected[i]) != static_cast<unsigned int>(received[i])) {
+      std::cerr << "   MISMATCH!";
+    }
+    std::cerr << std::endl;
+  }
+  std::cerr << std::endl << std::flush;
 }
 
 //----------------------------------------------------------------------------
@@ -238,6 +276,7 @@ static int testPipe()
   HANDLE errPipeWrite = INVALID_HANDLE_VALUE;
   UINT currentCodepage = GetConsoleCP();
   char buffer[200];
+  char buffer2[200];
   try {
     if (!createPipe(&inPipeRead, &inPipeWrite) ||
         !createPipe(&outPipeRead, &outPipeWrite) ||
@@ -284,15 +323,18 @@ static int testPipe()
                    encodedInputTestString.c_str(),
                    encodedInputTestString.size()) == 0) {
           bytesRead = 0;
-          if (!ReadFile(errPipeRead, buffer, sizeof(buffer), &bytesRead, NULL)
+          if (!ReadFile(errPipeRead, buffer2, sizeof(buffer2), &bytesRead, NULL)
               || bytesRead == 0) {
             throw std::runtime_error("ReadFile#3 failed!");
           }
-          buffer[bytesRead - 1] = 0;
-          didFail = encodedTestString.compare(buffer) == 0 ? 0 : 1;
+          buffer2[bytesRead - 1] = 0;
+          didFail = encodedTestString.compare(buffer2) == 0 ? 0 : 1;
         }
         if (didFail != 0) {
           std::cerr << "Pipe's output didn't match expected output!" << std::endl << std::flush;
+          dumpBuffers<char>(encodedTestString.c_str(), buffer, encodedTestString.size());
+          dumpBuffers<char>(encodedInputTestString.c_str(), buffer + encodedTestString.size() + 1, encodedInputTestString.size());
+          dumpBuffers<char>(encodedTestString.c_str(), buffer2, encodedTestString.size());
         }
       } catch (const std::runtime_error &ex) {
         DWORD lastError = GetLastError();
@@ -329,6 +371,7 @@ static int testFile()
     int length = 0;
     DWORD bytesWritten = 0;
     char buffer[200];
+    char buffer2[200];
 
     if ((length = WideCharToMultiByte(TestCodepage, 0, UnicodeInputTestString, -1,
                                       buffer, sizeof(buffer),
@@ -373,15 +416,18 @@ static int testFile()
               == INVALID_SET_FILE_POINTER) {
             throw std::runtime_error("SetFilePointer#2 failed!");
           }
-          if (!ReadFile(errFile, buffer, sizeof(buffer), &bytesRead, NULL)
+          if (!ReadFile(errFile, buffer2, sizeof(buffer2), &bytesRead, NULL)
               || bytesRead == 0) {
             throw std::runtime_error("ReadFile#2 failed!");
           }
-          buffer[bytesRead - 1] = 0;
-          didFail = encodedTestString.compare(buffer) == 0 ? 0 : 1;
+          buffer2[bytesRead - 1] = 0;
+          didFail = encodedTestString.compare(buffer2) == 0 ? 0 : 1;
         }
         if (didFail != 0) {
           std::cerr << "File's output didn't match expected output!" << std::endl << std::flush;
+          dumpBuffers<char>(encodedTestString.c_str(), buffer, encodedTestString.size());
+          dumpBuffers<char>(encodedInputTestString.c_str(), buffer + encodedTestString.size() + 1, encodedInputTestString.size() - 1);
+          dumpBuffers<char>(encodedTestString.c_str(), buffer2, encodedTestString.size());
         }
       } catch (const std::runtime_error &ex) {
         DWORD lastError = GetLastError();
@@ -605,6 +651,10 @@ static int testConsole()
         didFail = 0;
       } else {
         std::cerr << "Console's output didn't match expected output!" << std::endl << std::flush;
+        dumpBuffers<wchar_t>(wideTestString.c_str(), outputBuffer, wideTestString.size());
+        dumpBuffers<wchar_t>(wideTestString.c_str(), outputBuffer + screenBufferInfo.dwSize.X * 1, wideTestString.size());
+        dumpBuffers<wchar_t>(UnicodeInputTestString, outputBuffer + screenBufferInfo.dwSize.X * 2, (sizeof(UnicodeInputTestString) - 1) / sizeof(WCHAR));
+        dumpBuffers<wchar_t>(wideInputTestString.c_str(), outputBuffer + screenBufferInfo.dwSize.X * 3, wideInputTestString.size() - 1);
       }
       delete[] outputBuffer;
     } catch (const std::runtime_error &ex) {
