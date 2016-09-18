@@ -591,14 +591,16 @@ static int testConsole()
       }
       std::wstring wideTestString = kwsys::Encoding::ToWide(encodedTestString);
       std::wstring wideInputTestString = kwsys::Encoding::ToWide(encodedInputTestString);
-      if (memcmp(outputBuffer, wideTestString.c_str(), wideTestString.size()) == 0 &&
+      if (memcmp(outputBuffer, wideTestString.c_str(),
+                 wideTestString.size() * sizeof(wchar_t)) == 0 &&
           memcmp(outputBuffer + screenBufferInfo.dwSize.X * 1,
-                 wideTestString.c_str(), wideTestString.size()) == 0 &&
+                 wideTestString.c_str(), wideTestString.size() * sizeof(wchar_t)) == 0 &&
           memcmp(outputBuffer + screenBufferInfo.dwSize.X * 2,
                  UnicodeInputTestString, sizeof(UnicodeInputTestString) -
                                          sizeof(WCHAR)) == 0 &&
           memcmp(outputBuffer + screenBufferInfo.dwSize.X * 3,
-                 wideInputTestString.c_str(), wideInputTestString.size() - 1) == 0
+                 wideInputTestString.c_str(),
+                 (wideInputTestString.size() - 1) * sizeof(wchar_t)) == 0
       ) {
         didFail = 0;
       } else {
