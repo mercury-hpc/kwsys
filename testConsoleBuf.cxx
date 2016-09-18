@@ -423,6 +423,7 @@ static int testConsole()
   const DWORD TestFontSize = 0x000c0000;
   HKEY hConsoleKey;
   WCHAR FaceName[200];
+  FaceName[0] = 0;
   DWORD FaceNameSize = sizeof(FaceName);
   DWORD FontFamily = TestFontFamily;
   DWORD FontSize = TestFontSize;
@@ -526,8 +527,12 @@ static int testConsole()
                                         KEY_WRITE, &hConsoleKey) == ERROR_SUCCESS) {
       RegSetValueExW(hConsoleKey, L"FontFamily", 0, REG_DWORD,
                      (BYTE *)&FontFamily, sizeof(FontFamily));
-      RegSetValueExW(hConsoleKey, L"FaceName", 0, REG_SZ,
-                     (BYTE *)FaceName, FaceNameSize);
+      if (FaceName[0] != 0) {
+        RegSetValueExW(hConsoleKey, L"FaceName", 0, REG_SZ,
+                       (BYTE *)FaceName, FaceNameSize);
+      } else {
+        RegDeleteValueW(hConsoleKey, L"FaceName");
+      }
       RegSetValueExW(hConsoleKey, L"FontSize", 0, REG_DWORD,
                      (BYTE *)&FontSize, sizeof(FontSize));
       RegCloseKey(hConsoleKey);
