@@ -368,11 +368,11 @@ static int testFile()
         (errFile = createFile(L"stderrFile.txt")) == INVALID_HANDLE_VALUE) {
       throw std::runtime_error("createFile failed!");
     }
-    int length = 0;
     DWORD bytesWritten = 0;
     char buffer[200];
     char buffer2[200];
 
+    int length;
     if ((length = WideCharToMultiByte(TestCodepage, 0, UnicodeInputTestString, -1,
                                       buffer, sizeof(buffer),
                                       NULL, NULL)) == 0) {
@@ -599,7 +599,7 @@ static int testConsole()
       INPUT_RECORD inputBuffer[(sizeof(UnicodeInputTestString) /
                                 sizeof(UnicodeInputTestString[0])) * 2];
       memset(&inputBuffer, 0, sizeof(inputBuffer));
-      unsigned int i = 0;
+      unsigned int i;
       for (i = 0; i < (sizeof(UnicodeInputTestString) /
                        sizeof(UnicodeInputTestString[0]) - 1); i++) {
         writeInputKeyEvent(&inputBuffer[i*2], UnicodeInputTestString[i]);
