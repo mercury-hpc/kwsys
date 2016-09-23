@@ -338,14 +338,16 @@ static int testPipe()
         }
       } catch (const std::runtime_error &ex) {
         DWORD lastError = GetLastError();
-        std::cerr << "In function " << __FUNCTION__ << ":" << ex.what() << std::endl;
+        std::cerr << "In function testPipe, line " <<  __LINE__ << ": "
+                  << ex.what() << std::endl;
         displayError(lastError);
       }
       finishProcess(didFail == 0);
     }
   } catch (const std::runtime_error &ex) {
     DWORD lastError = GetLastError();
-    std::cerr << "In function " << __FUNCTION__ << ":" << ex.what() << std::endl;
+    std::cerr << "In function testPipe, line " <<  __LINE__ << ": "
+              << ex.what() << std::endl;
     displayError(lastError);
   }
   finishPipe(inPipeRead, inPipeWrite);
@@ -431,14 +433,16 @@ static int testFile()
         }
       } catch (const std::runtime_error &ex) {
         DWORD lastError = GetLastError();
-        std::cerr << "In function " << __FUNCTION__ << ":" << ex.what() << std::endl;
+        std::cerr << "In function testFile, line " <<  __LINE__ << ": "
+                  << ex.what() << std::endl;
         displayError(lastError);
       }
       finishProcess(didFail == 0);
     }
   } catch (const std::runtime_error &ex) {
     DWORD lastError = GetLastError();
-    std::cerr << "In function " << __FUNCTION__ << ":" << ex.what() << std::endl;
+    std::cerr << "In function testFile, line " <<  __LINE__ << ": "
+              << ex.what() << std::endl;
     displayError(lastError);
   }
   finishFile(inFile);
@@ -659,7 +663,8 @@ static int testConsole()
       delete[] outputBuffer;
     } catch (const std::runtime_error &ex) {
       DWORD lastError = GetLastError();
-      std::cerr << "In function " << __FUNCTION__ << ":" << ex.what() << std::endl;
+      std::cerr << "In function testConsole, line " <<  __LINE__ << ": "
+                << ex.what() << std::endl;
       displayError(lastError);
     }
     finishProcess(didFail == 0);
