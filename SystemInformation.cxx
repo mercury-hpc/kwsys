@@ -5468,4 +5468,4 @@ bool SystemInformationImplementation::Is64Bits()
 }
 
 
-} // namespace @KWSYS_NAMESPACE@
+}
