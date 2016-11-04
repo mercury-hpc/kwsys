@@ -15,7 +15,9 @@
   #include KWSYS_HEADER(Directory.hxx)
   #include KWSYS_HEADER(std/vector)
 */
+/* clang-format off */
 #define KWSYS_HEADER(x) KWSYS_HEADER0(KWSYS_NAMESPACE/x)
+/* clang-format on */
 #define KWSYS_HEADER0(x) KWSYS_HEADER1(x)
 #define KWSYS_HEADER1(x) <x>
 
