@@ -1,7 +1,7 @@
 /* Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
    file Copyright.txt or https://cmake.org/licensing#kwsys for details.  */
 #ifndef KWSYS_NAMESPACE
-# error "Do not include kwsysPrivate.h outside of kwsys c and cxx files."
+#error "Do not include kwsysPrivate.h outside of kwsys c and cxx files."
 #endif
 
 #ifndef _kwsysPrivate_h
@@ -30,5 +30,5 @@
 #define KWSYS_NAMESPACE_STRING1(x) #x
 
 #else
-# error "kwsysPrivate.h included multiple times."
+#error "kwsysPrivate.h included multiple times."
 #endif

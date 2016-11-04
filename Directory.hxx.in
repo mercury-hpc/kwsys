@@ -7,8 +7,7 @@
 
 #include <string>
 
-namespace @KWSYS_NAMESPACE@
-{
+namespace @KWSYS_NAMESPACE@ {
 
 class DirectoryInternals;
 
@@ -64,9 +63,9 @@ private:
   // Private implementation details.
   DirectoryInternals* Internal;
 
-  Directory(const Directory&);  // Not implemented.
-  void operator=(const Directory&);  // Not implemented.
-}; // End Class: Directory
+  Directory(const Directory&);      // Not implemented.
+  void operator=(const Directory&); // Not implemented.
+};                                  // End Class: Directory
 
 } // namespace @KWSYS_NAMESPACE@
 
