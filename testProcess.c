@@ -16,8 +16,8 @@
 /* Work-around CMake dependency scanning limitation.  This must
    duplicate the above list of headers.  */
 #if 0
-# include "Process.h.in"
-# include "Encoding.h.in"
+#include "Encoding.h.in"
+#include "Process.h.in"
 #endif
 
 #include <assert.h>
@@ -27,10 +27,10 @@
 #include <string.h>
 
 #if defined(_WIN32)
-# include <windows.h>
+#include <windows.h>
 #else
-# include <unistd.h>
-# include <signal.h>
+#include <signal.h>
+#include <unistd.h>
 #endif
 
 #if defined(__BORLANDC__)

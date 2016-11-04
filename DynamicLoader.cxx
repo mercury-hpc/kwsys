@@ -17,8 +17,8 @@
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "DynamicLoader.hxx.in"
-# include "Configure.hxx.in"
+#include "Configure.hxx.in"
+#include "DynamicLoader.hxx.in"
 #endif
 
 // This file is actually 3 different implementations.
@@ -32,8 +32,8 @@
 // ---------------------------------------------------------------
 // 1. Implementation for HPUX  machines
 #ifdef __hpux
-#include <errno.h>
 #include <dl.h>
+#include <errno.h>
 #define DYNAMICLOADER_DEFINED 1
 
 namespace KWSYS_NAMESPACE
@@ -107,8 +107,8 @@ const char* DynamicLoader::LastError()
 // 2. Implementation for Mac OS X 10.2.x and earlier
 #ifdef __APPLE__
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030
-#include <string.h> // for strlen
 #include <mach-o/dyld.h>
+#include <string.h> // for strlen
 #define DYNAMICLOADER_DEFINED 1
 
 namespace KWSYS_NAMESPACE
@@ -428,10 +428,10 @@ const char* DynamicLoader::LastError()
 #ifdef __MINT__
 #define DYNAMICLOADER_DEFINED 1
 #define _GNU_SOURCE /* for program_invocation_name */
-#include <string.h>
-#include <malloc.h>
-#include <errno.h>
 #include <dld.h>
+#include <errno.h>
+#include <malloc.h>
+#include <string.h>
 
 namespace KWSYS_NAMESPACE
 {

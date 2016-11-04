@@ -20,14 +20,14 @@
 
 #include <iostream>
 #include <locale.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "Encoding.hxx.in"
-# include "Encoding.h.in"
+#include "Encoding.h.in"
+#include "Encoding.hxx.in"
 #endif
 
 //----------------------------------------------------------------------------

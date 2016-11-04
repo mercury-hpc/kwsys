@@ -41,13 +41,13 @@
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "SystemInformation.hxx.in"
-# include "Process.h.in"
+#include "Process.h.in"
+#include "SystemInformation.hxx.in"
 #endif
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <string>
 #include <vector>
 
@@ -64,14 +64,15 @@
 typedef int siginfo_t;
 # endif
 #else
-# include <sys/types.h>
-# include <sys/time.h>
-# include <sys/utsname.h> // int uname(struct utsname *buf);
-# include <sys/resource.h> // getrlimit
-# include <unistd.h>
-# include <signal.h>
-# include <fcntl.h>
-# include <errno.h> // extern int errno;
+#include <sys/types.h>
+
+#include <errno.h> // extern int errno;
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/resource.h> // getrlimit
+#include <sys/time.h>
+#include <sys/utsname.h> // int uname(struct utsname *buf);
+#include <unistd.h>
 #endif
 
 #if defined (__CYGWIN__) && !defined(_WIN32)
@@ -80,15 +81,15 @@ typedef int siginfo_t;
 #endif
 
 #if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
-# include <sys/param.h>
-# include <sys/sysctl.h>
-# include <sys/socket.h>
-# include <netdb.h>
-# include <netinet/in.h>
-# if defined(KWSYS_SYS_HAS_IFADDRS_H)
-#  include <ifaddrs.h>
-#  define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
-# endif
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <sys/sysctl.h>
+#if defined(KWSYS_SYS_HAS_IFADDRS_H)
+#include <ifaddrs.h>
+#define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
+#endif
 #endif
 
 #if defined(KWSYS_SYS_HAS_MACHINE_CPU_H)
@@ -96,36 +97,36 @@ typedef int siginfo_t;
 #endif
 
 #ifdef __APPLE__
-# include <sys/sysctl.h>
-# include <mach/vm_statistics.h>
-# include <mach/host_info.h>
-# include <mach/mach.h>
-# include <mach/mach_types.h>
-# include <fenv.h>
-# include <sys/socket.h>
-# include <netdb.h>
-# include <netinet/in.h>
-# if defined(KWSYS_SYS_HAS_IFADDRS_H)
-#  include <ifaddrs.h>
-#  define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
-# endif
-# if !(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__-0 >= 1050)
-#  undef KWSYS_SYSTEMINFORMATION_HAS_BACKTRACE
-# endif
+#include <fenv.h>
+#include <mach/host_info.h>
+#include <mach/mach.h>
+#include <mach/mach_types.h>
+#include <mach/vm_statistics.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/sysctl.h>
+#if defined(KWSYS_SYS_HAS_IFADDRS_H)
+#include <ifaddrs.h>
+#define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
+#endif
+#if !(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ - 0 >= 1050)
+#undef KWSYS_SYSTEMINFORMATION_HAS_BACKTRACE
+#endif
 #endif
 
-#if defined(__linux) || defined (__sun) || defined(_SCO_DS)
-# include <fenv.h>
-# include <sys/socket.h>
-# include <netdb.h>
-# include <netinet/in.h>
-# if defined(KWSYS_SYS_HAS_IFADDRS_H)
-#  include <ifaddrs.h>
-#  if !defined(__LSB_VERSION__) /* LSB has no getifaddrs */
-#   define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
-#  endif
-# endif
-# if defined(KWSYS_CXX_HAS_RLIMIT64)
+#if defined(__linux) || defined(__sun) || defined(_SCO_DS)
+#include <fenv.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#if defined(KWSYS_SYS_HAS_IFADDRS_H)
+#include <ifaddrs.h>
+#if !defined(__LSB_VERSION__) /* LSB has no getifaddrs */
+#define KWSYS_SYSTEMINFORMATION_IMPLEMENT_FQDN
+#endif
+#endif
+#if defined(KWSYS_CXX_HAS_RLIMIT64)
 typedef struct rlimit64 ResourceLimitType;
 #  define GetResourceLimit getrlimit64
 # else
@@ -157,11 +158,11 @@ typedef struct rlimit ResourceLimitType;
 # undef KWSYS_SYSTEMINFORMATION_HAS_SYMBOL_LOOKUP
 #endif
 
-#include <memory.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h> // int isdigit(int c);
+#include <memory.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if defined(KWSYS_USE_LONG_LONG)
 # if defined(KWSYS_IOS_HAS_OSTREAM_LONG_LONG)

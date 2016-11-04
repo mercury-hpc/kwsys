@@ -53,22 +53,22 @@ do.
 # define FD_SETSIZE 16384
 #endif
 
+#include <assert.h>    /* assert */
+#include <ctype.h>     /* isspace */
+#include <dirent.h>    /* DIR, dirent */
+#include <errno.h>     /* errno */
+#include <fcntl.h>     /* fcntl */
+#include <signal.h>    /* sigaction */
 #include <stddef.h>    /* ptrdiff_t */
 #include <stdio.h>     /* snprintf */
 #include <stdlib.h>    /* malloc, free */
 #include <string.h>    /* strdup, strerror, memset */
+#include <sys/stat.h>  /* open mode */
 #include <sys/time.h>  /* struct timeval */
 #include <sys/types.h> /* pid_t, fd_set */
 #include <sys/wait.h>  /* waitpid */
-#include <sys/stat.h>  /* open mode */
-#include <unistd.h>    /* pipe, close, fork, execvp, select, _exit */
-#include <fcntl.h>     /* fcntl */
-#include <errno.h>     /* errno */
 #include <time.h>      /* gettimeofday */
-#include <signal.h>    /* sigaction */
-#include <dirent.h>    /* DIR, dirent */
-#include <ctype.h>     /* isspace */
-#include <assert.h>    /* assert */
+#include <unistd.h>    /* pipe, close, fork, execvp, select, _exit */
 
 #if defined(__VMS)
 # define KWSYSPE_VMS_NONBLOCK , O_NONBLOCK

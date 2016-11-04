@@ -22,6 +22,7 @@
 #endif
 
 #include <iostream>
+
 #include "testConsoleBuf.hxx"
 
 //----------------------------------------------------------------------------

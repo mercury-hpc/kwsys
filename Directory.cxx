@@ -19,9 +19,9 @@
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "Directory.hxx.in"
-# include "Configure.hxx.in"
-# include "Encoding.hxx.in"
+#include "Configure.hxx.in"
+#include "Directory.hxx.in"
+#include "Encoding.hxx.in"
 #endif
 
 #include <string>
@@ -88,9 +88,10 @@ void Directory::Clear()
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
-#include <io.h>
+
 #include <ctype.h>
 #include <fcntl.h>
+#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -209,6 +210,7 @@ unsigned long Directory::GetNumberOfFilesInDirectory(const std::string& name)
 // Now the POSIX style directory access
 
 #include <sys/types.h>
+
 #include <dirent.h>
 
 // PGI with glibc has trouble with dirent and large file support:

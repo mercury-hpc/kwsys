@@ -160,21 +160,22 @@
 /*--------------------------------------------------------------------------*/
 /* Include needed system headers.  */
 
-#include <stddef.h> /* size_t */
+#include <errno.h>
 #include <limits.h>
+#include <stddef.h> /* size_t */
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <stdio.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-# include <io.h>
-# include <windows.h>
-# include <process.h>
-# define KWSYS_SHARED_FORWARD_ESCAPE_ARGV /* re-escape argv for execvp */
+#include <windows.h>
+
+#include <io.h>
+#include <process.h>
+#define KWSYS_SHARED_FORWARD_ESCAPE_ARGV /* re-escape argv for execvp */
 #else
-# include <unistd.h>
-# include <sys/stat.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 /*--------------------------------------------------------------------------*/

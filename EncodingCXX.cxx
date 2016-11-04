@@ -23,13 +23,13 @@
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "Encoding.hxx.in"
-# include "Encoding.h.in"
+#include "Encoding.h.in"
+#include "Encoding.hxx.in"
 #endif
 
-#include <vector>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #ifdef _MSC_VER
 # pragma warning (disable: 4786)
@@ -37,8 +37,9 @@
 
 // Windows API.
 #if defined(_WIN32)
-# include <windows.h>
-# include <shellapi.h>
+#include <windows.h>
+
+#include <shellapi.h>
 #endif
 
 namespace KWSYS_NAMESPACE

@@ -13,6 +13,7 @@
 #define @KWSYS_NAMESPACE@_Encoding_h
 
 #include <@KWSYS_NAMESPACE@/Configure.h>
+
 #include <wchar.h>
 
 /* Redefine all public interface symbol names to be in the proper

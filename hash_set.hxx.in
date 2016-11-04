@@ -38,7 +38,9 @@
 #define @KWSYS_NAMESPACE@_hash_set_hxx
 
 #include <@KWSYS_NAMESPACE@/hashtable.hxx>
+
 #include <@KWSYS_NAMESPACE@/hash_fun.hxx>
+
 #include <functional> // equal_to
 
 #if defined(_MSC_VER)

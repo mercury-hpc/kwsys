@@ -34,6 +34,7 @@ int main()
 
 #ifdef TEST_KWSYS_CXX_STAT_HAS_ST_MTIM
 #include <sys/types.h>
+
 #include <sys/stat.h>
 #include <unistd.h>
 int main()
@@ -47,6 +48,7 @@ int main()
 
 #ifdef TEST_KWSYS_CXX_STAT_HAS_ST_MTIMESPEC
 #include <sys/types.h>
+
 #include <sys/stat.h>
 #include <unistd.h>
 int main()
@@ -137,8 +139,9 @@ int main()
 #define _LARGE_FILES
 #define _FILE_OFFSET_BITS 64
 #include <sys/types.h>
-#include <sys/stat.h>
+
 #include <assert.h>
+#include <sys/stat.h>
 #if KWSYS_CXX_HAS_CSTDIO
 # include <cstdio>
 #endif

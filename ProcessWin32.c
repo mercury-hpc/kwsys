@@ -16,8 +16,8 @@
 /* Work-around CMake dependency scanning limitation.  This must
    duplicate the above list of headers.  */
 #if 0
-# include "Process.h.in"
-# include "Encoding.h.in"
+#include "Encoding.h.in"
+#include "Process.h.in"
 #endif
 
 /*
@@ -37,9 +37,9 @@ a UNIX-style select system call.
 #if defined(_MSC_VER) && _MSC_VER >= 1800
 # define KWSYS_WINDOWS_DEPRECATED_GetVersionEx
 #endif
-#include <string.h>  /* strlen, strdup */
-#include <stdio.h>   /* sprintf */
-#include <io.h>      /* _unlink */
+#include <io.h>     /* _unlink */
+#include <stdio.h>  /* sprintf */
+#include <string.h> /* strlen, strdup */
 #ifdef __WATCOMC__
 #define _unlink unlink
 #endif

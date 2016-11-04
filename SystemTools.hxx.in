@@ -15,9 +15,9 @@
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
 
 #include <iosfwd>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include <@KWSYS_NAMESPACE@/String.hxx>
 

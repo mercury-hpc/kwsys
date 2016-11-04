@@ -13,6 +13,7 @@
 #define @KWSYS_NAMESPACE@_SystemInformation_h
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
+
 #include <stddef.h> /* size_t */
 #include <string>
 

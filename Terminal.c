@@ -30,13 +30,13 @@
 /*--------------------------------------------------------------------------*/
 /* Include needed system APIs.  */
 
+#include <stdarg.h> /* va_list */
 #include <stdlib.h> /* getenv */
 #include <string.h> /* strcmp */
-#include <stdarg.h> /* va_list */
 
 #if defined(KWSYS_TERMINAL_SUPPORT_CONSOLE)
-# include <windows.h> /* SetConsoleTextAttribute */
-# include <io.h>      /* _get_osfhandle */
+#include <io.h>      /* _get_osfhandle */
+#include <windows.h> /* SetConsoleTextAttribute */
 #endif
 
 #if defined(KWSYS_TERMINAL_ISATTY_WORKS)

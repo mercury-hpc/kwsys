@@ -13,13 +13,15 @@
 #define @KWSYS_NAMESPACE@_ConsoleBuf_hxx
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
+
 #include <@KWSYS_NAMESPACE@/Encoding.hxx>
-#include <string>
+
 #include <cstring>
-#include <sstream>
-#include <streambuf>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
+#include <streambuf>
+#include <string>
 
 #if defined(_WIN32)
 #  include <windows.h>

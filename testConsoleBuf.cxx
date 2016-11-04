@@ -27,12 +27,13 @@
 
 #if defined(_WIN32)
 
-#include <windows.h>
+#include <iomanip>
+#include <iostream>
+#include <stdexcept>
 #include <string.h>
 #include <wchar.h>
-#include <iostream>
-#include <iomanip>
-#include <stdexcept>
+#include <windows.h>
+
 #include "testConsoleBuf.hxx"
 
 #if defined(_MSC_VER) && _MSC_VER >= 1800

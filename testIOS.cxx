@@ -12,11 +12,11 @@
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(Configure.hxx)
 
-#include <sstream>
 #include <fstream>
 #include <iostream>
-#include <vector>
+#include <sstream>
 #include <string.h> /* strlen */
+#include <vector>
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.

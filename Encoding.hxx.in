@@ -13,6 +13,7 @@
 #define @KWSYS_NAMESPACE@_Encoding_hxx
 
 #include <@KWSYS_NAMESPACE@/Configure.hxx>
+
 #include <string>
 #include <vector>
 

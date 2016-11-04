@@ -31,20 +31,20 @@
 #include KWSYS_HEADER(FStream.hxx)
 #include KWSYS_HEADER(Encoding.hxx)
 
-#include <iostream>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <set>
+#include <sstream>
 #include <vector>
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
-# include "RegularExpression.hxx.in"
-# include "SystemTools.hxx.in"
-# include "Directory.hxx.in"
-# include "FStream.hxx.in"
-# include "Encoding.hxx.in"
+#include "Directory.hxx.in"
+#include "Encoding.hxx.in"
+#include "FStream.hxx.in"
+#include "RegularExpression.hxx.in"
+#include "SystemTools.hxx.in"
 #endif
 
 #ifdef _MSC_VER
@@ -76,13 +76,13 @@
 
 // support for realpath call
 #ifndef _WIN32
-#include <sys/time.h>
-#include <utime.h>
 #include <limits.h>
-#include <sys/wait.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include <pwd.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <utime.h>
 #ifndef __VMS
 #include <sys/param.h>
 #include <termios.h>
@@ -156,8 +156,8 @@ public:
 #endif
 
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__) ||defined(__BORLANDC__) || defined(__MINGW32__))
-#include <io.h>
 #include <direct.h>
+#include <io.h>
 #define _unlink unlink
 #endif
 
@@ -304,6 +304,7 @@ inline void Realpath(const std::string& path,
 }
 #else
 #include <sys/types.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 inline int Mkdir(const std::string& dir)

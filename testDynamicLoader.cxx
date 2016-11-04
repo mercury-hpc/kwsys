@@ -23,8 +23,8 @@
 # include "DynamicLoader.hxx.in"
 #endif
 
-#include <string>
 #include <iostream>
+#include <string>
 
 // Include with <> instead of "" to avoid getting any in-source copy
 // left on disk.
