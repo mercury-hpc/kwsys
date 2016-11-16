@@ -48,6 +48,8 @@ public:
       };
     }
 
+    BasicConsoleBuf<CharT, Traits>* GetConsoleBuf() { return m_consolebuf; }
+
     ~Manager()
     {
       if (m_consolebuf) {
