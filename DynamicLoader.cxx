@@ -13,7 +13,7 @@
 #endif
 
 // This file actually contains several different implementations:
-// * NOOP for systems without dynamic libs (BG/L and Cray)
+// * NOOP for environments without dynamic libs
 // * HP machines which uses shl_load
 // * Mac OS X 10.2.x and earlier which uses NSLinkModule
 // * Windows which uses LoadLibrary
@@ -25,13 +25,9 @@
 // Each part of the ifdef contains a complete implementation for
 // the static methods of DynamicLoader.
 
-#if defined(__gnu_blrts__) || defined(__LIBCATAMOUNT__) ||                    \
-  defined(__CRAYXT_COMPUTE_LINUX_TARGET)
+#if !KWSYS_SUPPORTS_SHARED_LIBS
 //----------------------------------------------------------------------------
-// Implementation for systems without dynamic libs (BG/L and Cray)
-// __gnu_blrts__ is IBM BlueGene/L
-// __LIBCATAMOUNT__ is defined on Catamount on older Cray compute nodes
-// __CRAYXT_COMPUTE_LINUX_TARGET is defined on newer Cray compute nodes
+// Implementation for environments without dynamic libs
 #include <string.h> // for strerror()
 
 namespace KWSYS_NAMESPACE {
