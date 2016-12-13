@@ -21,6 +21,14 @@ See `Copyright.txt`_ for details.
 
 .. _`Copyright.txt`: Copyright.txt
 
+Reporting Bugs
+==============
+
+KWSys has no independent issue tracker.  After encountering an issue
+(bug) please submit a patch using the instructions for `Contributing`_.
+Otherwise please report the issue to the tracker for the project that
+hosts the copy of KWSys in which the problem was found.
+
 Contributing
 ============
 

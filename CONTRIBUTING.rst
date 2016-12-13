@@ -16,14 +16,6 @@ to contribute changes directly to KWSys upstream.  Once changes are
 reviewed, tested, and integrated there then the copies of KWSys within
 dependent projects can be updated to get the changes.
 
-Issues
-======
-
-KWSys has no independent issue tracker.  After encountering an issue
-(bug) please try to submit a patch using the above instructions.
-Otherwise please report the issue to the tracker for the project that
-hosts the copy of KWSys in which the problem was found.
-
 Code Style
 ==========
 
@@ -35,7 +27,6 @@ See also the `clang-format.bash`_ script.
 .. _`clang-format`: http://clang.llvm.org/docs/ClangFormat.html
 .. _`.clang-format`: .clang-format
 .. _`clang-format.bash`: clang-format.bash
-
 
 License
 =======
