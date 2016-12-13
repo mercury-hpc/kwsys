@@ -1,5 +1,6 @@
 .git*            export-ignore
 .gitattributes  -export-ignore
+.hooks*          export-ignore
 
 /GitSetup        export-ignore
 /SetupForDevelopment.sh  export-ignore  eol=lf
