@@ -7,8 +7,6 @@
 /clang-format.bash export-ignore eol=lf
 /.clang-format   export-ignore
 
-/CONTRIBUTING.rst conflict-marker-size=78
-
 *.c              whitespace=tab-in-indent,no-lf-at-eof
 *.h              whitespace=tab-in-indent,no-lf-at-eof
 *.h.in           whitespace=tab-in-indent,no-lf-at-eof
@@ -17,3 +15,5 @@
 *.hxx.in         whitespace=tab-in-indent,no-lf-at-eof
 *.txt            whitespace=tab-in-indent,no-lf-at-eof
 *.cmake          whitespace=tab-in-indent,no-lf-at-eof
+
+*.rst            whitespace=tab-in-indent conflict-marker-size=79
