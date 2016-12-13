@@ -1,20 +1,27 @@
 Contributing to KWSys
 *********************
 
-Overview
-========
+Patches
+=======
 
 KWSys is kept in its own Git repository and shared by several projects
 via copies in their source trees.  Changes to KWSys should not be made
 directly in a host project, except perhaps in maintenance branches.
 
-Please visit
+KWSys uses `Kitware's GitLab Instance`_ to manage development and code review.
+To contribute patches:
 
-  http://public.kitware.com/Wiki/KWSys/Git
+#. Fork the upstream `KWSys Repository`_ into a personal account.
+#. Base all new work on the upstream ``master`` branch.
+#. Create commits making incremental, distinct, logically complete changes.
+#. Push a topic branch to a personal repository fork on GitLab.
+#. Create a GitLab Merge Request targeting the upstream ``master`` branch.
 
-to contribute changes directly to KWSys upstream.  Once changes are
-reviewed, tested, and integrated there then the copies of KWSys within
-dependent projects can be updated to get the changes.
+Once changes are reviewed, tested, and integrated to KWSys upstream then
+copies of KWSys within dependent projects can be updated to get the changes.
+
+.. _`Kitware's GitLab Instance`: https://gitlab.kitware.com
+.. _`KWSys Repository`: https://gitlab.kitware.com/utils/kwsys
 
 Code Style
 ==========
