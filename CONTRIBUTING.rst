@@ -13,6 +13,7 @@ To contribute patches:
 
 #. Fork the upstream `KWSys Repository`_ into a personal account.
 #. Base all new work on the upstream ``master`` branch.
+#. Run ``./SetupForDevelopment.sh`` in new local work trees.
 #. Create commits making incremental, distinct, logically complete changes.
 #. Push a topic branch to a personal repository fork on GitLab.
 #. Create a GitLab Merge Request targeting the upstream ``master`` branch.
