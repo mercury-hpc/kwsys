@@ -3,8 +3,8 @@
 .hooks*          export-ignore
 
 /GitSetup        export-ignore
-/SetupForDevelopment.sh  export-ignore  eol=lf
-/clang-format.bash export-ignore eol=lf
+/*.sh            export-ignore eol=lf
+/*.bash          export-ignore eol=lf
 /.clang-format   export-ignore
 
 *.c              whitespace=tab-in-indent,no-lf-at-eof
