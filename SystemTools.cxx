@@ -4289,7 +4289,7 @@ bool SystemTools::GetLineFromStream(std::istream& is, std::string& line,
     // if we read too much then truncate the buffer
     if (leftToRead > 0) {
       if (static_cast<long>(length) > leftToRead) {
-        buffer[leftToRead - 1] = 0;
+        buffer[leftToRead] = 0;
         leftToRead = 0;
       } else {
         leftToRead -= static_cast<long>(length);
