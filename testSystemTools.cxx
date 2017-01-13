@@ -894,10 +894,10 @@ static bool CheckGetLineFromStream()
 
   bool ret = true;
 
-  for (long size = 1; size <= 5; ++size) {
+  for (size_t size = 1; size <= 5; ++size) {
     file.seekg(0, std::ios::beg);
-    result =
-      kwsys::SystemTools::GetLineFromStream(file, line, &has_newline, size);
+    result = kwsys::SystemTools::GetLineFromStream(file, line, &has_newline,
+                                                   static_cast<long>(size));
     if (!result || line.size() != size) {
       std::cerr << "Should have read " << size << " characters but got "
                 << line.size() << std::endl;
