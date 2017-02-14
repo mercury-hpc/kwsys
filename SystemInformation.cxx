@@ -3421,9 +3421,10 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   // We want to record the total number of cores in this->NumberOfPhysicalCPU
   // (checking only the first proc)
   std::string Cores = this->ExtractValueFromCpuInfoFile(buffer, "cpu cores");
-  int NumberOfCoresPerSocket = atoi(Cores.c_str());
-  NumberOfCoresPerSocket = std::max(NumberOfCoresPerSocket, 1);
-  this->NumberOfPhysicalCPU = NumberOfCoresPerSocket * NumberOfSockets;
+  unsigned int NumberOfCoresPerSocket = (unsigned int)atoi(Cores.c_str());
+  NumberOfCoresPerSocket = std::max(NumberOfCoresPerSocket, 1u);
+  this->NumberOfPhysicalCPU =
+    NumberOfCoresPerSocket * (unsigned int)NumberOfSockets;
 
 #else // __CYGWIN__
   // does not have "physical id" entries, neither "cpu cores"
