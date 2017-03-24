@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #=============================================================================
-# Copyright 2015-2016 Kitware, Inc.
+# Copyright 2015-2017 Kitware, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -106,17 +106,18 @@ case "$mode" in
     *) die "invalid mode: $mode" ;;
 esac
 
-# Filter sources to which our style should apply.
-list_cfg_files() {
-  $git_ls -z -- '*.c.in' '*.h.in' '*.hxx.in'
-}
-list_all_files() {
-  $git_ls -z -- '*.c' '*.c.in' '*.cxx' '*.h' '*.h.in' '*.hxx' '*.hxx.in'
+# List files as selected above.
+list_files() {
+  $git_ls |
+
+  # Select sources with our attribute.
+  git check-attr --stdin format.clang-format |
+  sed -n '/: format\.clang-format: set$/ {s/:[^:]*:[^:]*$//p}'
 }
 
 # Transform configured sources to protect @SYMBOLS@.
-list_cfg_files | xargs -0 -r sed -i 's/@\(KWSYS_[A-Z0-9_]\+\)@/x\1x/g'
+list_files | xargs -d '\n' sed -i 's/@\(KWSYS_[A-Z0-9_]\+\)@/x\1x/g'
 # Update sources in-place.
-list_all_files | xargs -0 "$clang_format" -i
+list_files | xargs -d '\n' "$clang_format" -i
 # Transform configured sources to restore @SYMBOLS@.
-list_cfg_files | xargs -0 -r sed -i 's/x\(KWSYS_[A-Z0-9_]\+\)x/@\1@/g'
+list_files | xargs -d '\n' sed -i 's/x\(KWSYS_[A-Z0-9_]\+\)x/@\1@/g'

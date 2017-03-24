@@ -3,7 +3,7 @@
 .hooks*          export-ignore
 
 # Custom attribute to mark sources as using our C code style.
-[attr]our-c-style  whitespace=tab-in-indent
+[attr]our-c-style  whitespace=tab-in-indent  format.clang-format
 
 /GitSetup        export-ignore
 /*.sh            export-ignore eol=lf
