@@ -331,7 +331,11 @@ public:
  * Cross platform wrapper for stat struct
  */
 #if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(__BORLANDC__)
+  typedef struct stati64 Stat_t;
+#else
   typedef struct _stat64 Stat_t;
+#endif
 #else
   typedef struct stat Stat_t;
 #endif

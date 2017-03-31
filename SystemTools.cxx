@@ -1277,7 +1277,12 @@ int SystemTools::Stat(const std::string& path, SystemTools::Stat_t* buf)
   // Ideally we should use ConvertToWindowsExtendedPath to support
   // long paths, but _wstat64 rejects paths with '?' in them, thinking
   // they are wildcards.
-  return _wstat64(Encoding::ToWide(path).c_str(), buf);
+  std::wstring const& wpath = Encoding::ToWide(path);
+#if defined(__BORLANDC__)
+  return _wstati64(wpath.c_str(), buf);
+#else
+  return _wstat64(wpath.c_str(), buf);
+#endif
 #else
   return stat(path.c_str(), buf);
 #endif
