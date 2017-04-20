@@ -1,4 +1,5 @@
 .git*            export-ignore
+# import off
 .gitattributes  -export-ignore
 .hooks*          export-ignore
 
@@ -9,6 +10,7 @@
 /*.sh            export-ignore eol=lf
 /*.bash          export-ignore eol=lf
 /.clang-format   export-ignore
+# import on
 
 *.c              our-c-style
 *.c.in           our-c-style
