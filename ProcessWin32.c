@@ -892,6 +892,49 @@ const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
   return "No exception";
 }
 
+/* the index should be in array bound. */
+#define KWSYSPE_IDX_CHK(RET)                                                  \
+  if (!cp || idx >= cp->NumberOfCommands || idx < 0) {                        \
+    KWSYSPE_DEBUG((stderr, "array index out of bound\n"));                    \
+    return RET;                                                               \
+  }
+
+int kwsysProcess_GetStateByIndex(kwsysProcess* cp, int idx)
+{
+  KWSYSPE_IDX_CHK(kwsysProcess_State_Error)
+  return cp->ProcessResults[idx].State;
+}
+
+int kwsysProcess_GetExitExceptionByIndex(kwsysProcess* cp, int idx)
+{
+  KWSYSPE_IDX_CHK(kwsysProcess_Exception_Other)
+  return cp->ProcessResults[idx].ExitException;
+}
+
+int kwsysProcess_GetExitValueByIndex(kwsysProcess* cp, int idx)
+{
+  KWSYSPE_IDX_CHK(-1)
+  return cp->ProcessResults[idx].ExitValue;
+}
+
+int kwsysProcess_GetExitCodeByIndex(kwsysProcess* cp, int idx)
+{
+  KWSYSPE_IDX_CHK(-1)
+  return cp->CommandExitCodes[idx];
+}
+
+const char* kwsysProcess_GetExceptionStringByIndex(kwsysProcess* cp, int idx)
+{
+  KWSYSPE_IDX_CHK("GetExceptionString called with NULL process management "
+                  "structure or index out of bound")
+  if (cp->ProcessResults[idx].State == kwsysProcess_StateByIndex_Exception) {
+    return cp->ProcessResults[idx].ExitExceptionString;
+  }
+  return "No exception";
+}
+
+#undef KWSYSPE_IDX_CHK
+
 void kwsysProcess_Execute(kwsysProcess* cp)
 {
   int i;
@@ -1337,13 +1380,13 @@ int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
       cp->ProcessResults[i].ExitCode = cp->CommandExitCodes[i];
       if ((cp->ProcessResults[i].ExitCode & 0xF0000000) == 0xC0000000) {
         /* Child terminated due to exceptional behavior.  */
-        cp->ProcessResults[i].State = kwsysProcess_State_Exception;
+        cp->ProcessResults[i].State = kwsysProcess_StateByIndex_Exception;
         cp->ProcessResults[i].ExitValue = 1;
         kwsysProcessSetExitExceptionByIndex(cp, cp->ProcessResults[i].ExitCode,
                                             i);
       } else {
         /* Child exited without exception.  */
-        cp->ProcessResults[i].State = kwsysProcess_State_Exited;
+        cp->ProcessResults[i].State = kwsysProcess_StateByIndex_Exited;
         cp->ProcessResults[i].ExitException = kwsysProcess_Exception_None;
         cp->ProcessResults[i].ExitValue = cp->ProcessResults[i].ExitCode;
       }
@@ -1549,7 +1592,7 @@ int kwsysProcessInitialize(kwsysProcess* cp)
              sizeof(kwsysProcessResults) * cp->NumberOfCommands);
   for (i = 0; i < cp->NumberOfCommands; i++) {
     cp->ProcessResults[i].ExitException = kwsysProcess_Exception_None;
-    cp->ProcessResults[i].State = kwsysProcess_State_Starting;
+    cp->ProcessResults[i].State = kwsysProcess_StateByIndex_Starting;
     cp->ProcessResults[i].ExitCode = 1;
     cp->ProcessResults[i].ExitValue = 1;
     strcpy(cp->ProcessResults[i].ExitExceptionString, "No exception");
