@@ -118,6 +118,8 @@ static kwsysProcessTime kwsysProcessTimeAdd(kwsysProcessTime in1,
 static kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1,
                                                  kwsysProcessTime in2);
 static void kwsysProcessSetExitException(kwsysProcess* cp, int code);
+static void kwsysProcessSetExitExceptionByIndex(kwsysProcess* cp, int code,
+                                                int idx);
 static void kwsysProcessKillTree(int pid);
 static void kwsysProcessDisablePipeThreads(kwsysProcess* cp);
 static int kwsysProcessesInitialize(void);
@@ -178,6 +180,26 @@ struct kwsysProcessPipeData_s
 
   /* Handle for the write end of this pipe. */
   HANDLE Write;
+};
+
+/* A structure containing results data for each process.  */
+typedef struct kwsysProcessResults_s kwsysProcessResults;
+struct kwsysProcessResults_s
+{
+  /* The status of the process.  */
+  int State;
+
+  /* The exceptional behavior that terminated the process, if any.  */
+  int ExitException;
+
+  /* The process exit code.  */
+  DWORD ExitCode;
+
+  /* The process return code, if any.  */
+  int ExitValue;
+
+  /* Description for the ExitException.  */
+  char ExitExceptionString[KWSYSPE_PIPE_BUFFER_SIZE + 1];
 };
 
 /* Structure containing data used to implement the child's execution.  */
@@ -245,15 +267,6 @@ struct kwsysProcess_s
 
   /* ------------- Data managed per call to Execute ------------- */
 
-  /* The exceptional behavior that terminated the process, if any.  */
-  int ExitException;
-
-  /* The process exit code.  */
-  DWORD ExitCode;
-
-  /* The process return code, if any.  */
-  int ExitValue;
-
   /* Index of last pipe to report data, if any.  */
   int CurrentIndex;
 
@@ -285,8 +298,8 @@ struct kwsysProcess_s
   /* Buffer for error messages.  */
   char ErrorMessage[KWSYSPE_PIPE_BUFFER_SIZE + 1];
 
-  /* Description for the ExitException.  */
-  char ExitExceptionString[KWSYSPE_PIPE_BUFFER_SIZE + 1];
+  /* process results.  */
+  kwsysProcessResults* ProcessResults;
 
   /* Windows process information data.  */
   PROCESS_INFORMATION* ProcessInformation;
@@ -513,6 +526,7 @@ void kwsysProcess_Delete(kwsysProcess* cp)
   if (cp->CommandExitCodes) {
     free(cp->CommandExitCodes);
   }
+  free(cp->ProcessResults);
   free(cp);
 }
 
@@ -839,17 +853,23 @@ int kwsysProcess_GetState(kwsysProcess* cp)
 
 int kwsysProcess_GetExitException(kwsysProcess* cp)
 {
-  return cp ? cp->ExitException : kwsysProcess_Exception_Other;
+  return (cp && cp->ProcessResults && (cp->NumberOfCommands > 0))
+    ? cp->ProcessResults[cp->NumberOfCommands - 1].ExitException
+    : kwsysProcess_Exception_Other;
 }
 
 int kwsysProcess_GetExitValue(kwsysProcess* cp)
 {
-  return cp ? cp->ExitValue : -1;
+  return (cp && cp->ProcessResults && (cp->NumberOfCommands > 0))
+    ? cp->ProcessResults[cp->NumberOfCommands - 1].ExitValue
+    : -1;
 }
 
 int kwsysProcess_GetExitCode(kwsysProcess* cp)
 {
-  return cp ? cp->ExitCode : 0;
+  return (cp && cp->ProcessResults && (cp->NumberOfCommands > 0))
+    ? cp->ProcessResults[cp->NumberOfCommands - 1].ExitCode
+    : 0;
 }
 
 const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
@@ -864,10 +884,10 @@ const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
 
 const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
 {
-  if (!cp) {
+  if (!(cp && cp->ProcessResults && (cp->NumberOfCommands > 0))) {
     return "GetExceptionString called with NULL process management structure";
   } else if (cp->State == kwsysProcess_State_Exception) {
-    return cp->ExitExceptionString;
+    return cp->ProcessResults[cp->NumberOfCommands - 1].ExitExceptionString;
   }
   return "No exception";
 }
@@ -1312,19 +1332,24 @@ int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
     /* The timeout expired.  */
     cp->State = kwsysProcess_State_Expired;
   } else {
-    /* The children exited.  Report the outcome of the last process.  */
-    cp->ExitCode = cp->CommandExitCodes[cp->NumberOfCommands - 1];
-    if ((cp->ExitCode & 0xF0000000) == 0xC0000000) {
-      /* Child terminated due to exceptional behavior.  */
-      cp->State = kwsysProcess_State_Exception;
-      cp->ExitValue = 1;
-      kwsysProcessSetExitException(cp, cp->ExitCode);
-    } else {
-      /* Child exited without exception.  */
-      cp->State = kwsysProcess_State_Exited;
-      cp->ExitException = kwsysProcess_Exception_None;
-      cp->ExitValue = cp->ExitCode;
+    /* The children exited.  Report the outcome of the child processes.  */
+    for (i = 0; i < cp->NumberOfCommands; ++i) {
+      cp->ProcessResults[i].ExitCode = cp->CommandExitCodes[i];
+      if ((cp->ProcessResults[i].ExitCode & 0xF0000000) == 0xC0000000) {
+        /* Child terminated due to exceptional behavior.  */
+        cp->ProcessResults[i].State = kwsysProcess_State_Exception;
+        cp->ProcessResults[i].ExitValue = 1;
+        kwsysProcessSetExitExceptionByIndex(cp, cp->ProcessResults[i].ExitCode,
+                                            i);
+      } else {
+        /* Child exited without exception.  */
+        cp->ProcessResults[i].State = kwsysProcess_State_Exited;
+        cp->ProcessResults[i].ExitException = kwsysProcess_Exception_None;
+        cp->ProcessResults[i].ExitValue = cp->ProcessResults[i].ExitCode;
+      }
     }
+    /* support legacy state status value */
+    cp->State = cp->ProcessResults[cp->NumberOfCommands - 1].State;
   }
 
   return 1;
@@ -1507,19 +1532,31 @@ void kwsysProcessPipeThreadWakePipe(kwsysProcess* cp, kwsysProcessPipeData* td)
 /* Initialize a process control structure for kwsysProcess_Execute.  */
 int kwsysProcessInitialize(kwsysProcess* cp)
 {
+  int i;
   /* Reset internal status flags.  */
   cp->TimeoutExpired = 0;
   cp->Terminated = 0;
   cp->Killed = 0;
-  cp->ExitException = kwsysProcess_Exception_None;
-  cp->ExitCode = 1;
-  cp->ExitValue = 1;
 
-  /* Reset error data.  */
-  cp->ErrorMessage[0] = 0;
-  strcpy(cp->ExitExceptionString, "No exception");
+  free(cp->ProcessResults);
+  /* Allocate process result information for each process.  */
+  cp->ProcessResults = (kwsysProcessResults*)malloc(
+    sizeof(kwsysProcessResults) * (cp->NumberOfCommands));
+  if (!cp->ProcessResults) {
+    return 0;
+  }
+  ZeroMemory(cp->ProcessResults,
+             sizeof(kwsysProcessResults) * cp->NumberOfCommands);
+  for (i = 0; i < cp->NumberOfCommands; i++) {
+    cp->ProcessResults[i].ExitException = kwsysProcess_Exception_None;
+    cp->ProcessResults[i].State = kwsysProcess_State_Starting;
+    cp->ProcessResults[i].ExitCode = 1;
+    cp->ProcessResults[i].ExitValue = 1;
+    strcpy(cp->ProcessResults[i].ExitExceptionString, "No exception");
+  }
 
   /* Allocate process information for each process.  */
+  free(cp->ProcessInformation);
   cp->ProcessInformation = (PROCESS_INFORMATION*)malloc(
     sizeof(PROCESS_INFORMATION) * cp->NumberOfCommands);
   if (!cp->ProcessInformation) {
@@ -1559,7 +1596,6 @@ int kwsysProcessInitialize(kwsysProcess* cp)
     }
   }
   {
-    int i;
     for (i = 0; i < 3; ++i) {
       cp->PipeChildStd[i] = INVALID_HANDLE_VALUE;
     }
@@ -1981,9 +2017,10 @@ kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1,
 }
 
 #define KWSYSPE_CASE(type, str)                                               \
-  cp->ExitException = kwsysProcess_Exception_##type;                          \
-  strcpy(cp->ExitExceptionString, str)
-static void kwsysProcessSetExitException(kwsysProcess* cp, int code)
+  cp->ProcessResults[idx].ExitException = kwsysProcess_Exception_##type;      \
+  strcpy(cp->ProcessResults[idx].ExitExceptionString, str)
+static void kwsysProcessSetExitExceptionByIndex(kwsysProcess* cp, int code,
+                                                int idx)
 {
   switch (code) {
     case STATUS_CONTROL_C_EXIT:
@@ -2062,9 +2099,9 @@ static void kwsysProcessSetExitException(kwsysProcess* cp, int code)
 
     case STATUS_NO_MEMORY:
     default:
-      cp->ExitException = kwsysProcess_Exception_Other;
-      _snprintf(cp->ExitExceptionString, KWSYSPE_PIPE_BUFFER_SIZE,
-                "Exit code 0x%x\n", code);
+      cp->ProcessResults[idx].ExitException = kwsysProcess_Exception_Other;
+      _snprintf(cp->ProcessResults[idx].ExitExceptionString,
+                KWSYSPE_PIPE_BUFFER_SIZE, "Exit code 0x%x\n", code);
       break;
   }
 }
