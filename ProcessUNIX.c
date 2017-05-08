@@ -140,7 +140,6 @@ typedef struct kwsysProcessCreateInformation_s
   int ErrorPipe[2];
 } kwsysProcessCreateInformation;
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessVolatileFree(volatile void* p);
 static int kwsysProcessInitialize(kwsysProcess* cp);
 static void kwsysProcessCleanup(kwsysProcess* cp, int error);
@@ -184,7 +183,6 @@ static void kwsysProcessesSignalHandler(int signum, siginfo_t* info,
 static void kwsysProcessesSignalHandler(int signum);
 #endif
 
-/*--------------------------------------------------------------------------*/
 /* Structure containing data used to implement the child's execution.  */
 struct kwsysProcess_s
 {
@@ -301,7 +299,6 @@ struct kwsysProcess_s
   char* RealWorkingDirectory;
 };
 
-/*--------------------------------------------------------------------------*/
 kwsysProcess* kwsysProcess_New(void)
 {
   /* Allocate a process control structure.  */
@@ -328,7 +325,6 @@ kwsysProcess* kwsysProcess_New(void)
   return cp;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Delete(kwsysProcess* cp)
 {
   /* Make sure we have an instance.  */
@@ -357,7 +353,6 @@ void kwsysProcess_Delete(kwsysProcess* cp)
   free(cp);
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_SetCommand(kwsysProcess* cp, char const* const* command)
 {
   int i;
@@ -382,7 +377,6 @@ int kwsysProcess_SetCommand(kwsysProcess* cp, char const* const* command)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_AddCommand(kwsysProcess* cp, char const* const* command)
 {
   int newNumberOfCommands;
@@ -462,7 +456,6 @@ int kwsysProcess_AddCommand(kwsysProcess* cp, char const* const* command)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetTimeout(kwsysProcess* cp, double timeout)
 {
   if (!cp) {
@@ -476,7 +469,6 @@ void kwsysProcess_SetTimeout(kwsysProcess* cp, double timeout)
   cp->TimeoutTime.tv_sec = -1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_SetWorkingDirectory(kwsysProcess* cp, const char* dir)
 {
   if (!cp) {
@@ -502,7 +494,6 @@ int kwsysProcess_SetWorkingDirectory(kwsysProcess* cp, const char* dir)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_SetPipeFile(kwsysProcess* cp, int prPipe, const char* file)
 {
   char** pfile;
@@ -543,7 +534,6 @@ int kwsysProcess_SetPipeFile(kwsysProcess* cp, int prPipe, const char* file)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetPipeShared(kwsysProcess* cp, int prPipe, int shared)
 {
   if (!cp) {
@@ -572,7 +562,6 @@ void kwsysProcess_SetPipeShared(kwsysProcess* cp, int prPipe, int shared)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetPipeNative(kwsysProcess* cp, int prPipe, int p[2])
 {
   int* pPipeNative = 0;
@@ -612,7 +601,6 @@ void kwsysProcess_SetPipeNative(kwsysProcess* cp, int prPipe, int p[2])
   }
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetOption(kwsysProcess* cp, int optionId)
 {
   if (!cp) {
@@ -633,7 +621,6 @@ int kwsysProcess_GetOption(kwsysProcess* cp, int optionId)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetOption(kwsysProcess* cp, int optionId, int value)
 {
   if (!cp) {
@@ -658,31 +645,26 @@ void kwsysProcess_SetOption(kwsysProcess* cp, int optionId, int value)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetState(kwsysProcess* cp)
 {
   return cp ? cp->State : kwsysProcess_State_Error;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetExitException(kwsysProcess* cp)
 {
   return cp ? cp->ExitException : kwsysProcess_Exception_Other;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetExitCode(kwsysProcess* cp)
 {
   return cp ? cp->ExitCode : 0;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetExitValue(kwsysProcess* cp)
 {
   return cp ? cp->ExitValue : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
 {
   if (!cp) {
@@ -693,7 +675,6 @@ const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
   return "Success";
 }
 
-/*--------------------------------------------------------------------------*/
 const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
 {
   if (!cp) {
@@ -704,7 +685,6 @@ const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
   return "No exception";
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Execute(kwsysProcess* cp)
 {
   int i;
@@ -990,7 +970,6 @@ void kwsysProcess_Execute(kwsysProcess* cp)
   cp->Detached = cp->OptionDetach;
 }
 
-/*--------------------------------------------------------------------------*/
 kwsysEXPORT void kwsysProcess_Disown(kwsysProcess* cp)
 {
   /* Make sure a detached child process is running.  */
@@ -1009,7 +988,6 @@ kwsysEXPORT void kwsysProcess_Disown(kwsysProcess* cp)
   cp->State = kwsysProcess_State_Disowned;
 }
 
-/*--------------------------------------------------------------------------*/
 typedef struct kwsysProcessWaitData_s
 {
   int Expired;
@@ -1021,7 +999,6 @@ typedef struct kwsysProcessWaitData_s
 static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
                                    kwsysProcessWaitData* wd);
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_WaitForData(kwsysProcess* cp, char** data, int* length,
                              double* userTimeout)
 {
@@ -1083,7 +1060,6 @@ int kwsysProcess_WaitForData(kwsysProcess* cp, char** data, int* length,
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
                                    kwsysProcessWaitData* wd)
 {
@@ -1285,7 +1261,6 @@ static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
 #endif
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
 {
   int status = 0;
@@ -1352,7 +1327,6 @@ int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Interrupt(kwsysProcess* cp)
 {
   int i;
@@ -1384,7 +1358,6 @@ void kwsysProcess_Interrupt(kwsysProcess* cp)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Kill(kwsysProcess* cp)
 {
   int i;
@@ -1431,7 +1404,6 @@ void kwsysProcess_Kill(kwsysProcess* cp)
   cp->CommandsLeft = 0;
 }
 
-/*--------------------------------------------------------------------------*/
 /* Call the free() function with a pointer to volatile without causing
    compiler warnings.  */
 static void kwsysProcessVolatileFree(volatile void* p)
@@ -1448,7 +1420,6 @@ static void kwsysProcessVolatileFree(volatile void* p)
 #endif
 }
 
-/*--------------------------------------------------------------------------*/
 /* Initialize a process control structure for kwsysProcess_Execute.  */
 static int kwsysProcessInitialize(kwsysProcess* cp)
 {
@@ -1523,7 +1494,6 @@ static int kwsysProcessInitialize(kwsysProcess* cp)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 /* Free all resources used by the given kwsysProcess instance that were
    allocated by kwsysProcess_Execute.  */
 static void kwsysProcessCleanup(kwsysProcess* cp, int error)
@@ -1590,7 +1560,6 @@ static void kwsysProcessCleanup(kwsysProcess* cp, int error)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 /* Close the given file descriptor if it is open.  Reset its value to -1.  */
 static void kwsysProcessCleanupDescriptor(int* pfd)
 {
@@ -1603,7 +1572,6 @@ static void kwsysProcessCleanupDescriptor(int* pfd)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessClosePipes(kwsysProcess* cp)
 {
   int i;
@@ -1636,7 +1604,6 @@ static void kwsysProcessClosePipes(kwsysProcess* cp)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessSetNonBlocking(int fd)
 {
   int flags = fcntl(fd, F_GETFL);
@@ -1646,12 +1613,10 @@ static int kwsysProcessSetNonBlocking(int fd)
   return flags >= 0;
 }
 
-/*--------------------------------------------------------------------------*/
 #if defined(__VMS)
 int decc$set_child_standard_streams(int fd1, int fd2, int fd3);
 #endif
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessCreate(kwsysProcess* cp, int prIndex,
                               kwsysProcessCreateInformation* si)
 {
@@ -1831,7 +1796,6 @@ static int kwsysProcessCreate(kwsysProcess* cp, int prIndex,
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessDestroy(kwsysProcess* cp)
 {
   /* A child process has terminated.  Reap it if it is one handled by
@@ -1880,7 +1844,6 @@ static void kwsysProcessDestroy(kwsysProcess* cp)
   sigprocmask(SIG_SETMASK, &old_mask, 0);
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessSetupOutputPipeFile(int* p, const char* name)
 {
   int fout;
@@ -1906,7 +1869,6 @@ static int kwsysProcessSetupOutputPipeFile(int* p, const char* name)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessSetupOutputPipeNative(int* p, int des[2])
 {
   /* Close the existing descriptor.  */
@@ -1925,7 +1887,6 @@ static int kwsysProcessSetupOutputPipeNative(int* p, int des[2])
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 /* Get the time at which either the process or user timeout will
    expire.  Returns 1 if the user timeout is first, and 0 otherwise.  */
 static int kwsysProcessGetTimeoutTime(kwsysProcess* cp, double* userTimeout,
@@ -1957,7 +1918,6 @@ static int kwsysProcessGetTimeoutTime(kwsysProcess* cp, double* userTimeout,
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
 /* Get the length of time before the given timeout time arrives.
    Returns 1 if the time has already arrived, and 0 otherwise.  */
 static int kwsysProcessGetTimeoutLeft(kwsysProcessTime* timeoutTime,
@@ -1992,7 +1952,6 @@ static int kwsysProcessGetTimeoutLeft(kwsysProcessTime* timeoutTime,
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static kwsysProcessTime kwsysProcessTimeGetCurrent(void)
 {
   kwsysProcessTime current;
@@ -2003,13 +1962,11 @@ static kwsysProcessTime kwsysProcessTimeGetCurrent(void)
   return current;
 }
 
-/*--------------------------------------------------------------------------*/
 static double kwsysProcessTimeToDouble(kwsysProcessTime t)
 {
   return (double)t.tv_sec + (double)(t.tv_usec) * 0.000001;
 }
 
-/*--------------------------------------------------------------------------*/
 static kwsysProcessTime kwsysProcessTimeFromDouble(double d)
 {
   kwsysProcessTime t;
@@ -2018,14 +1975,12 @@ static kwsysProcessTime kwsysProcessTimeFromDouble(double d)
   return t;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessTimeLess(kwsysProcessTime in1, kwsysProcessTime in2)
 {
   return ((in1.tv_sec < in2.tv_sec) ||
           ((in1.tv_sec == in2.tv_sec) && (in1.tv_usec < in2.tv_usec)));
 }
 
-/*--------------------------------------------------------------------------*/
 static kwsysProcessTime kwsysProcessTimeAdd(kwsysProcessTime in1,
                                             kwsysProcessTime in2)
 {
@@ -2039,7 +1994,6 @@ static kwsysProcessTime kwsysProcessTimeAdd(kwsysProcessTime in1,
   return out;
 }
 
-/*--------------------------------------------------------------------------*/
 static kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1,
                                                  kwsysProcessTime in2)
 {
@@ -2053,7 +2007,6 @@ static kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1,
   return out;
 }
 
-/*--------------------------------------------------------------------------*/
 #define KWSYSPE_CASE(type, str)                                               \
   cp->ExitException = kwsysProcess_Exception_##type;                          \
   strcpy(cp->ExitExceptionString, str)
@@ -2250,7 +2203,6 @@ static void kwsysProcessSetExitException(kwsysProcess* cp, int sig)
 }
 #undef KWSYSPE_CASE
 
-/*--------------------------------------------------------------------------*/
 /* When the child process encounters an error before its program is
    invoked, this is called to report the error to the parent and
    exit.  */
@@ -2269,7 +2221,6 @@ static void kwsysProcessChildErrorExit(int errorPipe)
   _exit(1);
 }
 
-/*--------------------------------------------------------------------------*/
 /* Restores all signal handlers to their default values.  */
 static void kwsysProcessRestoreDefaultSignalHandlers(void)
 {
@@ -2377,13 +2328,11 @@ static void kwsysProcessRestoreDefaultSignalHandlers(void)
 #endif
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessExit(void)
 {
   _exit(0);
 }
 
-/*--------------------------------------------------------------------------*/
 #if !defined(__VMS)
 static pid_t kwsysProcessFork(kwsysProcess* cp,
                               kwsysProcessCreateInformation* si)
@@ -2433,7 +2382,6 @@ static pid_t kwsysProcessFork(kwsysProcess* cp,
 }
 #endif
 
-/*--------------------------------------------------------------------------*/
 /* We try to obtain process information by invoking the ps command.
    Here we define the command to call on each platform and the
    corresponding parsing format string.  The parsing format should
@@ -2457,7 +2405,6 @@ static pid_t kwsysProcessFork(kwsysProcess* cp,
 #define KWSYSPE_PS_FORMAT "%d %d %*[^\n]\n"
 #endif
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessKill(pid_t process_id)
 {
 #if defined(__linux__) || defined(__CYGWIN__)
@@ -2561,7 +2508,6 @@ static void kwsysProcessKill(pid_t process_id)
 #endif
 }
 
-/*--------------------------------------------------------------------------*/
 #if defined(__VMS)
 int decc$feature_get_index(const char* name);
 int decc$feature_set_value(int index, int mode, int value);
@@ -2574,7 +2520,6 @@ static int kwsysProcessSetVMSFeature(const char* name, int value)
 }
 #endif
 
-/*--------------------------------------------------------------------------*/
 /* Global set of executing processes for use by the signal handler.
    This global instance will be zero-initialized by the compiler.  */
 typedef struct kwsysProcessInstances_s
@@ -2590,7 +2535,6 @@ static struct sigaction kwsysProcessesOldSigChldAction;
 static struct sigaction kwsysProcessesOldSigIntAction;
 static struct sigaction kwsysProcessesOldSigTermAction;
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessesUpdate(kwsysProcessInstances* newProcesses)
 {
   /* Block signals while we update the set of pipes to check.
@@ -2611,7 +2555,6 @@ static void kwsysProcessesUpdate(kwsysProcessInstances* newProcesses)
   sigprocmask(SIG_SETMASK, &oldset, 0);
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcessesAdd(kwsysProcess* cp)
 {
   /* Create a pipe through which the signal handler can notify the
@@ -2721,7 +2664,6 @@ static int kwsysProcessesAdd(kwsysProcess* cp)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessesRemove(kwsysProcess* cp)
 {
   /* Attempt to remove the given signal pipe from the signal handler set.  */
@@ -2772,7 +2714,6 @@ static void kwsysProcessesRemove(kwsysProcess* cp)
   kwsysProcessCleanupDescriptor(&cp->SignalPipe);
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessesSignalHandler(int signum
 #if KWSYSPE_USE_SIGINFO
                                         ,
@@ -2884,7 +2825,6 @@ static void kwsysProcessesSignalHandler(int signum
   errno = old_errno;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_ResetStartTime(kwsysProcess* cp)
 {
   if (!cp) {

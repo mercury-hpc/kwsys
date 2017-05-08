@@ -86,7 +86,6 @@ typedef struct kwsysProcessCreateInformation_s
   HANDLE hStdError;
 } kwsysProcessCreateInformation;
 
-/*--------------------------------------------------------------------------*/
 typedef struct kwsysProcessPipeData_s kwsysProcessPipeData;
 static DWORD WINAPI kwsysProcessPipeThreadRead(LPVOID ptd);
 static void kwsysProcessPipeThreadReadPipe(kwsysProcess* cp,
@@ -129,7 +128,6 @@ static int kwsysProcessesAdd(HANDLE hProcess, DWORD dwProcessId,
 static void kwsysProcessesRemove(HANDLE hProcess);
 static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType);
 
-/*--------------------------------------------------------------------------*/
 /* A structure containing synchronization data for each thread.  */
 typedef struct kwsysProcessPipeSync_s kwsysProcessPipeSync;
 struct kwsysProcessPipeSync_s
@@ -147,7 +145,6 @@ struct kwsysProcessPipeSync_s
   HANDLE Reset;
 };
 
-/*--------------------------------------------------------------------------*/
 /* A structure containing data for each pipe's threads.  */
 struct kwsysProcessPipeData_s
 {
@@ -183,7 +180,6 @@ struct kwsysProcessPipeData_s
   HANDLE Write;
 };
 
-/*--------------------------------------------------------------------------*/
 /* Structure containing data used to implement the child's execution.  */
 struct kwsysProcess_s
 {
@@ -308,7 +304,6 @@ struct kwsysProcess_s
   HANDLE PipeChildStd[3];
 };
 
-/*--------------------------------------------------------------------------*/
 kwsysProcess* kwsysProcess_New(void)
 {
   int i;
@@ -447,7 +442,6 @@ kwsysProcess* kwsysProcess_New(void)
   return cp;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Delete(kwsysProcess* cp)
 {
   int i;
@@ -522,7 +516,6 @@ void kwsysProcess_Delete(kwsysProcess* cp)
   free(cp);
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_SetCommand(kwsysProcess* cp, char const* const* command)
 {
   int i;
@@ -543,7 +536,6 @@ int kwsysProcess_SetCommand(kwsysProcess* cp, char const* const* command)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_AddCommand(kwsysProcess* cp, char const* const* command)
 {
   int newNumberOfCommands;
@@ -639,7 +631,6 @@ int kwsysProcess_AddCommand(kwsysProcess* cp, char const* const* command)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetTimeout(kwsysProcess* cp, double timeout)
 {
   if (!cp) {
@@ -653,7 +644,6 @@ void kwsysProcess_SetTimeout(kwsysProcess* cp, double timeout)
   cp->TimeoutTime.QuadPart = -1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_SetWorkingDirectory(kwsysProcess* cp, const char* dir)
 {
   if (!cp) {
@@ -685,7 +675,6 @@ int kwsysProcess_SetWorkingDirectory(kwsysProcess* cp, const char* dir)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_SetPipeFile(kwsysProcess* cp, int pipe, const char* file)
 {
   char** pfile;
@@ -727,7 +716,6 @@ int kwsysProcess_SetPipeFile(kwsysProcess* cp, int pipe, const char* file)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetPipeShared(kwsysProcess* cp, int pipe, int shared)
 {
   if (!cp) {
@@ -756,7 +744,6 @@ void kwsysProcess_SetPipeShared(kwsysProcess* cp, int pipe, int shared)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetPipeNative(kwsysProcess* cp, int pipe, HANDLE p[2])
 {
   HANDLE* pPipeNative = 0;
@@ -796,7 +783,6 @@ void kwsysProcess_SetPipeNative(kwsysProcess* cp, int pipe, HANDLE p[2])
   }
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetOption(kwsysProcess* cp, int optionId)
 {
   if (!cp) {
@@ -819,7 +805,6 @@ int kwsysProcess_GetOption(kwsysProcess* cp, int optionId)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_SetOption(kwsysProcess* cp, int optionId, int value)
 {
   if (!cp) {
@@ -847,31 +832,26 @@ void kwsysProcess_SetOption(kwsysProcess* cp, int optionId, int value)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetState(kwsysProcess* cp)
 {
   return cp ? cp->State : kwsysProcess_State_Error;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetExitException(kwsysProcess* cp)
 {
   return cp ? cp->ExitException : kwsysProcess_Exception_Other;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetExitValue(kwsysProcess* cp)
 {
   return cp ? cp->ExitValue : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_GetExitCode(kwsysProcess* cp)
 {
   return cp ? cp->ExitCode : 0;
 }
 
-/*--------------------------------------------------------------------------*/
 const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
 {
   if (!cp) {
@@ -882,7 +862,6 @@ const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
   return "Success";
 }
 
-/*--------------------------------------------------------------------------*/
 const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
 {
   if (!cp) {
@@ -893,7 +872,6 @@ const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
   return "No exception";
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Execute(kwsysProcess* cp)
 {
   int i;
@@ -1135,7 +1113,6 @@ void kwsysProcess_Execute(kwsysProcess* cp)
   cp->Detached = cp->OptionDetach;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Disown(kwsysProcess* cp)
 {
   int i;
@@ -1161,8 +1138,6 @@ void kwsysProcess_Disown(kwsysProcess* cp)
   /* The process has been disowned.  */
   cp->State = kwsysProcess_State_Disowned;
 }
-
-/*--------------------------------------------------------------------------*/
 
 int kwsysProcess_WaitForData(kwsysProcess* cp, char** data, int* length,
                              double* userTimeout)
@@ -1289,7 +1264,6 @@ int kwsysProcess_WaitForData(kwsysProcess* cp, char** data, int* length,
   }
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
 {
   int i;
@@ -1356,7 +1330,6 @@ int kwsysProcess_WaitForExit(kwsysProcess* cp, double* userTimeout)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Interrupt(kwsysProcess* cp)
 {
   int i;
@@ -1394,7 +1367,6 @@ void kwsysProcess_Interrupt(kwsysProcess* cp)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_Kill(kwsysProcess* cp)
 {
   int i;
@@ -1429,8 +1401,6 @@ void kwsysProcess_Kill(kwsysProcess* cp)
      for them to exit.  */
 }
 
-/*--------------------------------------------------------------------------*/
-
 /*
   Function executed for each pipe's thread.  Argument is a pointer to
   the kwsysProcessPipeData instance for this thread.
@@ -1450,8 +1420,6 @@ DWORD WINAPI kwsysProcessPipeThreadRead(LPVOID ptd)
   }
   return 0;
 }
-
-/*--------------------------------------------------------------------------*/
 
 /*
   Function called in each pipe's thread to handle data for one
@@ -1494,8 +1462,6 @@ void kwsysProcessPipeThreadReadPipe(kwsysProcess* cp, kwsysProcessPipeData* td)
   ReleaseSemaphore(td->Reader.Go, 1, 0);
 }
 
-/*--------------------------------------------------------------------------*/
-
 /*
   Function executed for each pipe's thread.  Argument is a pointer to
   the kwsysProcessPipeData instance for this thread.
@@ -1515,8 +1481,6 @@ DWORD WINAPI kwsysProcessPipeThreadWake(LPVOID ptd)
   }
   return 0;
 }
-
-/*--------------------------------------------------------------------------*/
 
 /*
   Function called in each pipe's thread to handle reading thread
@@ -1540,7 +1504,6 @@ void kwsysProcessPipeThreadWakePipe(kwsysProcess* cp, kwsysProcessPipeData* td)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 /* Initialize a process control structure for kwsysProcess_Execute.  */
 int kwsysProcessInitialize(kwsysProcess* cp)
 {
@@ -1605,7 +1568,6 @@ int kwsysProcessInitialize(kwsysProcess* cp)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 static DWORD kwsysProcessCreateChildHandle(PHANDLE out, HANDLE in, int isStdIn)
 {
   DWORD flags;
@@ -1641,7 +1603,6 @@ static DWORD kwsysProcessCreateChildHandle(PHANDLE out, HANDLE in, int isStdIn)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 DWORD kwsysProcessCreate(kwsysProcess* cp, int index,
                          kwsysProcessCreateInformation* si)
 {
@@ -1706,7 +1667,6 @@ DWORD kwsysProcessCreate(kwsysProcess* cp, int index,
   return error;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcessDestroy(kwsysProcess* cp, int event)
 {
   int i;
@@ -1756,7 +1716,6 @@ void kwsysProcessDestroy(kwsysProcess* cp, int event)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 DWORD kwsysProcessSetupOutputPipeFile(PHANDLE phandle, const char* name)
 {
   HANDLE fout;
@@ -1784,7 +1743,6 @@ DWORD kwsysProcessSetupOutputPipeFile(PHANDLE phandle, const char* name)
   return ERROR_SUCCESS;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcessSetupSharedPipe(DWORD nStdHandle, PHANDLE handle)
 {
   /* Close the existing handle.  */
@@ -1793,7 +1751,6 @@ void kwsysProcessSetupSharedPipe(DWORD nStdHandle, PHANDLE handle)
   *handle = GetStdHandle(nStdHandle);
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcessSetupPipeNative(HANDLE native, PHANDLE handle)
 {
   /* Close the existing handle.  */
@@ -1801,8 +1758,6 @@ void kwsysProcessSetupPipeNative(HANDLE native, PHANDLE handle)
   /* Store the new given handle.  */
   *handle = native;
 }
-
-/*--------------------------------------------------------------------------*/
 
 /* Close the given handle if it is open.  Reset its value to 0.  */
 void kwsysProcessCleanupHandle(PHANDLE h)
@@ -1815,8 +1770,6 @@ void kwsysProcessCleanupHandle(PHANDLE h)
     *h = INVALID_HANDLE_VALUE;
   }
 }
-
-/*--------------------------------------------------------------------------*/
 
 /* Close all handles created by kwsysProcess_Execute.  */
 void kwsysProcessCleanup(kwsysProcess* cp, DWORD error)
@@ -1902,7 +1855,6 @@ void kwsysProcessCleanup(kwsysProcess* cp, DWORD error)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcessCleanErrorMessage(kwsysProcess* cp)
 {
   /* Remove trailing period and newline, if any.  */
@@ -1920,7 +1872,6 @@ void kwsysProcessCleanErrorMessage(kwsysProcess* cp)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 /* Get the time at which either the process or user timeout will
    expire.  Returns 1 if the user timeout is first, and 0 otherwise.  */
 int kwsysProcessGetTimeoutTime(kwsysProcess* cp, double* userTimeout,
@@ -1952,7 +1903,6 @@ int kwsysProcessGetTimeoutTime(kwsysProcess* cp, double* userTimeout,
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
 /* Get the length of time before the given timeout time arrives.
    Returns 1 if the time has already arrived, and 0 otherwise.  */
 int kwsysProcessGetTimeoutLeft(kwsysProcessTime* timeoutTime,
@@ -1982,7 +1932,6 @@ int kwsysProcessGetTimeoutLeft(kwsysProcessTime* timeoutTime,
   }
 }
 
-/*--------------------------------------------------------------------------*/
 kwsysProcessTime kwsysProcessTimeGetCurrent()
 {
   kwsysProcessTime current;
@@ -1993,19 +1942,16 @@ kwsysProcessTime kwsysProcessTimeGetCurrent()
   return current;
 }
 
-/*--------------------------------------------------------------------------*/
 DWORD kwsysProcessTimeToDWORD(kwsysProcessTime t)
 {
   return (DWORD)(t.QuadPart * 0.0001);
 }
 
-/*--------------------------------------------------------------------------*/
 double kwsysProcessTimeToDouble(kwsysProcessTime t)
 {
   return t.QuadPart * 0.0000001;
 }
 
-/*--------------------------------------------------------------------------*/
 kwsysProcessTime kwsysProcessTimeFromDouble(double d)
 {
   kwsysProcessTime t;
@@ -2013,13 +1959,11 @@ kwsysProcessTime kwsysProcessTimeFromDouble(double d)
   return t;
 }
 
-/*--------------------------------------------------------------------------*/
 int kwsysProcessTimeLess(kwsysProcessTime in1, kwsysProcessTime in2)
 {
   return in1.QuadPart < in2.QuadPart;
 }
 
-/*--------------------------------------------------------------------------*/
 kwsysProcessTime kwsysProcessTimeAdd(kwsysProcessTime in1,
                                      kwsysProcessTime in2)
 {
@@ -2028,7 +1972,6 @@ kwsysProcessTime kwsysProcessTimeAdd(kwsysProcessTime in1,
   return out;
 }
 
-/*--------------------------------------------------------------------------*/
 kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1,
                                           kwsysProcessTime in2)
 {
@@ -2037,7 +1980,6 @@ kwsysProcessTime kwsysProcessTimeSubtract(kwsysProcessTime in1,
   return out;
 }
 
-/*--------------------------------------------------------------------------*/
 #define KWSYSPE_CASE(type, str)                                               \
   cp->ExitException = kwsysProcess_Exception_##type;                          \
   strcpy(cp->ExitExceptionString, str)
@@ -2136,7 +2078,6 @@ static int kwsysProcess_List_NextProcess(kwsysProcess_List* self);
 static int kwsysProcess_List_GetCurrentProcessId(kwsysProcess_List* self);
 static int kwsysProcess_List_GetCurrentParentId(kwsysProcess_List* self);
 
-/*--------------------------------------------------------------------------*/
 /* Windows NT 4 API definitions.  */
 #define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
 typedef LONG NTSTATUS;
@@ -2168,7 +2109,6 @@ struct _SYSTEM_PROCESS_INFORMATION
   ULONG InheritedFromProcessId;
 };
 
-/*--------------------------------------------------------------------------*/
 /* Toolhelp32 API definitions.  */
 #define TH32CS_SNAPPROCESS 0x00000002
 #if defined(_WIN64)
@@ -2192,7 +2132,6 @@ struct tagPROCESSENTRY32
   char szExeFile[MAX_PATH];
 };
 
-/*--------------------------------------------------------------------------*/
 /* Windows API function types.  */
 typedef HANDLE(WINAPI* CreateToolhelp32SnapshotType)(DWORD, DWORD);
 typedef BOOL(WINAPI* Process32FirstType)(HANDLE, LPPROCESSENTRY32);
@@ -2200,7 +2139,6 @@ typedef BOOL(WINAPI* Process32NextType)(HANDLE, LPPROCESSENTRY32);
 typedef NTSTATUS(WINAPI* ZwQuerySystemInformationType)(ULONG, PVOID, ULONG,
                                                        PULONG);
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__New_NT4(kwsysProcess_List* self);
 static int kwsysProcess_List__New_Snapshot(kwsysProcess_List* self);
 static void kwsysProcess_List__Delete_NT4(kwsysProcess_List* self);
@@ -2233,7 +2171,6 @@ struct kwsysProcess_List_s
   PROCESSENTRY32 CurrentEntry;
 };
 
-/*--------------------------------------------------------------------------*/
 static kwsysProcess_List* kwsysProcess_List_New(void)
 {
   OSVERSIONINFO osv;
@@ -2279,7 +2216,6 @@ static kwsysProcess_List* kwsysProcess_List_New(void)
   return self;
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcess_List_Delete(kwsysProcess_List* self)
 {
   if (self) {
@@ -2292,7 +2228,6 @@ static void kwsysProcess_List_Delete(kwsysProcess_List* self)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List_Update(kwsysProcess_List* self)
 {
   return self ? (self->NT4 ? kwsysProcess_List__Update_NT4(self)
@@ -2300,7 +2235,6 @@ static int kwsysProcess_List_Update(kwsysProcess_List* self)
               : 0;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List_GetCurrentProcessId(kwsysProcess_List* self)
 {
   return self ? (self->NT4 ? kwsysProcess_List__GetProcessId_NT4(self)
@@ -2308,7 +2242,6 @@ static int kwsysProcess_List_GetCurrentProcessId(kwsysProcess_List* self)
               : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List_GetCurrentParentId(kwsysProcess_List* self)
 {
   return self ? (self->NT4 ? kwsysProcess_List__GetParentId_NT4(self)
@@ -2316,7 +2249,6 @@ static int kwsysProcess_List_GetCurrentParentId(kwsysProcess_List* self)
               : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List_NextProcess(kwsysProcess_List* self)
 {
   return (self ? (self->NT4 ? kwsysProcess_List__Next_NT4(self)
@@ -2324,7 +2256,6 @@ static int kwsysProcess_List_NextProcess(kwsysProcess_List* self)
                : 0);
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__New_NT4(kwsysProcess_List* self)
 {
   /* Get a handle to the NT runtime module that should already be
@@ -2348,7 +2279,6 @@ static int kwsysProcess_List__New_NT4(kwsysProcess_List* self)
   return self->Buffer ? 1 : 0;
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcess_List__Delete_NT4(kwsysProcess_List* self)
 {
   /* Free the process information buffer.  */
@@ -2357,7 +2287,6 @@ static void kwsysProcess_List__Delete_NT4(kwsysProcess_List* self)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__Update_NT4(kwsysProcess_List* self)
 {
   self->CurrentInfo = 0;
@@ -2387,7 +2316,6 @@ static int kwsysProcess_List__Update_NT4(kwsysProcess_List* self)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__Next_NT4(kwsysProcess_List* self)
 {
   if (self->CurrentInfo) {
@@ -2401,19 +2329,16 @@ static int kwsysProcess_List__Next_NT4(kwsysProcess_List* self)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__GetProcessId_NT4(kwsysProcess_List* self)
 {
   return self->CurrentInfo ? self->CurrentInfo->ProcessId : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__GetParentId_NT4(kwsysProcess_List* self)
 {
   return self->CurrentInfo ? self->CurrentInfo->InheritedFromProcessId : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__New_Snapshot(kwsysProcess_List* self)
 {
   /* Get a handle to the Windows runtime module that should already be
@@ -2436,7 +2361,6 @@ static int kwsysProcess_List__New_Snapshot(kwsysProcess_List* self)
     : 0;
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcess_List__Delete_Snapshot(kwsysProcess_List* self)
 {
   if (self->Snapshot) {
@@ -2444,7 +2368,6 @@ static void kwsysProcess_List__Delete_Snapshot(kwsysProcess_List* self)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__Update_Snapshot(kwsysProcess_List* self)
 {
   if (self->Snapshot) {
@@ -2464,7 +2387,6 @@ static int kwsysProcess_List__Update_Snapshot(kwsysProcess_List* self)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__Next_Snapshot(kwsysProcess_List* self)
 {
   if (self->Snapshot) {
@@ -2477,19 +2399,16 @@ static int kwsysProcess_List__Next_Snapshot(kwsysProcess_List* self)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__GetProcessId_Snapshot(kwsysProcess_List* self)
 {
   return self->Snapshot ? self->CurrentEntry.th32ProcessID : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 static int kwsysProcess_List__GetParentId_Snapshot(kwsysProcess_List* self)
 {
   return self->Snapshot ? self->CurrentEntry.th32ParentProcessID : -1;
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessKill(DWORD pid)
 {
   HANDLE h = OpenProcess(PROCESS_TERMINATE, 0, pid);
@@ -2500,7 +2419,6 @@ static void kwsysProcessKill(DWORD pid)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessKillTree(int pid)
 {
   kwsysProcess_List* plist = kwsysProcess_List_New();
@@ -2516,7 +2434,6 @@ static void kwsysProcessKillTree(int pid)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 static void kwsysProcessDisablePipeThreads(kwsysProcess* cp)
 {
   int i;
@@ -2568,7 +2485,6 @@ static void kwsysProcessDisablePipeThreads(kwsysProcess* cp)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 /* Global set of executing processes for use by the Ctrl handler.
    This global instance will be zero-initialized by the compiler.
 
@@ -2598,7 +2514,6 @@ typedef struct kwsysProcessInstances_s
 } kwsysProcessInstances;
 static kwsysProcessInstances kwsysProcesses;
 
-/*--------------------------------------------------------------------------*/
 /* Initialize critial section and set up console Ctrl handler.  You MUST call
    this before using any other kwsysProcesses* functions below.  */
 static int kwsysProcessesInitialize(void)
@@ -2617,7 +2532,6 @@ static int kwsysProcessesInitialize(void)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 /* The Ctrl handler waits on the global list of processes.  To prevent an
    orphaned process, do not create a new process if the Ctrl handler is
    already running.  Do so by using this function to check if it is ok to
@@ -2636,7 +2550,6 @@ static int kwsysTryEnterCreateProcessSection(void)
   }
 }
 
-/*--------------------------------------------------------------------------*/
 /* Matching function on successful kwsysTryEnterCreateProcessSection return.
    Make sure you called kwsysProcessesAdd if applicable before calling this.*/
 static void kwsysLeaveCreateProcessSection(void)
@@ -2644,7 +2557,6 @@ static void kwsysLeaveCreateProcessSection(void)
   LeaveCriticalSection(&kwsysProcesses.Lock);
 }
 
-/*--------------------------------------------------------------------------*/
 /* Add new process to global process list.  The Ctrl handler will wait for
    the process to exit before it returns.  Do not close the process handle
    until after calling kwsysProcessesRemove.  The newProcessGroup parameter
@@ -2702,7 +2614,6 @@ static int kwsysProcessesAdd(HANDLE hProcess, DWORD dwProcessid,
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
 /* Removes process to global process list.  */
 static void kwsysProcessesRemove(HANDLE hProcess)
 {
@@ -2738,7 +2649,6 @@ static void kwsysProcessesRemove(HANDLE hProcess)
   LeaveCriticalSection(&kwsysProcesses.Lock);
 }
 
-/*--------------------------------------------------------------------------*/
 static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType)
 {
   size_t i;
@@ -2774,7 +2684,6 @@ static BOOL WINAPI kwsysCtrlHandler(DWORD dwCtrlType)
   return FALSE;
 }
 
-/*--------------------------------------------------------------------------*/
 void kwsysProcess_ResetStartTime(kwsysProcess* cp)
 {
   if (!cp) {
