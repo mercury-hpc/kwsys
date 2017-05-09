@@ -374,20 +374,23 @@ void CommandLineArguments::AddArgument(const char* argument,
                       variable, help);                                        \
   }
 
+/* clang-format off */
 CommandLineArgumentsAddArgumentMacro(BOOL, bool)
-  CommandLineArgumentsAddArgumentMacro(INT, int)
-    CommandLineArgumentsAddArgumentMacro(DOUBLE, double)
-      CommandLineArgumentsAddArgumentMacro(STRING, char*)
-        CommandLineArgumentsAddArgumentMacro(STL_STRING, std::string)
+CommandLineArgumentsAddArgumentMacro(INT, int)
+CommandLineArgumentsAddArgumentMacro(DOUBLE, double)
+CommandLineArgumentsAddArgumentMacro(STRING, char*)
+CommandLineArgumentsAddArgumentMacro(STL_STRING, std::string)
 
-          CommandLineArgumentsAddArgumentMacro(VECTOR_BOOL, std::vector<bool>)
-            CommandLineArgumentsAddArgumentMacro(VECTOR_INT, std::vector<int>)
-              CommandLineArgumentsAddArgumentMacro(VECTOR_DOUBLE,
-                                                   std::vector<double>)
-                CommandLineArgumentsAddArgumentMacro(VECTOR_STRING,
-                                                     std::vector<char*>)
-                  CommandLineArgumentsAddArgumentMacro(
-                    VECTOR_STL_STRING, std::vector<std::string>)
+CommandLineArgumentsAddArgumentMacro(VECTOR_BOOL, std::vector<bool>)
+CommandLineArgumentsAddArgumentMacro(VECTOR_INT, std::vector<int>)
+CommandLineArgumentsAddArgumentMacro(VECTOR_DOUBLE, std::vector<double>)
+CommandLineArgumentsAddArgumentMacro(VECTOR_STRING, std::vector<char*>)
+CommandLineArgumentsAddArgumentMacro(VECTOR_STL_STRING,
+                                     std::vector<std::string>)
+#ifdef HELP_CLANG_FORMAT
+;
+#endif
+/* clang-format on */
 
 #define CommandLineArgumentsAddBooleanArgumentMacro(type, ctype)              \
   void CommandLineArguments::AddBooleanArgument(                              \
@@ -397,17 +400,18 @@ CommandLineArgumentsAddArgumentMacro(BOOL, bool)
                       CommandLineArguments::type##_TYPE, variable, help);     \
   }
 
-                    CommandLineArgumentsAddBooleanArgumentMacro(BOOL, bool)
-                      CommandLineArgumentsAddBooleanArgumentMacro(INT, int)
-                        CommandLineArgumentsAddBooleanArgumentMacro(DOUBLE,
-                                                                    double)
-                          CommandLineArgumentsAddBooleanArgumentMacro(STRING,
-                                                                      char*)
-                            CommandLineArgumentsAddBooleanArgumentMacro(
-                              STL_STRING, std::string)
+/* clang-format off */
+CommandLineArgumentsAddBooleanArgumentMacro(BOOL, bool)
+CommandLineArgumentsAddBooleanArgumentMacro(INT, int)
+CommandLineArgumentsAddBooleanArgumentMacro(DOUBLE, double)
+CommandLineArgumentsAddBooleanArgumentMacro(STRING, char*)
+CommandLineArgumentsAddBooleanArgumentMacro(STL_STRING, std::string)
+#ifdef HELP_CLANG_FORMAT
+;
+#endif
+/* clang-format on */
 
-                              void CommandLineArguments::SetClientData(
-                                void* client_data)
+void CommandLineArguments::SetClientData(void* client_data)
 {
   this->Internals->ClientData = client_data;
 }
