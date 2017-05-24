@@ -1968,6 +1968,11 @@ bool SystemInformationImplementation::DoesCPUSupportFeature(long int dwFeature)
       this->Features.ExtendedFeatures.PowerManagement.HasVoltageID)
     bHasFeature = true;
 
+  // Check for FPU support.
+  if (((dwFeature & SystemInformation::CPU_FEATURE_FPU) != 0) &&
+      this->Features.HasFPU)
+    bHasFeature = true;
+
   return bHasFeature;
 }
 

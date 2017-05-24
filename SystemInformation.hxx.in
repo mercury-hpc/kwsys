@@ -50,6 +50,7 @@ public:
   static const long int CPU_FEATURE_TEMPSENSEDIODE = 1 << 20;
   static const long int CPU_FEATURE_FREQUENCYID = 1 << 21;
   static const long int CPU_FEATURE_VOLTAGEID_FREQUENCY = 1 << 22;
+  static const long int CPU_FEATURE_FPU = 1 << 23;
 
 public:
   SystemInformation();
