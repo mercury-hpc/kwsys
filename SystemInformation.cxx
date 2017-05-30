@@ -3341,11 +3341,11 @@ std::string SystemInformationImplementation::ExtractValueFromCpuInfoFile(
   std::string buffer, const char* word, size_t init)
 {
   size_t pos = buffer.find(word, init);
-  if (pos != buffer.npos) {
+  if (pos != std::string::npos) {
     this->CurrentPositionInFile = pos;
     pos = buffer.find(":", pos);
     size_t pos2 = buffer.find("\n", pos);
-    if (pos != buffer.npos && pos2 != buffer.npos) {
+    if (pos != std::string::npos && pos2 != std::string::npos) {
       // It may happen that the beginning matches, but this is still not the
       // requested key.
       // An example is looking for "cpu" when "cpu family" comes first. So we
@@ -3360,7 +3360,7 @@ std::string SystemInformationImplementation::ExtractValueFromCpuInfoFile(
       return buffer.substr(pos + 2, pos2 - pos - 2);
     }
   }
-  this->CurrentPositionInFile = buffer.npos;
+  this->CurrentPositionInFile = std::string::npos;
   return "";
 }
 
@@ -3387,7 +3387,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   // Number of logical CPUs (combination of multiple processors, multi-core
   // and SMT)
   size_t pos = buffer.find("processor\t");
-  while (pos != buffer.npos) {
+  while (pos != std::string::npos) {
     this->NumberOfLogicalCPU++;
     pos = buffer.find("processor\t", pos + 1);
   }
@@ -3396,7 +3396,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   // Count sockets.
   std::set<int> PhysicalIDs;
   std::string idc = this->ExtractValueFromCpuInfoFile(buffer, "physical id");
-  while (this->CurrentPositionInFile != buffer.npos) {
+  while (this->CurrentPositionInFile != std::string::npos) {
     int id = atoi(idc.c_str());
     PhysicalIDs.insert(id);
     idc = this->ExtractValueFromCpuInfoFile(buffer, "physical id",
@@ -3506,7 +3506,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
       this->ExtractValueFromCpuInfoFile(buffer, cachename[index]);
     if (!cacheSize.empty()) {
       pos = cacheSize.find(" KB");
-      if (pos != cacheSize.npos) {
+      if (pos != std::string::npos) {
         cacheSize = cacheSize.substr(0, pos);
       }
       this->Features.L1CacheSize += atoi(cacheSize.c_str());
@@ -4585,10 +4585,10 @@ std::string SystemInformationImplementation::ExtractValueFromSysCtl(
   const char* word)
 {
   size_t pos = this->SysCtlBuffer.find(word);
-  if (pos != this->SysCtlBuffer.npos) {
+  if (pos != std::string::npos) {
     pos = this->SysCtlBuffer.find(": ", pos);
     size_t pos2 = this->SysCtlBuffer.find("\n", pos);
-    if (pos != this->SysCtlBuffer.npos && pos2 != this->SysCtlBuffer.npos) {
+    if (pos != std::string::npos && pos2 != std::string::npos) {
       return this->SysCtlBuffer.substr(pos + 2, pos2 - pos - 2);
     }
   }
@@ -4660,14 +4660,14 @@ std::string SystemInformationImplementation::ParseValueFromKStat(
   args.push_back("-p");
 
   std::string command = arguments;
-  size_t start = command.npos;
+  size_t start = std::string::npos;
   size_t pos = command.find(' ', 0);
-  while (pos != command.npos) {
+  while (pos != std::string::npos) {
     bool inQuotes = false;
     // Check if we are between quotes
     size_t b0 = command.find('"', 0);
     size_t b1 = command.find('"', b0 + 1);
-    while (b0 != command.npos && b1 != command.npos && b1 > b0) {
+    while (b0 != std::string::npos && b1 != std::string::npos && b1 > b0) {
       if (pos > b0 && pos < b1) {
         inQuotes = true;
         break;
@@ -4681,7 +4681,7 @@ std::string SystemInformationImplementation::ParseValueFromKStat(
 
       // Remove the quotes if any
       size_t quotes = arg.find('"');
-      while (quotes != arg.npos) {
+      while (quotes != std::string::npos) {
         arg.erase(quotes, 1);
         quotes = arg.find('"');
       }
@@ -4864,11 +4864,11 @@ bool SystemInformationImplementation::QueryQNXMemory()
   args.clear();
 
   size_t pos = buffer.find("System RAM:");
-  if (pos == buffer.npos)
+  if (pos == std::string::npos)
     return false;
   pos = buffer.find(":", pos);
   size_t pos2 = buffer.find("M (", pos);
-  if (pos2 == buffer.npos)
+  if (pos2 == std::string::npos)
     return false;
 
   pos++;
@@ -4922,11 +4922,11 @@ bool SystemInformationImplementation::QueryQNXProcessor()
   args.clear();
 
   size_t pos = buffer.find("Processor1:");
-  if (pos == buffer.npos)
+  if (pos == std::string::npos)
     return false;
 
   size_t pos2 = buffer.find("MHz", pos);
-  if (pos2 == buffer.npos)
+  if (pos2 == std::string::npos)
     return false;
 
   size_t pos3 = pos2;
@@ -4936,9 +4936,9 @@ bool SystemInformationImplementation::QueryQNXProcessor()
   this->CPUSpeedInMHz = atoi(buffer.substr(pos3 + 1, pos2 - pos3 - 1).c_str());
 
   pos2 = buffer.find(" Stepping", pos);
-  if (pos2 != buffer.npos) {
+  if (pos2 != std::string::npos) {
     pos2 = buffer.find(" ", pos2 + 1);
-    if (pos2 != buffer.npos && pos2 < pos3) {
+    if (pos2 != std::string::npos && pos2 < pos3) {
       this->ChipID.Revision =
         atoi(buffer.substr(pos2 + 1, pos3 - pos2).c_str());
     }
@@ -4948,7 +4948,7 @@ bool SystemInformationImplementation::QueryQNXProcessor()
   do {
     pos = buffer.find("\nProcessor", pos + 1);
     ++this->NumberOfPhysicalCPU;
-  } while (pos != buffer.npos);
+  } while (pos != std::string::npos);
   this->NumberOfLogicalCPU = 1;
 
   return true;
