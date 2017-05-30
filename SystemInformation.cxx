@@ -1331,7 +1331,7 @@ std::string SymbolProperties::GetFileName(const std::string& path) const
   if (!this->ReportPath) {
     size_t at = file.rfind("/");
     if (at != std::string::npos) {
-      file = file.substr(at + 1, std::string::npos);
+      file = file.substr(at + 1);
     }
   }
   return file;

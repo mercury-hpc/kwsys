@@ -1721,7 +1721,7 @@ std::string SystemTools::CropString(const std::string& s, size_t max_len)
   size_t middle = max_len / 2;
 
   n += s.substr(0, middle);
-  n += s.substr(s.size() - (max_len - middle), std::string::npos);
+  n += s.substr(s.size() - (max_len - middle));
 
   if (max_len > 2) {
     n[middle] = '.';
