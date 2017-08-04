@@ -3797,11 +3797,7 @@ std::string SystemTools::GetFilenamePath(const std::string& filename)
  */
 std::string SystemTools::GetFilenameName(const std::string& filename)
 {
-#if defined(_WIN32)
   std::string::size_type slash_pos = filename.find_last_of("/\\");
-#else
-  std::string::size_type slash_pos = filename.rfind('/');
-#endif
   if (slash_pos != std::string::npos) {
     return filename.substr(slash_pos + 1);
   } else {
