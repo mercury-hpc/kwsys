@@ -2291,6 +2291,7 @@ static void kwsysProcessChildErrorExit(int errorPipe)
   char buffer[KWSYSPE_PIPE_BUFFER_SIZE];
   kwsysProcess_ssize_t result;
   strncpy(buffer, strerror(errno), KWSYSPE_PIPE_BUFFER_SIZE);
+  buffer[KWSYSPE_PIPE_BUFFER_SIZE - 1] = '\0';
 
   /* Report the error to the parent through the special pipe.  */
   result = write(errorPipe, buffer, strlen(buffer));
