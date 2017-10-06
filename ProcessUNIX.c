@@ -359,9 +359,7 @@ void kwsysProcess_Delete(kwsysProcess* cp)
   kwsysProcess_SetPipeFile(cp, kwsysProcess_Pipe_STDIN, 0);
   kwsysProcess_SetPipeFile(cp, kwsysProcess_Pipe_STDOUT, 0);
   kwsysProcess_SetPipeFile(cp, kwsysProcess_Pipe_STDERR, 0);
-  if (cp->CommandExitCodes) {
-    free(cp->CommandExitCodes);
-  }
+  free(cp->CommandExitCodes);
   free(cp->ProcessResults);
   free(cp);
 }
@@ -1514,9 +1512,7 @@ static int kwsysProcessInitialize(kwsysProcess* cp)
   oldForkPIDs = cp->ForkPIDs;
   cp->ForkPIDs = (volatile pid_t*)malloc(sizeof(volatile pid_t) *
                                          (size_t)(cp->NumberOfCommands));
-  if (oldForkPIDs) {
-    kwsysProcessVolatileFree(oldForkPIDs);
-  }
+  kwsysProcessVolatileFree(oldForkPIDs);
   if (!cp->ForkPIDs) {
     return 0;
   }
@@ -1524,9 +1520,7 @@ static int kwsysProcessInitialize(kwsysProcess* cp)
     cp->ForkPIDs[i] = 0; /* can't use memset due to volatile */
   }
 
-  if (cp->CommandExitCodes) {
-    free(cp->CommandExitCodes);
-  }
+  free(cp->CommandExitCodes);
   cp->CommandExitCodes =
     (int*)malloc(sizeof(int) * (size_t)(cp->NumberOfCommands));
   if (!cp->CommandExitCodes) {
