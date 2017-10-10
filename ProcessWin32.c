@@ -523,9 +523,7 @@ void kwsysProcess_Delete(kwsysProcess* cp)
   kwsysProcess_SetPipeFile(cp, kwsysProcess_Pipe_STDIN, 0);
   kwsysProcess_SetPipeFile(cp, kwsysProcess_Pipe_STDOUT, 0);
   kwsysProcess_SetPipeFile(cp, kwsysProcess_Pipe_STDERR, 0);
-  if (cp->CommandExitCodes) {
-    free(cp->CommandExitCodes);
-  }
+  free(cp->CommandExitCodes);
   free(cp->ProcessResults);
   free(cp);
 }
@@ -1607,9 +1605,7 @@ int kwsysProcessInitialize(kwsysProcess* cp)
   }
   ZeroMemory(cp->ProcessInformation,
              sizeof(PROCESS_INFORMATION) * cp->NumberOfCommands);
-  if (cp->CommandExitCodes) {
-    free(cp->CommandExitCodes);
-  }
+  free(cp->CommandExitCodes);
   cp->CommandExitCodes = (DWORD*)malloc(sizeof(DWORD) * cp->NumberOfCommands);
   if (!cp->CommandExitCodes) {
     return 0;
@@ -2362,9 +2358,7 @@ static int kwsysProcess_List__New_NT4(kwsysProcess_List* self)
 static void kwsysProcess_List__Delete_NT4(kwsysProcess_List* self)
 {
   /* Free the process information buffer.  */
-  if (self->Buffer) {
-    free(self->Buffer);
-  }
+  free(self->Buffer);
 }
 
 static int kwsysProcess_List__Update_NT4(kwsysProcess_List* self)
