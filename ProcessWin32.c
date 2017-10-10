@@ -711,11 +711,10 @@ int kwsysProcess_SetPipeFile(kwsysProcess* cp, int pipe, const char* file)
     *pfile = 0;
   }
   if (file) {
-    *pfile = (char*)malloc(strlen(file) + 1);
+    *pfile = strdup(file);
     if (!*pfile) {
       return 0;
     }
-    strcpy(*pfile, file);
   }
 
   /* If we are redirecting the pipe, do not share it or use a native
