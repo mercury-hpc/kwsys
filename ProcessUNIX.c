@@ -1938,6 +1938,7 @@ static int kwsysProcessSetupOutputPipeFile(int* p, const char* name)
 
   /* Set close-on-exec flag on the pipe's end.  */
   if (fcntl(fout, F_SETFD, FD_CLOEXEC) < 0) {
+    close(fout);
     return 0;
   }
 
@@ -2290,6 +2291,7 @@ static void kwsysProcessChildErrorExit(int errorPipe)
   char buffer[KWSYSPE_PIPE_BUFFER_SIZE];
   kwsysProcess_ssize_t result;
   strncpy(buffer, strerror(errno), KWSYSPE_PIPE_BUFFER_SIZE);
+  buffer[KWSYSPE_PIPE_BUFFER_SIZE - 1] = '\0';
 
   /* Report the error to the parent through the special pipe.  */
   result = write(errorPipe, buffer, strlen(buffer));
