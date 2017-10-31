@@ -1159,6 +1159,9 @@ IF(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
       # the -qsuppress option
       STRING(APPEND testProcess_COMPILE_FLAGS " -qsuppress=1500-010")
     ENDIF()
+    IF(CMAKE_C_FLAGS MATCHES "-fsanitize=")
+      STRING(APPEND testProcess_COMPILE_FLAGS " -DCRASH_USING_ABORT")
+    ENDIF()
     SET_PROPERTY(SOURCE testProcess.c PROPERTY COMPILE_FLAGS "${testProcess_COMPILE_FLAGS}")
 
     # Test SharedForward
