@@ -849,11 +849,6 @@ public:
   int regmatch(const char*);
   int regrepeat(const char*);
 };
-#ifdef DEBUG
-int regnarrate = 0;
-void regdump();
-static char* regprop();
-#endif
 
 // find -- Matches the regular expression to the given string.
 // Returns true if found, and sets start and end indexes accordingly.
