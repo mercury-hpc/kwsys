@@ -276,31 +276,35 @@ const unsigned char MAGIC = 0234;
 /////////////////////////////////////////////////////////////////////////
 
 /*
- * Global work variables for compile().
+ * Read only utility variables.
  */
-static const char* regparse; // Input-scan pointer.
-static int regnpar;          // () count.
 static char regdummy;
-static char* regcode; // Code-emit pointer; &regdummy = don't.
-static long regsize;  // Code size.
+static char* const regdummyptr = &regdummy;
 
 /*
- * Forward declarations for compile()'s friends.
+ * Utility class for RegularExpression::compile().
  */
-// #ifndef static
-// #define      static  static
-// #endif
-static char* reg(int, int*);
-static char* regbranch(int*);
-static char* regpiece(int*);
-static char* regatom(int*);
-static char* regnode(char);
+class RegExpCompile
+{
+public:
+  const char* regparse; // Input-scan pointer.
+  int regnpar;          // () count.
+  char* regcode;        // Code-emit pointer; regdummyptr = don't.
+  long regsize;         // Code size.
+
+  char* reg(int, int*);
+  char* regbranch(int*);
+  char* regpiece(int*);
+  char* regatom(int*);
+  char* regnode(char);
+  void regc(char);
+  void reginsert(char, char*);
+  static void regtail(char*, const char*);
+  static void regoptail(char*, const char*);
+};
+
 static const char* regnext(const char*);
 static char* regnext(char*);
-static void regc(char);
-static void reginsert(char, char*);
-static void regtail(char*, const char*);
-static void regoptail(char*, const char*);
 
 #ifdef STRCSPN
 static int strcspn();
@@ -337,19 +341,20 @@ bool RegularExpression::compile(const char* exp)
   }
 
   // First pass: determine size, legality.
-  regparse = exp;
-  regnpar = 1;
-  regsize = 0L;
-  regcode = &regdummy;
-  regc(static_cast<char>(MAGIC));
-  if (!reg(0, &flags)) {
+  RegExpCompile comp;
+  comp.regparse = exp;
+  comp.regnpar = 1;
+  comp.regsize = 0L;
+  comp.regcode = regdummyptr;
+  comp.regc(static_cast<char>(MAGIC));
+  if (!comp.reg(0, &flags)) {
     printf("RegularExpression::compile(): Error in compile.\n");
     return false;
   }
   this->startp[0] = this->endp[0] = this->searchstring = 0;
 
   // Small enough for pointer-storage convention?
-  if (regsize >= 32767L) { // Probably could be 65535L.
+  if (comp.regsize >= 32767L) { // Probably could be 65535L.
     // RAISE Error, SYM(RegularExpression), SYM(Expr_Too_Big),
     printf("RegularExpression::compile(): Expression too big.\n");
     return false;
@@ -360,8 +365,8 @@ bool RegularExpression::compile(const char* exp)
   if (this->program != 0)
     delete[] this->program;
   //#endif
-  this->program = new char[regsize];
-  this->progsize = static_cast<int>(regsize);
+  this->program = new char[comp.regsize];
+  this->progsize = static_cast<int>(comp.regsize);
 
   if (this->program == 0) {
     // RAISE Error, SYM(RegularExpression), SYM(Out_Of_Memory),
@@ -370,11 +375,11 @@ bool RegularExpression::compile(const char* exp)
   }
 
   // Second pass: emit code.
-  regparse = exp;
-  regnpar = 1;
-  regcode = this->program;
-  regc(static_cast<char>(MAGIC));
-  reg(0, &flags);
+  comp.regparse = exp;
+  comp.regnpar = 1;
+  comp.regcode = this->program;
+  comp.regc(static_cast<char>(MAGIC));
+  comp.reg(0, &flags);
 
   // Dig out information for optimizations.
   this->regstart = '\0'; // Worst-case defaults.
@@ -423,7 +428,7 @@ bool RegularExpression::compile(const char* exp)
  * is a trifle forced, but the need to tie the tails of the branches to what
  * follows makes it hard to avoid.
  */
-static char* reg(int paren, int* flagp)
+char* RegExpCompile::reg(int paren, int* flagp)
 {
   char* ret;
   char* br;
@@ -501,7 +506,7 @@ static char* reg(int paren, int* flagp)
  *
  * Implements the concatenation operator.
  */
-static char* regbranch(int* flagp)
+char* RegExpCompile::regbranch(int* flagp)
 {
   char* ret;
   char* chain;
@@ -538,7 +543,7 @@ static char* regbranch(int* flagp)
  * It might seem that this node could be dispensed with entirely, but the
  * endmarker role is not redundant.
  */
-static char* regpiece(int* flagp)
+char* RegExpCompile::regpiece(int* flagp)
 {
   char* ret;
   char op;
@@ -605,7 +610,7 @@ static char* regpiece(int* flagp)
  * faster to run.  Backslashed characters are exceptions, each becoming a
  * separate node; the code is simpler that way and it's not worth fixing.
  */
-static char* regatom(int* flagp)
+char* RegExpCompile::regatom(int* flagp)
 {
   char* ret;
   int flags;
@@ -724,13 +729,13 @@ static char* regatom(int* flagp)
  - regnode - emit a node
    Location.
  */
-static char* regnode(char op)
+char* RegExpCompile::regnode(char op)
 {
   char* ret;
   char* ptr;
 
   ret = regcode;
-  if (ret == &regdummy) {
+  if (ret == regdummyptr) {
     regsize += 3;
     return (ret);
   }
@@ -747,9 +752,9 @@ static char* regnode(char op)
 /*
  - regc - emit (if appropriate) a byte of code
  */
-static void regc(char b)
+void RegExpCompile::regc(char b)
 {
-  if (regcode != &regdummy)
+  if (regcode != regdummyptr)
     *regcode++ = b;
   else
     regsize++;
@@ -760,13 +765,13 @@ static void regc(char b)
  *
  * Means relocating the operand.
  */
-static void reginsert(char op, char* opnd)
+void RegExpCompile::reginsert(char op, char* opnd)
 {
   char* src;
   char* dst;
   char* place;
 
-  if (regcode == &regdummy) {
+  if (regcode == regdummyptr) {
     regsize += 3;
     return;
   }
@@ -786,13 +791,13 @@ static void reginsert(char op, char* opnd)
 /*
  - regtail - set the next-pointer at the end of a node chain
  */
-static void regtail(char* p, const char* val)
+void RegExpCompile::regtail(char* p, const char* val)
 {
   char* scan;
   char* temp;
   int offset;
 
-  if (p == &regdummy)
+  if (p == regdummyptr)
     return;
 
   // Find last node.
@@ -815,10 +820,10 @@ static void regtail(char* p, const char* val)
 /*
  - regoptail - regtail on operand of first argument; nop if operandless
  */
-static void regoptail(char* p, const char* val)
+void RegExpCompile::regoptail(char* p, const char* val)
 {
   // "Operandless" and "op != BRANCH" are synonymous in practice.
-  if (p == 0 || p == &regdummy || OP(p) != BRANCH)
+  if (p == 0 || p == regdummyptr || OP(p) != BRANCH)
     return;
   regtail(OPERAND(p), val);
 }
@@ -1176,7 +1181,7 @@ static const char* regnext(const char* p)
 {
   int offset;
 
-  if (p == &regdummy)
+  if (p == regdummyptr)
     return (0);
 
   offset = NEXT(p);
@@ -1193,7 +1198,7 @@ static char* regnext(char* p)
 {
   int offset;
 
-  if (p == &regdummy)
+  if (p == regdummyptr)
     return (0);
 
   offset = NEXT(p);
