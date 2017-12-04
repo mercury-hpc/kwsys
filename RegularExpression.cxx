@@ -45,9 +45,9 @@ RegularExpression::RegularExpression(const RegularExpression& rxp)
   this->program = new char[this->progsize]; // Allocate storage
   for (ind = this->progsize; ind-- != 0;)   // Copy regular expresion
     this->program[ind] = rxp.program[ind];
-  this->startp[0] = rxp.startp[0]; // Copy pointers into last
-  this->endp[0] = rxp.endp[0];     // Successful "find" operation
-  this->regmust = rxp.regmust;     // Copy field
+  // Copy pointers into last successful "find" operation
+  this->regmatch = rxp.regmatch;
+  this->regmust = rxp.regmust; // Copy field
   if (rxp.regmust != 0) {
     char* dum = rxp.program;
     ind = 0;
@@ -78,9 +78,9 @@ RegularExpression& RegularExpression::operator=(const RegularExpression& rxp)
   this->program = new char[this->progsize]; // Allocate storage
   for (ind = this->progsize; ind-- != 0;)   // Copy regular expresion
     this->program[ind] = rxp.program[ind];
-  this->startp[0] = rxp.startp[0]; // Copy pointers into last
-  this->endp[0] = rxp.endp[0];     // Successful "find" operation
-  this->regmust = rxp.regmust;     // Copy field
+  // Copy pointers into last successful "find" operation
+  this->regmatch = rxp.regmatch;
+  this->regmust = rxp.regmust; // Copy field
   if (rxp.regmust != 0) {
     char* dum = rxp.program;
     ind = 0;
@@ -123,8 +123,9 @@ bool RegularExpression::deep_equal(const RegularExpression& rxp) const
   while (ind-- != 0)                            // Else while still characters
     if (this->program[ind] != rxp.program[ind]) // If regexp are different
       return false;                             // Return failure
-  return (this->startp[0] == rxp.startp[0] &&   // Else if same start/end ptrs,
-          this->endp[0] == rxp.endp[0]);        // Return true
+  // Else if same start/end ptrs, return true
+  return (this->regmatch.start() == rxp.regmatch.start() &&
+          this->regmatch.end() == rxp.regmatch.end());
 }
 
 // The remaining code in this file is derived from the  regular expression code
@@ -351,7 +352,7 @@ bool RegularExpression::compile(const char* exp)
     printf("RegularExpression::compile(): Error in compile.\n");
     return false;
   }
-  this->startp[0] = this->endp[0] = this->searchstring = 0;
+  this->regmatch.clear();
 
   // Small enough for pointer-storage convention?
   if (comp.regsize >= 32767L) { // Probably could be 65535L.
@@ -440,7 +441,7 @@ char* RegExpCompile::reg(int paren, int* flagp)
 
   // Make an OPEN node, if parenthesized.
   if (paren) {
-    if (regnpar >= RegularExpression::NSUBEXP) {
+    if (regnpar >= RegularExpressionMatch::NSUBEXP) {
       // RAISE Error, SYM(RegularExpression), SYM(Too_Many_Parens),
       printf("RegularExpression::compile(): Too many parentheses.\n");
       return 0;
@@ -852,12 +853,13 @@ public:
 
 // find -- Matches the regular expression to the given string.
 // Returns true if found, and sets start and end indexes accordingly.
-
-bool RegularExpression::find(const char* string)
+bool RegularExpression::find(char const* string,
+                             RegularExpressionMatch& rmatch) const
 {
   const char* s;
 
-  this->searchstring = string;
+  rmatch.clear();
+  rmatch.searchstring = string;
 
   if (!this->program) {
     return false;
@@ -868,7 +870,7 @@ bool RegularExpression::find(const char* string)
     // RAISE Error, SYM(RegularExpression), SYM(Internal_Error),
     printf(
       "RegularExpression::find(): Compiled regular expression corrupted.\n");
-    return 0;
+    return false;
   }
 
   // If there is a "must appear" string, look for it.
@@ -880,7 +882,7 @@ bool RegularExpression::find(const char* string)
       s++;
     }
     if (s == 0) // Not present.
-      return (0);
+      return false;
   }
 
   RegExpFind regFind;
@@ -890,27 +892,27 @@ bool RegularExpression::find(const char* string)
 
   // Simplest case:  anchored match need be tried only once.
   if (this->reganch)
-    return (regFind.regtry(string, this->startp, this->endp, this->program) !=
-            0);
+    return (
+      regFind.regtry(string, rmatch.startp, rmatch.endp, this->program) != 0);
 
   // Messy cases:  unanchored match.
   s = string;
   if (this->regstart != '\0')
     // We know what char it must start with.
     while ((s = strchr(s, this->regstart)) != 0) {
-      if (regFind.regtry(s, this->startp, this->endp, this->program))
-        return (1);
+      if (regFind.regtry(s, rmatch.startp, rmatch.endp, this->program))
+        return false;
       s++;
     }
   else
     // We don't -- general case.
     do {
-      if (regFind.regtry(s, this->startp, this->endp, this->program))
-        return (1);
+      if (regFind.regtry(s, rmatch.startp, rmatch.endp, this->program))
+        return true;
     } while (*s++ != '\0');
 
   // Failure.
-  return (0);
+  return false;
 }
 
 /*
@@ -930,7 +932,7 @@ int RegExpFind::regtry(const char* string, const char** start,
 
   sp1 = start;
   ep = end;
-  for (i = RegularExpression::NSUBEXP; i > 0; i--) {
+  for (i = RegularExpressionMatch::NSUBEXP; i > 0; i--) {
     *sp1++ = 0;
     *ep++ = 0;
   }
