@@ -835,20 +835,20 @@ void RegExpCompile::regoptail(char* p, const char* val)
 ////////////////////////////////////////////////////////////////////////
 
 /*
- * Global work variables for find().
+ * Utility class for RegularExpression::find().
  */
-static const char* reginput;   // String-input pointer.
-static const char* regbol;     // Beginning of input, for ^ check.
-static const char** regstartp; // Pointer to startp array.
-static const char** regendp;   // Ditto for endp.
+class RegExpFind
+{
+public:
+  const char* reginput;   // String-input pointer.
+  const char* regbol;     // Beginning of input, for ^ check.
+  const char** regstartp; // Pointer to startp array.
+  const char** regendp;   // Ditto for endp.
 
-/*
- * Forwards.
- */
-static int regtry(const char*, const char**, const char**, const char*);
-static int regmatch(const char*);
-static int regrepeat(const char*);
-
+  int regtry(const char*, const char**, const char**, const char*);
+  int regmatch(const char*);
+  int regrepeat(const char*);
+};
 #ifdef DEBUG
 int regnarrate = 0;
 void regdump();
@@ -888,26 +888,29 @@ bool RegularExpression::find(const char* string)
       return (0);
   }
 
+  RegExpFind regFind;
+
   // Mark beginning of line for ^ .
-  regbol = string;
+  regFind.regbol = string;
 
   // Simplest case:  anchored match need be tried only once.
   if (this->reganch)
-    return (regtry(string, this->startp, this->endp, this->program) != 0);
+    return (regFind.regtry(string, this->startp, this->endp, this->program) !=
+            0);
 
   // Messy cases:  unanchored match.
   s = string;
   if (this->regstart != '\0')
     // We know what char it must start with.
     while ((s = strchr(s, this->regstart)) != 0) {
-      if (regtry(s, this->startp, this->endp, this->program))
+      if (regFind.regtry(s, this->startp, this->endp, this->program))
         return (1);
       s++;
     }
   else
     // We don't -- general case.
     do {
-      if (regtry(s, this->startp, this->endp, this->program))
+      if (regFind.regtry(s, this->startp, this->endp, this->program))
         return (1);
     } while (*s++ != '\0');
 
@@ -919,8 +922,8 @@ bool RegularExpression::find(const char* string)
  - regtry - try match at specific point
    0 failure, 1 success
  */
-static int regtry(const char* string, const char** start, const char** end,
-                  const char* prog)
+int RegExpFind::regtry(const char* string, const char** start,
+                       const char** end, const char* prog)
 {
   int i;
   const char** sp1;
@@ -955,7 +958,7 @@ static int regtry(const char* string, const char** start, const char** end,
  * by recursion.
  * 0 failure, 1 success
  */
-static int regmatch(const char* prog)
+int RegExpFind::regmatch(const char* prog)
 {
   const char* scan; // Current node.
   const char* next; // Next node.
@@ -1134,7 +1137,7 @@ static int regmatch(const char* prog)
 /*
  - regrepeat - repeatedly match something simple, report how many
  */
-static int regrepeat(const char* p)
+int RegExpFind::regrepeat(const char* p)
 {
   int count = 0;
   const char* scan;
