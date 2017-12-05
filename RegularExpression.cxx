@@ -901,7 +901,7 @@ bool RegularExpression::find(char const* string,
     // We know what char it must start with.
     while ((s = strchr(s, this->regstart)) != 0) {
       if (regFind.regtry(s, rmatch.startp, rmatch.endp, this->program))
-        return false;
+        return true;
       s++;
     }
   else
