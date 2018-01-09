@@ -576,7 +576,7 @@ IF(KWSYS_USE_SystemInformation)
     CHECK_INCLUDE_FILE_CXX("execinfo.h" KWSYS_CXX_HAS_EXECINFOH)
     IF (KWSYS_CXX_HAS_EXECINFOH)
       # we have the backtrace header check if it
-      # can be used  with this compiler
+      # can be used with this compiler
       SET(KWSYS_PLATFORM_CXX_TEST_LINK_LIBRARIES ${EXECINFO_LIB})
       KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_BACKTRACE
          "Checking whether backtrace works with this C++ compiler" DIRECT)
