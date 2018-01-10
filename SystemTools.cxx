@@ -107,7 +107,8 @@ extern char** environ;
 
 // getpwnam doesn't exist on Windows and Cray Xt3/Catamount
 // same for TIOCGWINSZ
-#if defined(_WIN32) || defined(__LIBCATAMOUNT__)
+#if defined(_WIN32) || defined(__LIBCATAMOUNT__) ||                           \
+  (defined(HAVE_GETPWNAM) && HAVE_GETPWNAM == 0)
 #undef HAVE_GETPWNAM
 #undef HAVE_TTY_INFO
 #else
