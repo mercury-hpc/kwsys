@@ -3623,7 +3623,7 @@ std::string SystemTools::JoinPath(
 
   // All remaining components are always separated with a slash.
   while (first != last) {
-    result.append("/");
+    result.push_back('/');
     result.append((*first++));
   }
 
