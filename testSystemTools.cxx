@@ -764,20 +764,26 @@ static bool CheckGetFilenameName()
   const char* windowsFilepath = "C:\\somewhere\\something";
   const char* unixFilepath = "/somewhere/something";
 
-  std::string expectedFilename = "something";
+#if defined(_WIN32) || defined(KWSYS_SYSTEMTOOLS_SUPPORT_WINDOWS_SLASHES)
+  std::string expectedWindowsFilename = "something";
+#else
+  std::string expectedWindowsFilename = "C:\\somewhere\\something";
+#endif
+  std::string expectedUnixFilename = "something";
 
   bool res = true;
   std::string filename = kwsys::SystemTools::GetFilenameName(windowsFilepath);
-  if (filename != expectedFilename) {
+  if (filename != expectedWindowsFilename) {
     std::cerr << "GetFilenameName(" << windowsFilepath << ") yielded "
-              << filename << " instead of " << expectedFilename << std::endl;
+              << filename << " instead of " << expectedWindowsFilename
+              << std::endl;
     res = false;
   }
 
   filename = kwsys::SystemTools::GetFilenameName(unixFilepath);
-  if (filename != expectedFilename) {
+  if (filename != expectedUnixFilename) {
     std::cerr << "GetFilenameName(" << unixFilepath << ") yielded " << filename
-              << " instead of " << expectedFilename << std::endl;
+              << " instead of " << expectedUnixFilename << std::endl;
     res = false;
   }
   return res;
