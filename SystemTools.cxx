@@ -1890,14 +1890,13 @@ void SystemTools::ConvertToUnixSlashes(std::string& path)
   ConvertVMSToUnix(path);
 #else
   const char* pos0 = pathCString;
-  const char* pos1 = pathCString + 1;
   for (std::string::size_type pos = 0; *pos0; ++pos) {
     if (*pos0 == '\\') {
       path[pos] = '/';
     }
 
     // Also, reuse the loop to check for slash followed by another slash
-    if (!hasDoubleSlash && *pos1 == '/' && *(pos1 + 1) == '/') {
+    if (!hasDoubleSlash && *(pos0 + 1) == '/' && *(pos0 + 2) == '/') {
 #ifdef _WIN32
       // However, on windows if the first characters are both slashes,
       // then keep them that way, so that network paths can be handled.
@@ -1910,7 +1909,6 @@ void SystemTools::ConvertToUnixSlashes(std::string& path)
     }
 
     pos0++;
-    pos1++;
   }
 
   if (hasDoubleSlash) {
