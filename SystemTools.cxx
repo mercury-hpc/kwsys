@@ -3200,6 +3200,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   // Split the input path components.
   std::vector<std::string> path_components;
   SystemTools::SplitPath(in_path, path_components);
+  out_components.reserve(path_components.size());
 
   // If the input path is relative, start with a base path.
   if (path_components[0].empty()) {
@@ -3262,6 +3263,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   // Split the input path components.
   std::vector<std::string> path_components;
   SystemTools::SplitPath(in_path, path_components);
+  out_components.reserve(path_components.size());
 
   // If the input path is relative, start with a base path.
   if (path_components[0].length() == 0) {
