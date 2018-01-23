@@ -39,19 +39,19 @@ typedef unsigned short mode_t;
 static const char* toUnixPaths[][2] = {
   { "/usr/local/bin/passwd", "/usr/local/bin/passwd" },
   { "/usr/lo cal/bin/pa sswd", "/usr/lo cal/bin/pa sswd" },
-  { "/usr/lo\\ cal/bin/pa\\ sswd", "/usr/lo\\ cal/bin/pa\\ sswd" },
+  { "/usr/lo\\ cal/bin/pa\\ sswd", "/usr/lo/ cal/bin/pa/ sswd" },
   { "c:/usr/local/bin/passwd", "c:/usr/local/bin/passwd" },
   { "c:/usr/lo cal/bin/pa sswd", "c:/usr/lo cal/bin/pa sswd" },
-  { "c:/usr/lo\\ cal/bin/pa\\ sswd", "c:/usr/lo\\ cal/bin/pa\\ sswd" },
+  { "c:/usr/lo\\ cal/bin/pa\\ sswd", "c:/usr/lo/ cal/bin/pa/ sswd" },
   { "\\usr\\local\\bin\\passwd", "/usr/local/bin/passwd" },
   { "\\usr\\lo cal\\bin\\pa sswd", "/usr/lo cal/bin/pa sswd" },
-  { "\\usr\\lo\\ cal\\bin\\pa\\ sswd", "/usr/lo\\ cal/bin/pa\\ sswd" },
+  { "\\usr\\lo\\ cal\\bin\\pa\\ sswd", "/usr/lo/ cal/bin/pa/ sswd" },
   { "c:\\usr\\local\\bin\\passwd", "c:/usr/local/bin/passwd" },
   { "c:\\usr\\lo cal\\bin\\pa sswd", "c:/usr/lo cal/bin/pa sswd" },
-  { "c:\\usr\\lo\\ cal\\bin\\pa\\ sswd", "c:/usr/lo\\ cal/bin/pa\\ sswd" },
+  { "c:\\usr\\lo\\ cal\\bin\\pa\\ sswd", "c:/usr/lo/ cal/bin/pa/ sswd" },
   { "\\\\usr\\local\\bin\\passwd", "//usr/local/bin/passwd" },
   { "\\\\usr\\lo cal\\bin\\pa sswd", "//usr/lo cal/bin/pa sswd" },
-  { "\\\\usr\\lo\\ cal\\bin\\pa\\ sswd", "//usr/lo\\ cal/bin/pa\\ sswd" },
+  { "\\\\usr\\lo\\ cal\\bin\\pa\\ sswd", "//usr/lo/ cal/bin/pa/ sswd" },
   { KWSYS_NULLPTR, KWSYS_NULLPTR }
 };
 

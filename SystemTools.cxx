@@ -1892,8 +1892,7 @@ void SystemTools::ConvertToUnixSlashes(std::string& path)
   const char* pos0 = pathCString;
   const char* pos1 = pathCString + 1;
   for (std::string::size_type pos = 0; *pos0; ++pos) {
-    // make sure we don't convert an escaped space to a unix slash
-    if (*pos0 == '\\' && *pos1 != ' ') {
+    if (*pos0 == '\\') {
       path[pos] = '/';
     }
 
