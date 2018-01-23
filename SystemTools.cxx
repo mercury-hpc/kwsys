@@ -3171,8 +3171,8 @@ void SystemTools::CheckTranslationPath(std::string& path)
 
 static void SystemToolsAppendComponents(
   std::vector<std::string>& out_components,
-  std::vector<std::string>::const_iterator first,
-  std::vector<std::string>::const_iterator last)
+  std::vector<std::string>::iterator first,
+  std::vector<std::string>::iterator last)
 {
   static const std::string up = "..";
   static const std::string cur = ".";
@@ -3182,7 +3182,11 @@ static void SystemToolsAppendComponents(
         out_components.resize(out_components.size() - 1);
       }
     } else if (!i->empty() && *i != cur) {
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+      out_components.push_back(std::move(*i));
+#else
       out_components.push_back(*i);
+#endif
     }
   }
 }
