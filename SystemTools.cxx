@@ -3327,7 +3327,7 @@ std::string SystemTools::RelativePath(const std::string& local,
   unsigned int sameCount = 0;
   while (((sameCount <= (localSplit.size() - 1)) &&
           (sameCount <= (remoteSplit.size() - 1))) &&
-// for windows and apple do a case insensitive string compare
+// for Windows and Apple do a case insensitive string compare
 #if defined(_WIN32) || defined(__APPLE__)
          SystemTools::Strucmp(localSplit[sameCount].c_str(),
                               remoteSplit[sameCount].c_str()) == 0
