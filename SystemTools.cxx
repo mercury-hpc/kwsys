@@ -1897,7 +1897,7 @@ void SystemTools::ConvertToUnixSlashes(std::string& path)
     }
 
     // Also, reuse the loop to check for slash followed by another slash
-    if (*pos1 == '/' && *(pos1 + 1) == '/' && !hasDoubleSlash) {
+    if (!hasDoubleSlash && *pos1 == '/' && *(pos1 + 1) == '/') {
 #ifdef _WIN32
       // However, on windows if the first characters are both slashes,
       // then keep them that way, so that network paths can be handled.
