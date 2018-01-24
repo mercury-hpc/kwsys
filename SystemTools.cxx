@@ -3194,64 +3194,18 @@ static void SystemToolsAppendComponents(
 std::string SystemTools::CollapseFullPath(const std::string& in_path,
                                           const char* in_base)
 {
-  // Collect the output path components.
-  std::vector<std::string> out_components;
-
-  // Split the input path components.
-  std::vector<std::string> path_components;
-  SystemTools::SplitPath(in_path, path_components);
-  out_components.reserve(path_components.size());
-
-  // If the input path is relative, start with a base path.
-  if (path_components[0].empty()) {
-    std::vector<std::string> base_components;
-    if (in_base) {
-      // Use the given base path.
-      SystemTools::SplitPath(in_base, base_components);
+  // Use the current working directory as a base path.
+  char buf[2048];
+  const char* res_in_base = in_base;
+  if (!res_in_base) {
+    if (const char* cwd = Getcwd(buf, 2048)) {
+      res_in_base = cwd;
     } else {
-      // Use the current working directory as a base path.
-      char buf[2048];
-      if (const char* cwd = Getcwd(buf, 2048)) {
-        SystemTools::SplitPath(cwd, base_components);
-      } else {
-        base_components.push_back("");
-      }
+      res_in_base = "";
     }
-
-    // Append base path components to the output path.
-    out_components.push_back(base_components[0]);
-    SystemToolsAppendComponents(out_components, base_components.begin() + 1,
-                                base_components.end());
   }
 
-  // Append input path components to the output path.
-  SystemToolsAppendComponents(out_components, path_components.begin(),
-                              path_components.end());
-
-  // Transform the path back to a string.
-  std::string newPath = SystemTools::JoinPath(out_components);
-
-  // Update the translation table with this potentially new path.  I am not
-  // sure why this line is here, it seems really questionable, but yet I
-  // would put good money that if I remove it something will break, basically
-  // from what I can see it created a mapping from the collapsed path, to be
-  // replaced by the input path, which almost completely does the opposite of
-  // this function, the only thing preventing this from happening a lot is
-  // that if the in_path has a .. in it, then it is not added to the
-  // translation table. So for most calls this either does nothing due to the
-  // ..  or it adds a translation between identical paths as nothing was
-  // collapsed, so I am going to try to comment it out, and see what hits the
-  // fan, hopefully quickly.
-  // Commented out line below:
-  // SystemTools::AddTranslationPath(newPath, in_path);
-
-  SystemTools::CheckTranslationPath(newPath);
-#ifdef _WIN32
-  newPath = SystemTools::GetActualCaseForPath(newPath);
-  SystemTools::ConvertToUnixSlashes(newPath);
-#endif
-  // Return the reconstructed path.
-  return newPath;
+  return SystemTools::CollapseFullPath(in_path, std::string(res_in_base));
 }
 
 std::string SystemTools::CollapseFullPath(const std::string& in_path,
