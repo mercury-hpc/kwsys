@@ -3266,7 +3266,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   out_components.reserve(path_components.size());
 
   // If the input path is relative, start with a base path.
-  if (path_components[0].length() == 0) {
+  if (path_components[0].empty()) {
     std::vector<std::string> base_components;
     // Use the given base path.
     SystemTools::SplitPath(in_base, base_components);
