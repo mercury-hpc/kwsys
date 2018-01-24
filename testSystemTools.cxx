@@ -700,6 +700,16 @@ static bool CheckCollapsePath()
   bool res = true;
   res &= CheckCollapsePath("/usr/share/*", "/usr/share/*");
   res &= CheckCollapsePath("C:/Windows/*", "C:/Windows/*");
+  res &= CheckCollapsePath("/usr/share/../lib", "/usr/lib");
+  res &= CheckCollapsePath("/usr/share/./lib", "/usr/share/lib");
+  res &= CheckCollapsePath("/usr/share/../../lib", "/lib");
+  res &= CheckCollapsePath("/usr/share/.././../lib", "/lib");
+  res &= CheckCollapsePath("/../lib", "/lib");
+  res &= CheckCollapsePath("/../lib/", "/lib");
+  res &= CheckCollapsePath("/", "/");
+  res &= CheckCollapsePath("C:/", "C:/");
+  res &= CheckCollapsePath("C:/../", "C:/");
+  res &= CheckCollapsePath("C:/../../", "C:/");
   return res;
 }
 
