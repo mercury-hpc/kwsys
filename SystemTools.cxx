@@ -1884,6 +1884,10 @@ static void ConvertVMSToUnix(std::string& path)
 // convert windows slashes to unix slashes
 void SystemTools::ConvertToUnixSlashes(std::string& path)
 {
+  if (path.empty()) {
+    return;
+  }
+
   const char* pathCString = path.c_str();
   bool hasDoubleSlash = false;
 #ifdef __VMS
@@ -1915,36 +1919,35 @@ void SystemTools::ConvertToUnixSlashes(std::string& path)
     SystemTools::ReplaceString(path, "//", "/");
   }
 #endif
+
   // remove any trailing slash
-  if (!path.empty()) {
-    // if there is a tilda ~ then replace it with HOME
-    pathCString = path.c_str();
-    if (pathCString[0] == '~' &&
-        (pathCString[1] == '/' || pathCString[1] == '\0')) {
-      std::string homeEnv;
-      if (SystemTools::GetEnv("HOME", homeEnv)) {
-        path.replace(0, 1, homeEnv);
-      }
+  // if there is a tilda ~ then replace it with HOME
+  pathCString = path.c_str();
+  if (pathCString[0] == '~' &&
+      (pathCString[1] == '/' || pathCString[1] == '\0')) {
+    std::string homeEnv;
+    if (SystemTools::GetEnv("HOME", homeEnv)) {
+      path.replace(0, 1, homeEnv);
     }
+  }
 #ifdef HAVE_GETPWNAM
-    else if (pathCString[0] == '~') {
-      std::string::size_type idx = path.find_first_of("/\0");
-      std::string user = path.substr(1, idx - 1);
-      passwd* pw = getpwnam(user.c_str());
-      if (pw) {
-        path.replace(0, idx, pw->pw_dir);
-      }
+  else if (pathCString[0] == '~') {
+    std::string::size_type idx = path.find_first_of("/\0");
+    std::string user = path.substr(1, idx - 1);
+    passwd* pw = getpwnam(user.c_str());
+    if (pw) {
+      path.replace(0, idx, pw->pw_dir);
     }
+  }
 #endif
-    // remove trailing slash if the path is more than
-    // a single /
-    pathCString = path.c_str();
-    size_t size = path.size();
-    if (size > 1 && *path.rbegin() == '/') {
-      // if it is c:/ then do not remove the trailing slash
-      if (!((size == 3 && pathCString[1] == ':'))) {
-        path.resize(size - 1);
-      }
+  // remove trailing slash if the path is more than
+  // a single /
+  pathCString = path.c_str();
+  size_t size = path.size();
+  if (size > 1 && *path.rbegin() == '/') {
+    // if it is c:/ then do not remove the trailing slash
+    if (!((size == 3 && pathCString[1] == ':'))) {
+      path.resize(size - 1);
     }
   }
 }
