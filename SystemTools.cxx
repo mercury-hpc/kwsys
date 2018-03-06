@@ -3253,7 +3253,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
 
   SystemTools::CheckTranslationPath(newPath);
 #ifdef _WIN32
-  newPath = SystemTools::GetActualCaseForPath(newPath);
+  newPath = SystemTools::GetActualCaseForPathCached(newPath);
   SystemTools::ConvertToUnixSlashes(newPath);
 #endif
   // Return the reconstructed path.
@@ -3411,6 +3411,13 @@ std::string SystemTools::GetActualCaseForPath(const std::string& p)
 #ifndef _WIN32
   return p;
 #else
+  return GetCasePathName(p);
+#endif
+}
+
+#ifdef _WIN32
+std::string SystemTools::GetActualCaseForPathCached(std::string const& p)
+{
   // Check to see if actual case has already been called
   // for this path, and the result is stored in the PathCaseMap
   SystemToolsPathCaseMap::iterator i = SystemTools::PathCaseMap->find(p);
@@ -3423,8 +3430,8 @@ std::string SystemTools::GetActualCaseForPath(const std::string& p)
   }
   (*SystemTools::PathCaseMap)[p] = casePath;
   return casePath;
-#endif
 }
+#endif
 
 const char* SystemTools::SplitPathRootComponent(const std::string& p,
                                                 std::string* root)
