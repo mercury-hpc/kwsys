@@ -4668,11 +4668,7 @@ std::string SystemInformationImplementation::RunProcess(
 std::string SystemInformationImplementation::ParseValueFromKStat(
   const char* arguments)
 {
-  std::vector<const char*> args;
-  args.clear();
-  args.push_back("kstat");
-  args.push_back("-p");
-
+  std::vector<std::string> args_string;
   std::string command = arguments;
   size_t start = std::string::npos;
   size_t pos = command.find(' ', 0);
@@ -4691,22 +4687,24 @@ std::string SystemInformationImplementation::ParseValueFromKStat(
     }
 
     if (!inQuotes) {
-      std::string arg = command.substr(start + 1, pos - start - 1);
+      args_string.push_back(command.substr(start + 1, pos - start - 1));
+      std::string& arg = args_string.back();
 
       // Remove the quotes if any
-      size_t quotes = arg.find('"');
-      while (quotes != std::string::npos) {
-        arg.erase(quotes, 1);
-        quotes = arg.find('"');
-      }
-      args.push_back(arg.c_str());
+      arg.erase(std::remove(arg.begin(), arg.end(), '"'), arg.end());
       start = pos;
     }
     pos = command.find(' ', pos + 1);
   }
-  std::string lastArg = command.substr(start + 1, command.size() - start - 1);
-  args.push_back(lastArg.c_str());
+  args_string.push_back(command.substr(start + 1, command.size() - start - 1));
 
+  std::vector<const char*> args;
+  args.reserve(3 + args_string.size());
+  args.push_back("kstat");
+  args.push_back("-p");
+  for (size_t i = 0; i < args_string.size(); ++i) {
+    args.push_back(args_string[i].c_str());
+  }
   args.push_back(KWSYS_NULLPTR);
 
   std::string buffer = this->RunProcess(args);
@@ -4717,9 +4715,7 @@ std::string SystemInformationImplementation::ParseValueFromKStat(
       break;
     }
     if (buffer[i] != '\n' && buffer[i] != '\r') {
-      std::string val = value;
-      value = buffer[i];
-      value += val;
+      value.insert(0u, 1, buffer[i]);
     }
   }
   return value;
