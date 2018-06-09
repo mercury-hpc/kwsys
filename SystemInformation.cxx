@@ -4613,7 +4613,7 @@ std::string SystemInformationImplementation::ExtractValueFromSysCtl(
 std::string SystemInformationImplementation::RunProcess(
   std::vector<const char*> args)
 {
-  std::string buffer = "";
+  std::string buffer;
 
   // Run the application
   kwsysProcess* gp = kwsysProcess_New();
@@ -4711,7 +4711,7 @@ std::string SystemInformationImplementation::ParseValueFromKStat(
 
   std::string buffer = this->RunProcess(args);
 
-  std::string value = "";
+  std::string value;
   for (size_t i = buffer.size() - 1; i > 0; i--) {
     if (buffer[i] == ' ' || buffer[i] == '\t') {
       break;

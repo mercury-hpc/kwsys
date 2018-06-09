@@ -1973,7 +1973,7 @@ std::string SystemTools::ConvertToUnixOutputPath(const std::string& path)
   }
   // escape spaces and () in the path
   if (ret.find_first_of(" ") != std::string::npos) {
-    std::string result = "";
+    std::string result;
     char lastch = 1;
     for (const char* ch = ret.c_str(); *ch != '\0'; ++ch) {
       // if it is already escaped then don't try to escape it again
