@@ -686,7 +686,7 @@ public:
     for (iterator i = this->begin(); i != this->end(); ++i) {
 #  if defined(_WIN32)
       const std::string s = Encoding::ToNarrow(*i);
-      kwsysUnPutEnv(s.c_str());
+      kwsysUnPutEnv(s);
 #  else
       kwsysUnPutEnv(*i);
 #  endif
@@ -3140,7 +3140,7 @@ void SystemTools::AddTranslationPath(const std::string& a,
 void SystemTools::AddKeepPath(const std::string& dir)
 {
   std::string cdir;
-  Realpath(SystemTools::CollapseFullPath(dir).c_str(), cdir);
+  Realpath(SystemTools::CollapseFullPath(dir), cdir);
   SystemTools::AddTranslationPath(cdir, dir);
 }
 

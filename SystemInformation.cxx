@@ -3495,7 +3495,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
 
   // Chip Model Name
   this->ChipID.ModelName =
-    this->ExtractValueFromCpuInfoFile(buffer, "model name").c_str();
+    this->ExtractValueFromCpuInfoFile(buffer, "model name");
 
   // L1 Cache size
   // Different architectures may show different names for the caches.
