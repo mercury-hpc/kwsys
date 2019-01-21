@@ -2982,7 +2982,28 @@ bool SystemTools::FileIsSymlink(const std::string& name)
   DWORD attr =
     GetFileAttributesW(Encoding::ToWindowsExtendedPath(name).c_str());
   if (attr != INVALID_FILE_ATTRIBUTES) {
-    return (attr & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+    if ((attr & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+      HANDLE hFile = CreateFileW(Encoding::ToWide(name).c_str(), GENERIC_READ,
+                                 FILE_SHARE_READ, NULL, OPEN_EXISTING,
+                                 FILE_FLAG_BACKUP_SEMANTICS, NULL);
+      if (hFile == INVALID_HANDLE_VALUE) {
+        return false;
+      }
+      byte buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+      DWORD bytesReturned = 0;
+      if (!DeviceIoControl(hFile, FSCTL_GET_REPARSE_POINT, NULL, 0, buffer,
+                           MAXIMUM_REPARSE_DATA_BUFFER_SIZE, &bytesReturned,
+                           NULL)) {
+        CloseHandle(hFile);
+        return false;
+      }
+      CloseHandle(hFile);
+      ULONG reparseTag =
+        reinterpret_cast<PREPARSE_GUID_DATA_BUFFER>(&buffer[0])->ReparseTag;
+      return (reparseTag == IO_REPARSE_TAG_SYMLINK) ||
+        (reparseTag == IO_REPARSE_TAG_MOUNT_POINT);
+    }
+    return false;
   } else {
     return false;
   }
