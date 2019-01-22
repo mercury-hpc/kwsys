@@ -2161,6 +2161,32 @@ bool SystemTools::FilesDiffer(const std::string& source,
   return false;
 }
 
+bool SystemTools::TextFilesDiffer(const std::string& path1,
+                                  const std::string& path2)
+{
+  kwsys::ifstream if1(path1.c_str());
+  kwsys::ifstream if2(path2.c_str());
+  if (!if1 || !if2) {
+    return true;
+  }
+
+  for (;;) {
+    std::string line1, line2;
+    bool hasData1 = GetLineFromStream(if1, line1);
+    bool hasData2 = GetLineFromStream(if2, line2);
+    if (hasData1 != hasData2) {
+      return true;
+    }
+    if (!hasData1) {
+      break;
+    }
+    if (line1 != line2) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Blockwise copy source to destination file
  */
