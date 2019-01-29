@@ -82,12 +82,8 @@
 # any outside mailing list and no documentation of the change will be
 # written.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.3 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
 FOREACH(p
-    CMP0022 # CMake 2.8, Define link interface - required by android_mk export
-    CMP0025 # CMake 3.0, Compiler id for Apple Clang is now AppleClang.
-    CMP0042 # CMake 3.0, MACOSX_RPATH is enabled by default.
-    CMP0048 # CMake 3.0, Let the project command manage version variables.
     CMP0056 # CMake 3.2, Honor link flags in try_compile() source-file signature.
     CMP0063 # CMake 3.3, Honor visibility properties for all target types.
     CMP0069 # CMake 3.9, INTERPROCEDURAL_OPTIMIZATION is enforced when enabled.
@@ -96,11 +92,6 @@ FOREACH(p
     CMAKE_POLICY(SET ${p} NEW)
   ENDIF()
 ENDFOREACH()
-SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
-
-IF(CMAKE_VERSION VERSION_LESS 3.0)
-  SET(KWSYS_SPLIT_OBJECTS_FROM_INTERFACE 0)
-ENDIF()
 
 #-----------------------------------------------------------------------------
 # If a namespace is not specified, use "kwsys" and enable testing.
