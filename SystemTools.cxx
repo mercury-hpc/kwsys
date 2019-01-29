@@ -416,6 +416,9 @@ public:
     {
     }
     ~Free() { free(const_cast<envchar*>(this->Env)); }
+
+    Free(const Free&) = delete;
+    Free& operator=(const Free&) = delete;
   };
 
   const envchar* Release(const envchar* env)
