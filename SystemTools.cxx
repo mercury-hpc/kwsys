@@ -86,10 +86,6 @@
 #  include <linux/fs.h>
 #endif
 
-#ifdef __APPLE__
-#  include <copyfile.h>
-#endif
-
 // Windows API.
 #if defined(_WIN32)
 #  include <windows.h>
@@ -2301,10 +2297,6 @@ static bool CloneFileContent(const std::string& source,
   }
 
   return true;
-#elif defined(__APPLE__) && defined(COPYFILE_CLONE)
-  SystemTools::RemoveFile(destination);
-  return copyfile(source.c_str(), destination.c_str(), NULL, COPYFILE_CLONE) ==
-    0;
 #else
   (void)source;
   (void)destination;
