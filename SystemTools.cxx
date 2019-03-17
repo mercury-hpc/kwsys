@@ -364,10 +364,6 @@ double SystemTools::GetTime(void)
 #endif
 }
 
-class SystemToolsTranslationMap : public std::map<std::string, std::string>
-{
-};
-
 /* Type of character storing the environment.  */
 #if defined(_WIN32)
 typedef wchar_t envchar;
@@ -448,15 +444,6 @@ struct SystemToolsPathCaseCmp
 #  endif
   }
 };
-
-class SystemToolsPathCaseMap
-  : public std::map<std::string, std::string, SystemToolsPathCaseCmp>
-{
-};
-
-class SystemToolsEnvMap : public std::map<std::string, std::string>
-{
-};
 #endif
 
 /**
@@ -465,19 +452,20 @@ class SystemToolsEnvMap : public std::map<std::string, std::string>
 class SystemToolsStatic
 {
 public:
+  typedef std::map<std::string, std::string> StringMap;
   /**
    * Path translation table from dir to refdir
    * Each time 'dir' will be found it will be replace by 'refdir'
    */
-  SystemToolsTranslationMap TranslationMap;
+  StringMap TranslationMap;
 #ifdef _WIN32
   static std::string GetCasePathName(std::string const& pathIn);
   static std::string GetActualCaseForPathCached(std::string const& path);
-  SystemToolsPathCaseMap PathCaseMap;
-  SystemToolsEnvMap EnvMap;
+  std::map<std::string, std::string, SystemToolsPathCaseCmp> PathCaseMap;
+  std::map<std::string, std::string> EnvMap;
 #endif
 #ifdef __CYGWIN__
-  SystemToolsTranslationMap Cyg2Win32Map;
+  StringMap Cyg2Win32Map;
 #endif
 };
 
@@ -557,7 +545,7 @@ std::string SystemToolsStatic::GetActualCaseForPathCached(std::string const& p)
   // for this path, and the result is stored in the PathCaseMap
   auto& pcm = SystemTools::Statics->PathCaseMap;
   {
-    SystemToolsPathCaseMap::iterator itr = pcm.find(p);
+    auto itr = pcm.find(p);
     if (itr != pcm.end()) {
       return itr->second;
     }
@@ -1428,9 +1416,7 @@ int SystemTools::Stat(const std::string& path, SystemTools::Stat_t* buf)
 #ifdef __CYGWIN__
 bool SystemTools::PathCygwinToWin32(const char* path, char* win32_path)
 {
-  SystemToolsTranslationMap::iterator itr =
-    SystemTools::Statics->Cyg2Win32Map.find(path);
-
+  auto itr = SystemTools::Statics->Cyg2Win32Map.find(path);
   if (itr != SystemTools::Statics->Cyg2Win32Map.end()) {
     strncpy(win32_path, itr->second.c_str(), MAX_PATH);
   } else {
@@ -1439,7 +1425,7 @@ bool SystemTools::PathCygwinToWin32(const char* path, char* win32_path)
       win32_path[0] = 0;
     }
     SystemTools::Statics->Cyg2Win32Map.insert(
-      SystemToolsTranslationMap::value_type(path, win32_path));
+      SystemToolsStatic::StringMap::value_type(path, win32_path));
   }
   return win32_path[0] != 0;
 }
@@ -3357,8 +3343,8 @@ void SystemTools::AddTranslationPath(const std::string& a,
       }
       if (!(path_a == path_b)) {
         SystemTools::Statics->TranslationMap.insert(
-          SystemToolsTranslationMap::value_type(std::move(path_a),
-                                                std::move(path_b)));
+          SystemToolsStatic::StringMap::value_type(std::move(path_a),
+                                                   std::move(path_b)));
       }
     }
   }
