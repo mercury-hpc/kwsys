@@ -463,6 +463,10 @@ class SystemToolsEnvMap : public std::map<std::string, std::string>
  */
 class SystemToolsStatic
 {
+public:
+#ifdef __CYGWIN__
+  SystemToolsTranslationMap Cyg2Win32Map;
+#endif
 };
 
 // adds the elements of the env variable path to the arg passed in
@@ -1323,18 +1327,18 @@ int SystemTools::Stat(const std::string& path, SystemTools::Stat_t* buf)
 #ifdef __CYGWIN__
 bool SystemTools::PathCygwinToWin32(const char* path, char* win32_path)
 {
-  SystemToolsTranslationMap::iterator i =
-    SystemTools::Cyg2Win32Map->find(path);
+  SystemToolsTranslationMap::iterator itr =
+    SystemTools::Statics->Cyg2Win32Map.find(path);
 
-  if (i != SystemTools::Cyg2Win32Map->end()) {
-    strncpy(win32_path, i->second.c_str(), MAX_PATH);
+  if (itr != SystemTools::Statics->Cyg2Win32Map.end()) {
+    strncpy(win32_path, itr->second.c_str(), MAX_PATH);
   } else {
     if (cygwin_conv_path(CCP_POSIX_TO_WIN_A, path, win32_path, MAX_PATH) !=
         0) {
       win32_path[0] = 0;
     }
-    SystemToolsTranslationMap::value_type entry(path, win32_path);
-    SystemTools::Cyg2Win32Map->insert(entry);
+    SystemTools::Statics->Cyg2Win32Map.insert(
+      SystemToolsTranslationMap::value_type(path, win32_path));
   }
   return win32_path[0] != 0;
 }
@@ -4666,9 +4670,6 @@ SystemToolsTranslationMap* SystemTools::TranslationMap;
 SystemToolsPathCaseMap* SystemTools::PathCaseMap;
 SystemToolsEnvMap* SystemTools::EnvMap;
 #endif
-#ifdef __CYGWIN__
-SystemToolsTranslationMap* SystemTools::Cyg2Win32Map;
-#endif
 SystemToolsStatic* SystemTools::Statics;
 
 // SystemToolsManager manages the SystemTools singleton.
@@ -4716,9 +4717,6 @@ void SystemTools::ClassInitialize()
 #ifdef _WIN32
   SystemTools::PathCaseMap = new SystemToolsPathCaseMap;
   SystemTools::EnvMap = new SystemToolsEnvMap;
-#endif
-#ifdef __CYGWIN__
-  SystemTools::Cyg2Win32Map = new SystemToolsTranslationMap;
 #endif
   // Create statics singleton instance
   SystemTools::Statics = new SystemToolsStatic;
@@ -4773,9 +4771,6 @@ void SystemTools::ClassFinalize()
 #ifdef _WIN32
   delete SystemTools::PathCaseMap;
   delete SystemTools::EnvMap;
-#endif
-#ifdef __CYGWIN__
-  delete SystemTools::Cyg2Win32Map;
 #endif
   delete SystemTools::Statics;
 }

@@ -1000,9 +1000,6 @@ private:
   static SystemToolsPathCaseMap* PathCaseMap;
   static SystemToolsEnvMap* EnvMap;
 #endif
-#ifdef __CYGWIN__
-  static SystemToolsTranslationMap* Cyg2Win32Map;
-#endif
   static SystemToolsStatic* Statics;
   friend class SystemToolsManager;
 };
