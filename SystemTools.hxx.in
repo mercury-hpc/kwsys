@@ -43,7 +43,6 @@ namespace @KWSYS_NAMESPACE@ {
 
 class SystemToolsTranslationMap;
 class SystemToolsPathCaseMap;
-class SystemToolsEnvMap;
 class SystemToolsStatic;
 
 /** \class SystemToolsManager
@@ -998,7 +997,6 @@ private:
 #ifdef _WIN32
   static std::string GetActualCaseForPathCached(std::string const& path);
   static SystemToolsPathCaseMap* PathCaseMap;
-  static SystemToolsEnvMap* EnvMap;
 #endif
   static SystemToolsStatic* Statics;
   friend class SystemToolsManager;

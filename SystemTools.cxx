@@ -28,6 +28,7 @@
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 // Work-around CMake dependency scanning limitation.  This must
@@ -464,6 +465,9 @@ class SystemToolsEnvMap : public std::map<std::string, std::string>
 class SystemToolsStatic
 {
 public:
+#ifdef _WIN32
+  SystemToolsEnvMap EnvMap;
+#endif
 #ifdef __CYGWIN__
   SystemToolsTranslationMap Cyg2Win32Map;
 #endif
@@ -513,8 +517,8 @@ const char* SystemTools::GetEnvImpl(const char* key)
 #if defined(_WIN32)
   std::string env;
   if (SystemTools::GetEnv(key, env)) {
-    std::string& menv = (*SystemTools::EnvMap)[key];
-    menv = env;
+    std::string& menv = SystemTools::Statics->EnvMap[key];
+    menv = std::move(env);
     v = menv.c_str();
   }
 #else
@@ -4668,7 +4672,6 @@ static unsigned int SystemToolsManagerCount;
 SystemToolsTranslationMap* SystemTools::TranslationMap;
 #ifdef _WIN32
 SystemToolsPathCaseMap* SystemTools::PathCaseMap;
-SystemToolsEnvMap* SystemTools::EnvMap;
 #endif
 SystemToolsStatic* SystemTools::Statics;
 
@@ -4716,7 +4719,6 @@ void SystemTools::ClassInitialize()
   SystemTools::TranslationMap = new SystemToolsTranslationMap;
 #ifdef _WIN32
   SystemTools::PathCaseMap = new SystemToolsPathCaseMap;
-  SystemTools::EnvMap = new SystemToolsEnvMap;
 #endif
   // Create statics singleton instance
   SystemTools::Statics = new SystemToolsStatic;
@@ -4770,7 +4772,6 @@ void SystemTools::ClassFinalize()
   delete SystemTools::TranslationMap;
 #ifdef _WIN32
   delete SystemTools::PathCaseMap;
-  delete SystemTools::EnvMap;
 #endif
   delete SystemTools::Statics;
 }
