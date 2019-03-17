@@ -44,6 +44,7 @@ namespace @KWSYS_NAMESPACE@ {
 class SystemToolsTranslationMap;
 class SystemToolsPathCaseMap;
 class SystemToolsEnvMap;
+class SystemToolsStatic;
 
 /** \class SystemToolsManager
  * \brief Use to make sure SystemTools is initialized before it is used
@@ -1002,6 +1003,7 @@ private:
 #ifdef __CYGWIN__
   static SystemToolsTranslationMap* Cyg2Win32Map;
 #endif
+  static SystemToolsStatic* Statics;
   friend class SystemToolsManager;
 };
 

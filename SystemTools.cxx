@@ -458,6 +458,13 @@ class SystemToolsEnvMap : public std::map<std::string, std::string>
 };
 #endif
 
+/**
+ * SystemTools static variables singleton class.
+ */
+class SystemToolsStatic
+{
+};
+
 // adds the elements of the env variable path to the arg passed in
 void SystemTools::GetPath(std::vector<std::string>& path, const char* env)
 {
@@ -4662,6 +4669,7 @@ SystemToolsEnvMap* SystemTools::EnvMap;
 #ifdef __CYGWIN__
 SystemToolsTranslationMap* SystemTools::Cyg2Win32Map;
 #endif
+SystemToolsStatic* SystemTools::Statics;
 
 // SystemToolsManager manages the SystemTools singleton.
 // SystemToolsManager should be included in any translation unit
@@ -4702,6 +4710,7 @@ void SystemTools::ClassInitialize()
 #ifdef __VMS
   SetVMSFeature("DECC$FILENAME_UNIX_ONLY", 1);
 #endif
+
   // Allocate the translation map first.
   SystemTools::TranslationMap = new SystemToolsTranslationMap;
 #ifdef _WIN32
@@ -4711,6 +4720,8 @@ void SystemTools::ClassInitialize()
 #ifdef __CYGWIN__
   SystemTools::Cyg2Win32Map = new SystemToolsTranslationMap;
 #endif
+  // Create statics singleton instance
+  SystemTools::Statics = new SystemToolsStatic;
 
 // Add some special translation paths for unix.  These are not added
 // for windows because drive letters need to be maintained.  Also,
@@ -4766,6 +4777,7 @@ void SystemTools::ClassFinalize()
 #ifdef __CYGWIN__
   delete SystemTools::Cyg2Win32Map;
 #endif
+  delete SystemTools::Statics;
 }
 
 } // namespace KWSYS_NAMESPACE
