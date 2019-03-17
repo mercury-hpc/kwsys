@@ -465,6 +465,11 @@ class SystemToolsEnvMap : public std::map<std::string, std::string>
 class SystemToolsStatic
 {
 public:
+  /**
+   * Path translation table from dir to refdir
+   * Each time 'dir' will be found it will be replace by 'refdir'
+   */
+  SystemToolsTranslationMap TranslationMap;
 #ifdef _WIN32
   static std::string GetCasePathName(std::string const& pathIn);
   static std::string GetActualCaseForPathCached(std::string const& path);
@@ -3351,8 +3356,9 @@ void SystemTools::AddTranslationPath(const std::string& a,
         path_b += '/';
       }
       if (!(path_a == path_b)) {
-        SystemTools::TranslationMap->insert(
-          SystemToolsTranslationMap::value_type(path_a, path_b));
+        SystemTools::Statics->TranslationMap.insert(
+          SystemToolsTranslationMap::value_type(std::move(path_a),
+                                                std::move(path_b)));
       }
     }
   }
@@ -3376,21 +3382,19 @@ void SystemTools::CheckTranslationPath(std::string& path)
   // Always add a trailing slash before translation.  It does not
   // matter if this adds an extra slash, but we do not want to
   // translate part of a directory (like the foo part of foo-dir).
-  path += "/";
+  path += '/';
 
   // In case a file was specified we still have to go through this:
   // Now convert any path found in the table back to the one desired:
-  std::map<std::string, std::string>::const_iterator it;
-  for (it = SystemTools::TranslationMap->begin();
-       it != SystemTools::TranslationMap->end(); ++it) {
+  for (auto const& pair : SystemTools::Statics->TranslationMap) {
     // We need to check of the path is a substring of the other path
-    if (path.find(it->first) == 0) {
-      path = path.replace(0, it->first.size(), it->second);
+    if (path.find(pair.first) == 0) {
+      path = path.replace(0, pair.first.size(), pair.second);
     }
   }
 
   // Remove the trailing slash we added before.
-  path.erase(path.end() - 1, path.end());
+  path.pop_back();
 }
 
 static void SystemToolsAppendComponents(
@@ -4672,7 +4676,6 @@ bool SystemTools::ParseURL(const std::string& URL, std::string& protocol,
 // These must NOT be initialized.  Default initialization to zero is
 // necessary.
 static unsigned int SystemToolsManagerCount;
-SystemToolsTranslationMap* SystemTools::TranslationMap;
 SystemToolsStatic* SystemTools::Statics;
 
 // SystemToolsManager manages the SystemTools singleton.
@@ -4715,8 +4718,6 @@ void SystemTools::ClassInitialize()
   SetVMSFeature("DECC$FILENAME_UNIX_ONLY", 1);
 #endif
 
-  // Allocate the translation map first.
-  SystemTools::TranslationMap = new SystemToolsTranslationMap;
   // Create statics singleton instance
   SystemTools::Statics = new SystemToolsStatic;
 
@@ -4766,7 +4767,6 @@ void SystemTools::ClassInitialize()
 
 void SystemTools::ClassFinalize()
 {
-  delete SystemTools::TranslationMap;
   delete SystemTools::Statics;
 }
 

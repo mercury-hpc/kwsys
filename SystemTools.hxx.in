@@ -41,7 +41,6 @@ typedef @KWSYS_NAMESPACE@_VA_LIST::hack_va_list va_list;
 
 namespace @KWSYS_NAMESPACE@ {
 
-class SystemToolsTranslationMap;
 class SystemToolsStatic;
 
 /** \class SystemToolsManager
@@ -988,11 +987,6 @@ private:
 
   static const char* GetEnvImpl(const char* key);
 
-  /**
-   * Path translation table from dir to refdir
-   * Each time 'dir' will be found it will be replace by 'refdir'
-   */
-  static SystemToolsTranslationMap* TranslationMap;
   static SystemToolsStatic* Statics;
   friend class SystemToolsStatic;
   friend class SystemToolsManager;
