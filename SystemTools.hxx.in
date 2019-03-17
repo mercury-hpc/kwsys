@@ -42,7 +42,6 @@ typedef @KWSYS_NAMESPACE@_VA_LIST::hack_va_list va_list;
 namespace @KWSYS_NAMESPACE@ {
 
 class SystemToolsTranslationMap;
-class SystemToolsPathCaseMap;
 class SystemToolsStatic;
 
 /** \class SystemToolsManager
@@ -994,11 +993,8 @@ private:
    * Each time 'dir' will be found it will be replace by 'refdir'
    */
   static SystemToolsTranslationMap* TranslationMap;
-#ifdef _WIN32
-  static std::string GetActualCaseForPathCached(std::string const& path);
-  static SystemToolsPathCaseMap* PathCaseMap;
-#endif
   static SystemToolsStatic* Statics;
+  friend class SystemToolsStatic;
   friend class SystemToolsManager;
 };
 

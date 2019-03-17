@@ -466,12 +466,104 @@ class SystemToolsStatic
 {
 public:
 #ifdef _WIN32
+  static std::string GetCasePathName(std::string const& pathIn);
+  static std::string GetActualCaseForPathCached(std::string const& path);
+  SystemToolsPathCaseMap PathCaseMap;
   SystemToolsEnvMap EnvMap;
 #endif
 #ifdef __CYGWIN__
   SystemToolsTranslationMap Cyg2Win32Map;
 #endif
 };
+
+#ifdef _WIN32
+std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn)
+{
+  std::string casePath;
+
+  // First check if the file is relative. We don't fix relative paths since the
+  // real case depends on the root directory and the given path fragment may
+  // have meaning elsewhere in the project.
+  if (!SystemTools::FileIsFullPath(pathIn)) {
+    // This looks unnecessary, but it allows for the return value optimization
+    // since all return paths return the same local variable.
+    casePath = pathIn;
+    return casePath;
+  }
+
+  std::vector<std::string> path_components;
+  SystemTools::SplitPath(pathIn, path_components);
+
+  // Start with root component.
+  std::vector<std::string>::size_type idx = 0;
+  casePath = path_components[idx++];
+  // make sure drive letter is always upper case
+  if (casePath.size() > 1 && casePath[1] == ':') {
+    casePath[0] = toupper(casePath[0]);
+  }
+  const char* sep = "";
+
+  // If network path, fill casePath with server/share so FindFirstFile
+  // will work after that.  Maybe someday call other APIs to get
+  // actual case of servers and shares.
+  if (path_components.size() > 2 && path_components[0] == "//") {
+    casePath += path_components[idx++];
+    casePath += "/";
+    casePath += path_components[idx++];
+    sep = "/";
+  }
+
+  // Convert case of all components that exist.
+  bool converting = true;
+  for (; idx < path_components.size(); idx++) {
+    casePath += sep;
+    sep = "/";
+
+    if (converting) {
+      // If path component contains wildcards, we skip matching
+      // because these filenames are not allowed on windows,
+      // and we do not want to match a different file.
+      if (path_components[idx].find('*') != std::string::npos ||
+          path_components[idx].find('?') != std::string::npos) {
+        converting = false;
+      } else {
+        std::string test_str = casePath;
+        test_str += path_components[idx];
+        WIN32_FIND_DATAW findData;
+        HANDLE hFind =
+          ::FindFirstFileW(Encoding::ToWide(test_str).c_str(), &findData);
+        if (INVALID_HANDLE_VALUE != hFind) {
+          path_components[idx] = Encoding::ToNarrow(findData.cFileName);
+          ::FindClose(hFind);
+        } else {
+          converting = false;
+        }
+      }
+    }
+
+    casePath += path_components[idx];
+  }
+  return casePath;
+}
+
+std::string SystemToolsStatic::GetActualCaseForPathCached(std::string const& p)
+{
+  // Check to see if actual case has already been called
+  // for this path, and the result is stored in the PathCaseMap
+  auto& pcm = SystemTools::Statics->PathCaseMap;
+  {
+    SystemToolsPathCaseMap::iterator itr = pcm.find(p);
+    if (itr != pcm.end()) {
+      return itr->second;
+    }
+  }
+  std::string casePath = SystemToolsStatic::GetCasePathName(p);
+  if (casePath.size() <= MAX_PATH) {
+    pcm[p] = casePath;
+  }
+  return casePath;
+}
+#endif
 
 // adds the elements of the env variable path to the arg passed in
 void SystemTools::GetPath(std::vector<std::string>& path, const char* env)
@@ -3386,7 +3478,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
 
   SystemTools::CheckTranslationPath(newPath);
 #ifdef _WIN32
-  newPath = SystemTools::GetActualCaseForPathCached(newPath);
+  newPath = SystemTools::Statics->GetActualCaseForPathCached(newPath);
   SystemTools::ConvertToUnixSlashes(newPath);
 #endif
   // Return the reconstructed path.
@@ -3472,103 +3564,14 @@ std::string SystemTools::RelativePath(const std::string& local,
   return relativePath;
 }
 
-#ifdef _WIN32
-static std::string GetCasePathName(std::string const& pathIn)
-{
-  std::string casePath;
-
-  // First check if the file is relative. We don't fix relative paths since the
-  // real case depends on the root directory and the given path fragment may
-  // have meaning elsewhere in the project.
-  if (!SystemTools::FileIsFullPath(pathIn)) {
-    // This looks unnecessary, but it allows for the return value optimization
-    // since all return paths return the same local variable.
-    casePath = pathIn;
-    return casePath;
-  }
-
-  std::vector<std::string> path_components;
-  SystemTools::SplitPath(pathIn, path_components);
-
-  // Start with root component.
-  std::vector<std::string>::size_type idx = 0;
-  casePath = path_components[idx++];
-  // make sure drive letter is always upper case
-  if (casePath.size() > 1 && casePath[1] == ':') {
-    casePath[0] = toupper(casePath[0]);
-  }
-  const char* sep = "";
-
-  // If network path, fill casePath with server/share so FindFirstFile
-  // will work after that.  Maybe someday call other APIs to get
-  // actual case of servers and shares.
-  if (path_components.size() > 2 && path_components[0] == "//") {
-    casePath += path_components[idx++];
-    casePath += "/";
-    casePath += path_components[idx++];
-    sep = "/";
-  }
-
-  // Convert case of all components that exist.
-  bool converting = true;
-  for (; idx < path_components.size(); idx++) {
-    casePath += sep;
-    sep = "/";
-
-    if (converting) {
-      // If path component contains wildcards, we skip matching
-      // because these filenames are not allowed on windows,
-      // and we do not want to match a different file.
-      if (path_components[idx].find('*') != std::string::npos ||
-          path_components[idx].find('?') != std::string::npos) {
-        converting = false;
-      } else {
-        std::string test_str = casePath;
-        test_str += path_components[idx];
-        WIN32_FIND_DATAW findData;
-        HANDLE hFind =
-          ::FindFirstFileW(Encoding::ToWide(test_str).c_str(), &findData);
-        if (INVALID_HANDLE_VALUE != hFind) {
-          path_components[idx] = Encoding::ToNarrow(findData.cFileName);
-          ::FindClose(hFind);
-        } else {
-          converting = false;
-        }
-      }
-    }
-
-    casePath += path_components[idx];
-  }
-  return casePath;
-}
-#endif
-
 std::string SystemTools::GetActualCaseForPath(const std::string& p)
 {
-#ifndef _WIN32
-  return p;
-#else
-  return GetCasePathName(p);
-#endif
-}
-
 #ifdef _WIN32
-std::string SystemTools::GetActualCaseForPathCached(std::string const& p)
-{
-  // Check to see if actual case has already been called
-  // for this path, and the result is stored in the PathCaseMap
-  SystemToolsPathCaseMap::iterator i = SystemTools::PathCaseMap->find(p);
-  if (i != SystemTools::PathCaseMap->end()) {
-    return i->second;
-  }
-  std::string casePath = GetCasePathName(p);
-  if (casePath.size() > MAX_PATH) {
-    return casePath;
-  }
-  (*SystemTools::PathCaseMap)[p] = casePath;
-  return casePath;
-}
+  return SystemToolsStatic::GetCasePathName(p);
+#else
+  return p;
 #endif
+}
 
 const char* SystemTools::SplitPathRootComponent(const std::string& p,
                                                 std::string* root)
@@ -4670,9 +4673,6 @@ bool SystemTools::ParseURL(const std::string& URL, std::string& protocol,
 // necessary.
 static unsigned int SystemToolsManagerCount;
 SystemToolsTranslationMap* SystemTools::TranslationMap;
-#ifdef _WIN32
-SystemToolsPathCaseMap* SystemTools::PathCaseMap;
-#endif
 SystemToolsStatic* SystemTools::Statics;
 
 // SystemToolsManager manages the SystemTools singleton.
@@ -4717,9 +4717,6 @@ void SystemTools::ClassInitialize()
 
   // Allocate the translation map first.
   SystemTools::TranslationMap = new SystemToolsTranslationMap;
-#ifdef _WIN32
-  SystemTools::PathCaseMap = new SystemToolsPathCaseMap;
-#endif
   // Create statics singleton instance
   SystemTools::Statics = new SystemToolsStatic;
 
@@ -4770,9 +4767,6 @@ void SystemTools::ClassInitialize()
 void SystemTools::ClassFinalize()
 {
   delete SystemTools::TranslationMap;
-#ifdef _WIN32
-  delete SystemTools::PathCaseMap;
-#endif
   delete SystemTools::Statics;
 }
 
