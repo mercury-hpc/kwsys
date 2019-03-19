@@ -470,6 +470,11 @@ public:
 #endif
 
   /**
+   * Actual implementation of FileIsFullPath.
+   */
+  static bool FileIsFullPath(const char*, size_t);
+
+  /**
    * Find a filename (file or directory) in the system PATH, with
    * optional extra paths.
    */
@@ -4072,16 +4077,16 @@ bool SystemTools::LocateFileInDir(const char* filename, const char* dir,
 
 bool SystemTools::FileIsFullPath(const std::string& in_name)
 {
-  return SystemTools::FileIsFullPath(in_name.c_str(), in_name.size());
+  return SystemToolsStatic::FileIsFullPath(in_name.c_str(), in_name.size());
 }
 
 bool SystemTools::FileIsFullPath(const char* in_name)
 {
-  return SystemTools::FileIsFullPath(in_name,
-                                     in_name[0] ? (in_name[1] ? 2 : 1) : 0);
+  return SystemToolsStatic::FileIsFullPath(
+    in_name, in_name[0] ? (in_name[1] ? 2 : 1) : 0);
 }
 
-bool SystemTools::FileIsFullPath(const char* in_name, size_t len)
+bool SystemToolsStatic::FileIsFullPath(const char* in_name, size_t len)
 {
 #if defined(_WIN32) || defined(__CYGWIN__)
   // On Windows, the name must be at least two characters long.

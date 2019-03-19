@@ -971,11 +971,6 @@ private:
   static void ReplaceString(std::string& source, const char* replace,
                             size_t replaceSize, const std::string& with);
 
-  /**
-   * Actual implementation of FileIsFullPath.
-   */
-  static bool FileIsFullPath(const char*, size_t);
-
   static SystemToolsStatic* Statics;
   friend class SystemToolsStatic;
   friend class SystemToolsManager;
