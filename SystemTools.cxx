@@ -461,6 +461,7 @@ public:
 #ifdef _WIN32
   static std::string GetCasePathName(std::string const& pathIn);
   static std::string GetActualCaseForPathCached(std::string const& path);
+  static const char* GetEnvBuffered(const char* key);
   std::map<std::string, std::string, SystemToolsPathCaseCmp> PathCaseMap;
   std::map<std::string, std::string> EnvMap;
 #endif
@@ -596,30 +597,35 @@ void SystemTools::GetPath(std::vector<std::string>& path, const char* env)
   }
 }
 
-const char* SystemTools::GetEnvImpl(const char* key)
-{
-  const char* v = KWSYS_NULLPTR;
 #if defined(_WIN32)
+const char* SystemToolsStatic::GetEnvBuffered(const char* key)
+{
   std::string env;
   if (SystemTools::GetEnv(key, env)) {
     std::string& menv = SystemTools::Statics->EnvMap[key];
     menv = std::move(env);
-    v = menv.c_str();
+    return menv.c_str();
   }
-#else
-  v = getenv(key);
-#endif
-  return v;
+  return KWSYS_NULLPTR;
 }
+#endif
 
 const char* SystemTools::GetEnv(const char* key)
 {
-  return SystemTools::GetEnvImpl(key);
+#if defined(_WIN32)
+  return SystemToolsStatic::GetEnvBuffered(key);
+#else
+  return getenv(key);
+#endif
 }
 
 const char* SystemTools::GetEnv(const std::string& key)
 {
-  return SystemTools::GetEnvImpl(key.c_str());
+#if defined(_WIN32)
+  return SystemToolsStatic::GetEnvBuffered(key.c_str());
+#else
+  return getenv(key.c_str());
+#endif
 }
 
 bool SystemTools::GetEnv(const char* key, std::string& result)
