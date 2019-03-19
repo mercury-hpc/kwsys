@@ -976,15 +976,6 @@ private:
    */
   static bool FileIsFullPath(const char*, size_t);
 
-  /**
-   * Find a filename (file or directory) in the system PATH, with
-   * optional extra paths.
-   */
-  static std::string FindName(
-    const std::string& name,
-    const std::vector<std::string>& path = std::vector<std::string>(),
-    bool no_system_path = false);
-
   static SystemToolsStatic* Statics;
   friend class SystemToolsStatic;
   friend class SystemToolsManager;

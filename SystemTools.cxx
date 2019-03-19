@@ -468,6 +468,15 @@ public:
 #ifdef __CYGWIN__
   StringMap Cyg2Win32Map;
 #endif
+
+  /**
+   * Find a filename (file or directory) in the system PATH, with
+   * optional extra paths.
+   */
+  static std::string FindName(
+    const std::string& name,
+    const std::vector<std::string>& path = std::vector<std::string>(),
+    bool no_system_path = false);
 };
 
 #ifdef _WIN32
@@ -2777,9 +2786,9 @@ size_t SystemTools::GetMaximumFilePathLength()
  * the system search path.  Returns the full path to the file if it is
  * found.  Otherwise, the empty string is returned.
  */
-std::string SystemTools::FindName(const std::string& name,
-                                  const std::vector<std::string>& userPaths,
-                                  bool no_system_path)
+std::string SystemToolsStatic::FindName(
+  const std::string& name, const std::vector<std::string>& userPaths,
+  bool no_system_path)
 {
   // Add the system search path to our path first
   std::vector<std::string> path;
@@ -2827,7 +2836,8 @@ std::string SystemTools::FindFile(const std::string& name,
                                   const std::vector<std::string>& userPaths,
                                   bool no_system_path)
 {
-  std::string tryPath = SystemTools::FindName(name, userPaths, no_system_path);
+  std::string tryPath =
+    SystemToolsStatic::FindName(name, userPaths, no_system_path);
   if (!tryPath.empty() && !SystemTools::FileIsDirectory(tryPath)) {
     return SystemTools::CollapseFullPath(tryPath);
   }
@@ -2844,7 +2854,8 @@ std::string SystemTools::FindDirectory(
   const std::string& name, const std::vector<std::string>& userPaths,
   bool no_system_path)
 {
-  std::string tryPath = SystemTools::FindName(name, userPaths, no_system_path);
+  std::string tryPath =
+    SystemToolsStatic::FindName(name, userPaths, no_system_path);
   if (!tryPath.empty() && SystemTools::FileIsDirectory(tryPath)) {
     return SystemTools::CollapseFullPath(tryPath);
   }
