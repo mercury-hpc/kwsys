@@ -68,7 +68,12 @@ public:
 
   enum OpenFlags
   {
-    AllOpenFlags = 0
+    // Search for dependent libraries beside the library being loaded.
+    //
+    // This is currently only supported on Windows.
+    SearchBesideLibrary = 0x00000001,
+
+    AllOpenFlags = SearchBesideLibrary
   };
 
   /** Load a dynamic library into the current process.

@@ -217,9 +217,15 @@ namespace KWSYS_NAMESPACE {
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
   const std::string& libname, int flags)
 {
-  CHECK_OPEN_FLAGS(flags, 0, NULL);
+  CHECK_OPEN_FLAGS(flags, SearchBesideLibrary, NULL);
 
-  return LoadLibraryW(Encoding::ToWindowsExtendedPath(libname).c_str());
+  DWORD llFlags = 0;
+  if (flags & SearchBesideLibrary) {
+    llFlags |= LOAD_WITH_ALTERED_SEARCH_PATH;
+  }
+
+  return LoadLibraryExW(Encoding::ToWindowsExtendedPath(libname).c_str(), NULL,
+                        llFlags);
 }
 
 int DynamicLoader::CloseLibrary(DynamicLoader::LibraryHandle lib)
