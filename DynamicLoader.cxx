@@ -26,6 +26,28 @@
 // Each part of the ifdef contains a complete implementation for
 // the static methods of DynamicLoader.
 
+#define CHECK_OPEN_FLAGS(var, supported, ret)                                 \
+  do {                                                                        \
+    /* Check for unknown flags. */                                            \
+    if ((var & AllOpenFlags) != var) {                                        \
+      return ret;                                                             \
+    }                                                                         \
+                                                                              \
+    /* Check for unsupported flags. */                                        \
+    if ((var & (supported)) != var) {                                         \
+      return ret;                                                             \
+    }                                                                         \
+  } while (0)
+
+namespace KWSYS_NAMESPACE {
+
+DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
+  const std::string& libname)
+{
+  return DynamicLoader::OpenLibrary(libname, 0);
+}
+}
+
 #if !KWSYS_SUPPORTS_SHARED_LIBS
 // Implementation for environments without dynamic libs
 #  include <string.h> // for strerror()
@@ -33,7 +55,7 @@
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
   return 0;
 }
@@ -68,8 +90,10 @@ const char* DynamicLoader::LastError()
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
+  CHECK_OPEN_FLAGS(flags, 0, 0);
+
   return shl_load(libname.c_str(), BIND_DEFERRED | DYNAMIC_PATH, 0L);
 }
 
@@ -131,8 +155,10 @@ const char* DynamicLoader::LastError()
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
+  CHECK_OPEN_FLAGS(flags, 0, 0);
+
   NSObjectFileImageReturnCode rc;
   NSObjectFileImage image = 0;
 
@@ -189,8 +215,10 @@ const char* DynamicLoader::LastError()
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
+  CHECK_OPEN_FLAGS(flags, 0, NULL);
+
   return LoadLibraryW(Encoding::ToWindowsExtendedPath(libname).c_str());
 }
 
@@ -290,8 +318,10 @@ namespace KWSYS_NAMESPACE {
 static image_id last_dynamic_err = B_OK;
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
+  CHECK_OPEN_FLAGS(flags, 0, 0);
+
   // image_id's are integers, errors are negative. Add one just in case we
   //  get a valid image_id of zero (is that even possible?).
   image_id rc = load_add_on(libname.c_str());
@@ -368,8 +398,10 @@ const char* DynamicLoader::LastError()
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
+  CHECK_OPEN_FLAGS(flags, 0, NULL);
+
   char* name = (char*)calloc(1, libname.size() + 1);
   dld_init(program_invocation_name);
   strncpy(name, libname.c_str(), libname.size());
@@ -412,8 +444,10 @@ const char* DynamicLoader::LastError()
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
-  const std::string& libname)
+  const std::string& libname, int flags)
 {
+  CHECK_OPEN_FLAGS(flags, 0, NULL);
+
   return dlopen(libname.c_str(), RTLD_LAZY);
 }
 
