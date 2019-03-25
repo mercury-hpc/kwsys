@@ -247,24 +247,38 @@ DynamicLoader::SymbolPointer DynamicLoader::GetSymbolAddress(
 #  endif
 }
 
+#  define DYNLOAD_ERROR_BUFFER_SIZE 1024
+
 const char* DynamicLoader::LastError()
 {
-  LPVOID lpMsgBuf = NULL;
+  wchar_t lpMsgBuf[DYNLOAD_ERROR_BUFFER_SIZE + 1];
 
-  FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                NULL, GetLastError(),
-                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                (LPTSTR)&lpMsgBuf, 0, NULL);
+  DWORD error = GetLastError();
+  DWORD length = FormatMessageW(
+    FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error,
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+    lpMsgBuf, DYNLOAD_ERROR_BUFFER_SIZE, NULL);
 
-  if (!lpMsgBuf) {
-    return NULL;
+  static char str[DYNLOAD_ERROR_BUFFER_SIZE + 1];
+
+  if (length < 1) {
+    /* FormatMessage failed.  Use a default message.  */
+    _snprintf(str, DYNLOAD_ERROR_BUFFER_SIZE,
+              "DynamicLoader encountered error 0x%X.  "
+              "FormatMessage failed with error 0x%X",
+              error, GetLastError());
+    return str;
   }
 
-  static char* str = 0;
-  delete[] str;
-  str = strcpy(new char[strlen((char*)lpMsgBuf) + 1], (char*)lpMsgBuf);
-  // Free the buffer.
-  LocalFree(lpMsgBuf);
+  if (!WideCharToMultiByte(CP_UTF8, 0, lpMsgBuf, -1, str,
+                           DYNLOAD_ERROR_BUFFER_SIZE, NULL, NULL)) {
+    /* WideCharToMultiByte failed.  Use a default message.  */
+    _snprintf(str, DYNLOAD_ERROR_BUFFER_SIZE,
+              "DynamicLoader encountered error 0x%X.  "
+              "WideCharToMultiByte failed with error 0x%X",
+              error, GetLastError());
+  }
+
   return str;
 }
 
