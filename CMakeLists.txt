@@ -1099,6 +1099,20 @@ IF(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
       ADD_LIBRARY(${KWSYS_NAMESPACE}TestDynload MODULE testDynload.c)
       SET_PROPERTY(TARGET ${KWSYS_NAMESPACE}TestDynload PROPERTY LABELS ${KWSYS_LABELS_LIB})
       ADD_DEPENDENCIES(${KWSYS_NAMESPACE}TestDynload ${KWSYS_TARGET_INTERFACE})
+
+      if (WIN32)
+        # Windows tests supported flags.
+        add_library(${KWSYS_NAMESPACE}TestDynloadImpl SHARED testDynloadImpl.c)
+        set_property(TARGET ${KWSYS_NAMESPACE}TestDynloadImpl PROPERTY LABELS ${KWSYS_LABELS_LIB})
+        set_property(TARGET ${KWSYS_NAMESPACE}TestDynloadImpl PROPERTY DEFINE_SYMBOL BUILDING_TestDynloadImpl)
+        set_property(TARGET ${KWSYS_NAMESPACE}TestDynloadImpl PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/dynloaddir")
+        add_dependencies(${KWSYS_NAMESPACE}TestDynloadImpl ${KWSYS_TARGET_INTERFACE})
+        add_library(${KWSYS_NAMESPACE}TestDynloadUse MODULE testDynloadUse.c)
+        set_property(TARGET ${KWSYS_NAMESPACE}TestDynloadUse PROPERTY LABELS ${KWSYS_LABELS_LIB})
+        set_property(TARGET ${KWSYS_NAMESPACE}TestDynloadUse PROPERTY LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/dynloaddir")
+        add_dependencies(${KWSYS_NAMESPACE}TestDynloadUse ${KWSYS_TARGET_INTERFACE})
+        target_link_libraries(${KWSYS_NAMESPACE}TestDynloadUse PRIVATE ${KWSYS_NAMESPACE}TestDynloadImpl)
+      endif ()
     ENDIF()
     CREATE_TEST_SOURCELIST(
       KWSYS_CXX_TEST_SRCS ${KWSYS_NAMESPACE}TestsCxx.cxx
