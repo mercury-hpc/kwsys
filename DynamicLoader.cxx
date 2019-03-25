@@ -4,6 +4,7 @@
 #include KWSYS_HEADER(DynamicLoader.hxx)
 
 #include KWSYS_HEADER(Configure.hxx)
+#include KWSYS_HEADER(Encoding.hxx)
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
@@ -190,14 +191,7 @@ namespace KWSYS_NAMESPACE {
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
   const std::string& libname)
 {
-  DynamicLoader::LibraryHandle lh;
-  int length = MultiByteToWideChar(CP_UTF8, 0, libname.c_str(), -1, NULL, 0);
-  wchar_t* wchars = new wchar_t[length + 1];
-  wchars[0] = '\0';
-  MultiByteToWideChar(CP_UTF8, 0, libname.c_str(), -1, wchars, length);
-  lh = LoadLibraryW(wchars);
-  delete[] wchars;
-  return lh;
+  return LoadLibraryW(Encoding::ToWindowsExtendedPath(libname).c_str());
 }
 
 int DynamicLoader::CloseLibrary(DynamicLoader::LibraryHandle lib)
