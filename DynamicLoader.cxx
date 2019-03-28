@@ -212,6 +212,8 @@ const char* DynamicLoader::LastError()
 // Implementation for Windows win32 code but not cygwin
 #  include <windows.h>
 
+#  include <stdio.h>
+
 namespace KWSYS_NAMESPACE {
 
 DynamicLoader::LibraryHandle DynamicLoader::OpenLibrary(
