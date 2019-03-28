@@ -1,5 +1,9 @@
 /* Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
    file Copyright.txt or https://cmake.org/licensing#kwsys for details.  */
+#if defined(_WIN32)
+#  define NOMINMAX // hide min,max to not conflict with <limits>
+#endif
+
 #include "kwsysPrivate.h"
 #include KWSYS_HEADER(DynamicLoader.hxx)
 
@@ -211,6 +215,8 @@ const char* DynamicLoader::LastError()
 #elif defined(_WIN32) && !defined(__CYGWIN__)
 // Implementation for Windows win32 code but not cygwin
 #  include <windows.h>
+
+#  include <stdio.h>
 
 namespace KWSYS_NAMESPACE {
 
