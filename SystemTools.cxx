@@ -2986,27 +2986,18 @@ std::string SystemTools::FindLibrary(const std::string& name,
   std::vector<std::string> path;
   SystemTools::GetPath(path);
   // now add the additional paths
-  {
-    for (std::vector<std::string>::const_iterator i = userPaths.begin();
-         i != userPaths.end(); ++i) {
-      path.push_back(*i);
-    }
-  }
+  path.reserve(path.size() + userPaths.size());
+  path.insert(path.end(), userPaths.begin(), userPaths.end());
   // Add a trailing slash to all paths to aid the search process.
-  {
-    for (std::vector<std::string>::iterator i = path.begin(); i != path.end();
-         ++i) {
-      std::string& p = *i;
-      if (p.empty() || p.back() != '/') {
-        p += "/";
-      }
+  for (std::string& p : path) {
+    if (p.empty() || p.back() != '/') {
+      p += '/';
     }
   }
   std::string tryPath;
-  for (std::vector<std::string>::const_iterator p = path.begin();
-       p != path.end(); ++p) {
+  for (std::string const& p : path) {
 #if defined(__APPLE__)
-    tryPath = *p;
+    tryPath = p;
     tryPath += name;
     tryPath += ".framework";
     if (SystemTools::FileIsDirectory(tryPath)) {
@@ -3014,42 +3005,42 @@ std::string SystemTools::FindLibrary(const std::string& name,
     }
 #endif
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
-    tryPath = *p;
+    tryPath = p;
     tryPath += name;
     tryPath += ".lib";
     if (SystemTools::FileExists(tryPath, true)) {
       return SystemTools::CollapseFullPath(tryPath);
     }
 #else
-    tryPath = *p;
+    tryPath = p;
     tryPath += "lib";
     tryPath += name;
     tryPath += ".so";
     if (SystemTools::FileExists(tryPath, true)) {
       return SystemTools::CollapseFullPath(tryPath);
     }
-    tryPath = *p;
+    tryPath = p;
     tryPath += "lib";
     tryPath += name;
     tryPath += ".a";
     if (SystemTools::FileExists(tryPath, true)) {
       return SystemTools::CollapseFullPath(tryPath);
     }
-    tryPath = *p;
+    tryPath = p;
     tryPath += "lib";
     tryPath += name;
     tryPath += ".sl";
     if (SystemTools::FileExists(tryPath, true)) {
       return SystemTools::CollapseFullPath(tryPath);
     }
-    tryPath = *p;
+    tryPath = p;
     tryPath += "lib";
     tryPath += name;
     tryPath += ".dylib";
     if (SystemTools::FileExists(tryPath, true)) {
       return SystemTools::CollapseFullPath(tryPath);
     }
-    tryPath = *p;
+    tryPath = p;
     tryPath += "lib";
     tryPath += name;
     tryPath += ".dll";
