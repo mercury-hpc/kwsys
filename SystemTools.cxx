@@ -623,7 +623,9 @@ const char* SystemToolsStatic::GetEnvBuffered(const char* key)
   std::string env;
   if (SystemTools::GetEnv(key, env)) {
     std::string& menv = SystemTools::Statics->EnvMap[key];
-    menv = std::move(env);
+    if (menv != env) {
+      menv = std::move(env);
+    }
     return menv.c_str();
   }
   return KWSYS_NULLPTR;
