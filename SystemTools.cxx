@@ -3526,28 +3526,26 @@ std::string SystemTools::RelativePath(const std::string& local,
   // for each entry that is not common in the local path
   // add a ../ to the finalpath array, this gets us out of the local
   // path into the remote dir
-  for (unsigned int i = 0; i < localSplit.size(); ++i) {
-    if (!localSplit[i].empty()) {
-      finalPath.push_back("../");
+  for (std::string const& lp : localSplit) {
+    if (!lp.empty()) {
+      finalPath.emplace_back("../");
     }
   }
   // for each entry that is not common in the remote path add it
   // to the final path.
-  for (std::vector<std::string>::iterator vit = remoteSplit.begin();
-       vit != remoteSplit.end(); ++vit) {
-    if (!vit->empty()) {
-      finalPath.push_back(*vit);
+  for (std::string const& rp : remoteSplit) {
+    if (!rp.empty()) {
+      finalPath.push_back(rp);
     }
   }
   std::string relativePath; // result string
   // now turn the array of directories into a unix path by puttint /
   // between each entry that does not already have one
-  for (std::vector<std::string>::iterator vit1 = finalPath.begin();
-       vit1 != finalPath.end(); ++vit1) {
+  for (std::string const& fp : finalPath) {
     if (!relativePath.empty() && relativePath.back() != '/') {
-      relativePath += "/";
+      relativePath += '/';
     }
-    relativePath += *vit1;
+    relativePath += fp;
   }
   return relativePath;
 }
