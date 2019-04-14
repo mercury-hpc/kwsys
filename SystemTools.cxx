@@ -2812,27 +2812,15 @@ std::string SystemToolsStatic::FindName(
     SystemTools::GetPath(path);
   }
   // now add the additional paths
-  {
-    for (std::vector<std::string>::const_iterator i = userPaths.begin();
-         i != userPaths.end(); ++i) {
-      path.push_back(*i);
-    }
-  }
-  // Add a trailing slash to all paths to aid the search process.
-  {
-    for (std::vector<std::string>::iterator i = path.begin(); i != path.end();
-         ++i) {
-      std::string& p = *i;
-      if (p.empty() || p.back() != '/') {
-        p += "/";
-      }
-    }
-  }
+  path.reserve(path.size() + userPaths.size());
+  path.insert(path.end(), userPaths.begin(), userPaths.end());
   // now look for the file
   std::string tryPath;
-  for (std::vector<std::string>::const_iterator p = path.begin();
-       p != path.end(); ++p) {
-    tryPath = *p;
+  for (std::string const& p : path) {
+    tryPath = p;
+    if (tryPath.empty() || tryPath.back() != '/') {
+      tryPath += '/';
+    }
     tryPath += name;
     if (SystemTools::FileExists(tryPath)) {
       return tryPath;
