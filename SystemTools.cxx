@@ -3302,9 +3302,8 @@ bool SystemTools::FindProgramPath(const char* argv0, std::string& pathOut,
       msg << "  argv[0] = \"" << argv0 << "\"\n";
     }
     msg << "  Attempted paths:\n";
-    std::vector<std::string>::iterator i;
-    for (i = failures.begin(); i != failures.end(); ++i) {
-      msg << "    \"" << *i << "\"\n";
+    for (std::string const& ff : failures) {
+      msg << "    \"" << ff << "\"\n";
     }
     errorMsg = msg.str();
     return false;
