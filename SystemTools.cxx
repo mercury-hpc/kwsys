@@ -2959,10 +2959,9 @@ std::string SystemTools::FindProgram(const std::vector<std::string>& names,
                                      const std::vector<std::string>& path,
                                      bool noSystemPath)
 {
-  for (std::vector<std::string>::const_iterator it = names.begin();
-       it != names.end(); ++it) {
+  for (std::string const& name : names) {
     // Try to find the program.
-    std::string result = SystemTools::FindProgram(*it, path, noSystemPath);
+    std::string result = SystemTools::FindProgram(name, path, noSystemPath);
     if (!result.empty()) {
       return result;
     }
