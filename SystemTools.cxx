@@ -3729,8 +3729,7 @@ std::string SystemTools::JoinPath(
   // Construct result in a single string.
   std::string result;
   size_t len = 0;
-  std::vector<std::string>::const_iterator i;
-  for (i = first; i != last; ++i) {
+  for (std::vector<std::string>::const_iterator i = first; i != last; ++i) {
     len += 1 + i->size();
   }
   result.reserve(len);
