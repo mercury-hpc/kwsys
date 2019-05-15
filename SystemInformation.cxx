@@ -447,6 +447,7 @@ public:
     IBM,
     Motorola,
     HP,
+    Hygon,
     UnknownManufacturer
   };
 
@@ -1769,6 +1770,8 @@ const char* SystemInformationImplementation::GetVendorID()
       return "Motorola";
     case HP:
       return "Hewlett-Packard";
+    case Hygon:
+      return "Chengdu Haiguang IC Design Co., Ltd.";
     case UnknownManufacturer:
     default:
       return "Unknown Manufacturer";
@@ -2120,6 +2123,8 @@ void SystemInformationImplementation::FindManufacturer(
     this->ChipManufacturer = AMD; // Advanced Micro Devices
   else if (this->ChipID.Vendor == "AMD ISBETTER")
     this->ChipManufacturer = AMD; // Advanced Micro Devices (1994)
+  else if (this->ChipID.Vendor == "HygonGenuine")
+    this->ChipManufacturer = Hygon; // Chengdu Haiguang IC Design Co., Ltd.
   else if (this->ChipID.Vendor == "CyrixInstead")
     this->ChipManufacturer = Cyrix; // Cyrix Corp., VIA Inc.
   else if (this->ChipID.Vendor == "NexGenDriven")
@@ -2754,7 +2759,7 @@ bool SystemInformationImplementation::RetrieveExtendedCPUFeatures()
      0); // MP Capable -- > Bit 19.
 
   // Retrieve AMD specific extended features.
-  if (this->ChipManufacturer == AMD) {
+  if (this->ChipManufacturer == AMD || this->ChipManufacturer == Hygon) {
     this->Features.ExtendedFeatures.HasMMXPlus =
       ((localCPUExtendedFeatures[3] & 0x00400000) !=
        0); // AMD specific: MMX-SSE --> Bit 22
@@ -3160,6 +3165,10 @@ bool SystemInformationImplementation::RetrieveClassicalCPUIdentity()
           return false;
       }
       break;
+
+    case Hygon:
+      this->ChipID.ProcessorName = "Unknown Hygon family";
+      return false;
 
     case Transmeta:
       switch (this->ChipID.Family) {
