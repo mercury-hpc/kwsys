@@ -3411,9 +3411,9 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
                                           const char* in_base)
 {
   // Use the current working directory as a base path.
-  char buf[2048];
   const char* res_in_base = in_base;
   if (!res_in_base) {
+    char buf[2048];
     if (const char* cwd = Getcwd(buf, 2048)) {
       res_in_base = cwd;
     } else {
@@ -4738,7 +4738,7 @@ void SystemTools::ClassInitialize()
       // Test progressively shorter logical-to-physical mappings.
       std::string cwd_str = cwd;
       std::string pwd_path;
-      Realpath(pwd_str.c_str(), pwd_path);
+      Realpath(pwd_str, pwd_path);
       while (cwd_str == pwd_path && cwd_str != pwd_str) {
         // The current pair of paths is a working logical mapping.
         cwd_changed = cwd_str;
@@ -4748,7 +4748,7 @@ void SystemTools::ClassInitialize()
         // mapping still works.
         pwd_str = SystemTools::GetFilenamePath(pwd_str);
         cwd_str = SystemTools::GetFilenamePath(cwd_str);
-        Realpath(pwd_str.c_str(), pwd_path);
+        Realpath(pwd_str, pwd_path);
       }
 
       // Add the translation to keep the logical path name.
