@@ -3398,11 +3398,7 @@ static void SystemToolsAppendComponents(
         out_components.resize(out_components.size() - 1);
       }
     } else if (!i->empty() && *i != cur) {
-#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
-      out_components.push_back(std::move(*i));
-#else
-      out_components.push_back(*i);
-#endif
+      out_components.emplace_back(std::move(*i));
     }
   }
 }
