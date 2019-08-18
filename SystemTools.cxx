@@ -2169,24 +2169,24 @@ std::string SystemTools::ConvertToWindowsOutputPath(const std::string& path)
   return ret;
 }
 
+/**
+ * Append the filename from the path source to the directory name dir.
+ */
+static std::string FileInDir(const std::string& source, const std::string& dir)
+{
+  std::string new_destination = dir;
+  SystemTools::ConvertToUnixSlashes(new_destination);
+  return new_destination + '/' + SystemTools::GetFilenameName(source);
+}
+
 bool SystemTools::CopyFileIfDifferent(const std::string& source,
                                       const std::string& destination)
 {
   // special check for a destination that is a directory
   // FilesDiffer does not handle file to directory compare
   if (SystemTools::FileIsDirectory(destination)) {
-    std::string new_destination = destination;
-    SystemTools::ConvertToUnixSlashes(new_destination);
-    new_destination += '/';
-    std::string source_name = source;
-    new_destination += SystemTools::GetFilenameName(source_name);
-    if (SystemTools::FilesDiffer(source, new_destination)) {
-      return SystemTools::CopyFileAlways(source, destination);
-    } else {
-      // the files are the same so the copy is done return
-      // true
-      return true;
-    }
+    const std::string new_destination = FileInDir(source, destination);
+    return SystemTools::CopyFileIfDifferent(source, new_destination);
   }
   // source and destination are files so do a copy if they
   // are different
