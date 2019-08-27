@@ -2627,7 +2627,7 @@ static bool IsJunction(const std::wstring& source)
     return false;
   }
 
-  // Adjust privileges so that we can succefully open junction points.
+  // Adjust privileges so that we can successfully open junction points.
   HANDLE token;
   TOKEN_PRIVILEGES privs;
   OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &token);
@@ -2666,7 +2666,7 @@ static bool IsJunction(const std::wstring& source)
 static bool DeleteJunction(const std::wstring& source)
 {
 #  ifdef FSCTL_DELETE_REPARSE_POINT
-  // Adjust privileges so that we can succefully open junction points as
+  // Adjust privileges so that we can successfully open junction points as
   // read/write.
   HANDLE token;
   TOKEN_PRIVILEGES privs;
