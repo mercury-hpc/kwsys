@@ -4491,7 +4491,8 @@ bool SystemInformationImplementation::ParseSysCtl()
 #  ifdef VM_SWAPUSAGE
   // Virtual memory.
   int mib[2] = { CTL_VM, VM_SWAPUSAGE };
-  size_t miblen = sizeof(mib) / sizeof(mib[0]);
+  unsigned int miblen =
+    static_cast<unsigned int>(sizeof(mib) / sizeof(mib[0]));
   struct xsw_usage swap;
   len = sizeof(swap);
   err = sysctl(mib, miblen, &swap, &len, KWSYS_NULLPTR, 0);
