@@ -389,8 +389,8 @@ struct kwsysEnvCompare
 #else
     const char* leq = strchr(l, '=');
     const char* req = strchr(r, '=');
-    size_t llen = leq ? (leq - l) : strlen(l);
-    size_t rlen = req ? (req - r) : strlen(r);
+    size_t llen = leq ? static_cast<size_t>(leq - l) : strlen(l);
+    size_t rlen = req ? static_cast<size_t>(req - r) : strlen(r);
     if (llen == rlen) {
       return strncmp(l, r, llen) < 0;
     } else {
