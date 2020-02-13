@@ -2182,10 +2182,6 @@ static std::string FileInDir(const std::string& source, const std::string& dir)
 bool SystemTools::CopyFileIfDifferent(const std::string& source,
                                       const std::string& destination)
 {
-  if (SystemTools::FileIsDirectory(source)) {
-    return false;
-  }
-
   // special check for a destination that is a directory
   // FilesDiffer does not handle file to directory compare
   if (SystemTools::FileIsDirectory(destination)) {
