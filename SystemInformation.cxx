@@ -899,7 +899,7 @@ int LoadLines(FILE* file, std::vector<std::string>& lines)
 int LoadLines(const char* fileName, std::vector<std::string>& lines)
 {
   FILE* file = fopen(fileName, "r");
-  if (file == 0) {
+  if (file == nullptr) {
     return 0;
   }
   int nRead = LoadLines(file, lines);
@@ -3441,7 +3441,7 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
     // Linux Sparc: CPU speed is in Hz and encoded in hexadecimal
     CPUSpeed = this->ExtractValueFromCpuInfoFile(buffer, "Cpu0ClkTck");
     this->CPUSpeedInMHz =
-      static_cast<float>(strtoull(CPUSpeed.c_str(), 0, 16)) / 1000000.0f;
+      static_cast<float>(strtoull(CPUSpeed.c_str(), nullptr, 16)) / 1000000.0f;
   }
 #endif
 
