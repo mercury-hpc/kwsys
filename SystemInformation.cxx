@@ -314,7 +314,7 @@ class SystemInformationImplementation
 public:
   using LongLong = SystemInformation::LongLong;
   SystemInformationImplementation();
-  ~SystemInformationImplementation();
+  ~SystemInformationImplementation() = default;
 
   const char* GetVendorString() const;
   const char* GetVendorID();
@@ -1505,10 +1505,6 @@ SystemInformationImplementation::SystemInformationImplementation()
   this->OSVersion = "";
   this->OSPlatform = "";
   this->OSIs64Bit = (sizeof(void*) == 8);
-}
-
-SystemInformationImplementation::~SystemInformationImplementation()
-{
 }
 
 void SystemInformationImplementation::RunCPUCheck()

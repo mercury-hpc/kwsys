@@ -66,12 +66,7 @@ class CommandLineArgumentsMapOfStrucs
 class CommandLineArgumentsInternal
 {
 public:
-  CommandLineArgumentsInternal()
-    : UnknownArgumentCallback{ nullptr }
-    , ClientData{ nullptr }
-    , LastArgument{ 0 }
-  {
-  }
+  CommandLineArgumentsInternal() {}
 
   using VectorOfStrings = CommandLineArgumentsVectorOfStrings;
   using CallbacksMap = CommandLineArgumentsMapOfStrucs;
@@ -82,10 +77,10 @@ public:
   String Argv0;
   CallbacksMap Callbacks;
 
-  CommandLineArguments::ErrorCallbackType UnknownArgumentCallback;
-  void* ClientData;
+  CommandLineArguments::ErrorCallbackType UnknownArgumentCallback{ nullptr };
+  void* ClientData{ nullptr };
 
-  VectorOfStrings::size_type LastArgument;
+  VectorOfStrings::size_type LastArgument{ 0 };
 
   VectorOfStrings UnusedArguments;
 };
