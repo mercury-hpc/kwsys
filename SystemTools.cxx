@@ -488,7 +488,7 @@ public:
    */
   static std::string FindName(
     const std::string& name,
-    const std::vector<std::string>& path = std::vector<std::string>(),
+    const std::vector<std::string>& userPaths = std::vector<std::string>(),
     bool no_system_path = false);
 };
 
