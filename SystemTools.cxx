@@ -350,7 +350,7 @@ extern int putenv(char* __string) __THROW;
 
 namespace KWSYS_NAMESPACE {
 
-double SystemTools::GetTime(void)
+double SystemTools::GetTime()
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
   FILETIME ft;
