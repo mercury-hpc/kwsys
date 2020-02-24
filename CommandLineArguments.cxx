@@ -709,7 +709,7 @@ bool CommandLineArguments::PopulateVariable(
   if (cs->Callback) {
     if (!cs->Callback(cs->Argument, value, cs->CallData)) {
       this->Internals->LastArgument--;
-      return 0;
+      return false;
     }
   }
   CommandLineArguments_DEBUG("Set argument: " << cs->Argument << " to "
@@ -759,10 +759,10 @@ bool CommandLineArguments::PopulateVariable(
         std::cerr << "Got unknown variable type: \"" << cs->VariableType
                   << "\"" << std::endl;
         this->Internals->LastArgument--;
-        return 0;
+        return false;
     }
   }
-  return 1;
+  return true;
 }
 
 } // namespace KWSYS_NAMESPACE

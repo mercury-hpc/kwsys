@@ -204,7 +204,7 @@ bool Directory::Load(const std::string& name)
   DIR* dir = opendir(name.c_str());
 
   if (!dir) {
-    return 0;
+    return false;
   }
 
   for (kwsys_dirent* d = readdir(dir); d; d = readdir(dir)) {
@@ -212,7 +212,7 @@ bool Directory::Load(const std::string& name)
   }
   this->Internal->Path = name;
   closedir(dir);
-  return 1;
+  return true;
 }
 
 unsigned long Directory::GetNumberOfFilesInDirectory(const std::string& name)
