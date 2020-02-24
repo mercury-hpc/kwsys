@@ -3544,9 +3544,8 @@ bool SystemInformationImplementation::RetreiveInformationFromCpuInfoFile()
   cachename.push_back("D-cache");    // e.g. PA-RISC
 
   this->Features.L1CacheSize = 0;
-  for (size_t index = 0; index < cachename.size(); index++) {
-    std::string cacheSize =
-      this->ExtractValueFromCpuInfoFile(buffer, cachename[index]);
+  for (auto& index : cachename) {
+    std::string cacheSize = this->ExtractValueFromCpuInfoFile(buffer, index);
     if (!cacheSize.empty()) {
       pos = cacheSize.find(" KB");
       if (pos != std::string::npos) {
@@ -4781,8 +4780,8 @@ std::string SystemInformationImplementation::ParseValueFromKStat(
   args.reserve(3 + args_string.size());
   args.push_back("kstat");
   args.push_back("-p");
-  for (size_t i = 0; i < args_string.size(); ++i) {
-    args.push_back(args_string[i].c_str());
+  for (auto& i : args_string) {
+    args.push_back(i.c_str());
   }
   args.push_back(nullptr);
 

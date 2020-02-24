@@ -33,10 +33,10 @@ static bool test_hash_map()
   m[keys[0]] = 1;
   m.insert(mtype::value_type(keys[1], 2));
   int sum = 0;
-  for (mtype::iterator mi = m.begin(); mi != m.end(); ++mi) {
-    std::cout << "Found entry [" << mi->first << "," << mi->second << "]"
+  for (auto& mi : m) {
+    std::cout << "Found entry [" << mi.first << "," << mi.second << "]"
               << std::endl;
-    sum += mi->second;
+    sum += mi.second;
   }
   return sum == 3;
 }
@@ -48,9 +48,9 @@ static bool test_hash_set()
   s.insert(1);
   s.insert(2);
   int sum = 0;
-  for (stype::iterator si = s.begin(); si != s.end(); ++si) {
-    std::cout << "Found entry [" << *si << "]" << std::endl;
-    sum += *si;
+  for (int si : s) {
+    std::cout << "Found entry [" << si << "]" << std::endl;
+    sum += si;
   }
   return sum == 3;
 }

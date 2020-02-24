@@ -140,13 +140,13 @@ static int testWithNulls()
   strings.push_back(std::string("k") + '\0' + '\0');
   strings.push_back(std::string("\0\0\0\0", 4) + "lmn" +
                     std::string("\0\0\0\0", 4));
-  for (auto it = strings.begin(); it != strings.end(); ++it) {
-    std::wstring wstr = kwsys::Encoding::ToWide(*it);
+  for (auto& string : strings) {
+    std::wstring wstr = kwsys::Encoding::ToWide(string);
     std::string str = kwsys::Encoding::ToNarrow(wstr);
-    std::string s(*it);
+    std::string s(string);
     std::replace(s.begin(), s.end(), '\0', ' ');
-    std::cout << "'" << s << "' (" << it->size() << ")" << std::endl;
-    if (str != *it) {
+    std::cout << "'" << s << "' (" << string.size() << ")" << std::endl;
+    if (str != string) {
       std::replace(str.begin(), str.end(), '\0', ' ');
       std::cout << "string with null was different: '" << str << "' ("
                 << str.size() << ")" << std::endl;
