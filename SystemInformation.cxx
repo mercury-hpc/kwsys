@@ -132,7 +132,7 @@ typedef int siginfo_t;
 #    endif
 #  endif
 #  if defined(KWSYS_CXX_HAS_RLIMIT64)
-typedef struct rlimit64 ResourceLimitType;
+using ResourceLimitType = struct rlimit64;
 #    define GetResourceLimit getrlimit64
 #  else
 typedef struct rlimit ResourceLimitType;
@@ -303,16 +303,16 @@ T min(T a, T b)
 }
 
 extern "C" {
-typedef void (*SigAction)(int, siginfo_t*, void*);
+using SigAction = void (*)(int, siginfo_t*, void*);
 }
 
 //  Define SystemInformationImplementation class
-typedef void (*DELAY_FUNC)(unsigned int uiMS);
+using DELAY_FUNC = void (*)(unsigned int);
 
 class SystemInformationImplementation
 {
 public:
-  typedef SystemInformation::LongLong LongLong;
+  using LongLong = SystemInformation::LongLong;
   SystemInformationImplementation();
   ~SystemInformationImplementation();
 
@@ -377,60 +377,103 @@ public:
   void RunMemoryCheck();
 
 public:
-  typedef struct tagID
+  using ID = struct tagID
+
   {
+
     int Type;
+
     int Family;
+
     int Model;
+
     int Revision;
+
     int ExtendedFamily;
+
     int ExtendedModel;
+
     std::string ProcessorName;
+
     std::string Vendor;
+
     std::string SerialNumber;
+
     std::string ModelName;
-  } ID;
+  };
 
-  typedef struct tagCPUPowerManagement
+  using CPUPowerManagement = struct tagCPUPowerManagement
+
   {
+
     bool HasVoltageID;
+
     bool HasFrequencyID;
+
     bool HasTempSenseDiode;
-  } CPUPowerManagement;
+  };
 
-  typedef struct tagCPUExtendedFeatures
+  using CPUExtendedFeatures = struct tagCPUExtendedFeatures
+
   {
+
     bool Has3DNow;
-    bool Has3DNowPlus;
-    bool SupportsMP;
-    bool HasMMXPlus;
-    bool HasSSEMMX;
-    unsigned int LogicalProcessorsPerPhysical;
-    int APIC_ID;
-    CPUPowerManagement PowerManagement;
-  } CPUExtendedFeatures;
 
-  typedef struct CPUtagFeatures
+    bool Has3DNowPlus;
+
+    bool SupportsMP;
+
+    bool HasMMXPlus;
+
+    bool HasSSEMMX;
+
+    unsigned int LogicalProcessorsPerPhysical;
+
+    int APIC_ID;
+
+    CPUPowerManagement PowerManagement;
+  };
+
+  using CPUFeatures = struct CPUtagFeatures
+
   {
+
     bool HasFPU;
+
     bool HasTSC;
+
     bool HasMMX;
+
     bool HasSSE;
+
     bool HasSSEFP;
+
     bool HasSSE2;
+
     bool HasIA64;
+
     bool HasAPIC;
+
     bool HasCMOV;
+
     bool HasMTRR;
+
     bool HasACPI;
+
     bool HasSerial;
+
     bool HasThermal;
+
     int CPUSpeed;
+
     int L1CacheSize;
+
     int L2CacheSize;
+
     int L3CacheSize;
+
     CPUExtendedFeatures ExtendedFeatures;
-  } CPUFeatures;
+  };
 
   enum Manufacturer
   {

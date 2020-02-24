@@ -27,7 +27,7 @@ template class kwsys::hash_set<int>;
 
 static bool test_hash_map()
 {
-  typedef kwsys::hash_map<const char*, int> mtype;
+  using mtype = kwsys::hash_map<const char*, int>;
   mtype m;
   const char* keys[] = { "hello", "world" };
   m[keys[0]] = 1;
@@ -43,7 +43,7 @@ static bool test_hash_map()
 
 static bool test_hash_set()
 {
-  typedef kwsys::hash_set<int> stype;
+  using stype = kwsys::hash_set<int>;
   stype s;
   s.insert(1);
   s.insert(2);

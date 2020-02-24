@@ -73,10 +73,10 @@ public:
   {
   }
 
-  typedef CommandLineArgumentsVectorOfStrings VectorOfStrings;
-  typedef CommandLineArgumentsMapOfStrucs CallbacksMap;
-  typedef kwsys::String String;
-  typedef CommandLineArgumentsSetOfStrings SetOfStrings;
+  using VectorOfStrings = CommandLineArgumentsVectorOfStrings;
+  using CallbacksMap = CommandLineArgumentsMapOfStrucs;
+  using String = kwsys::String;
+  using SetOfStrings = CommandLineArgumentsSetOfStrings;
 
   VectorOfStrings Argv;
   String Argv0;
@@ -470,9 +470,8 @@ void CommandLineArguments::GenerateHelp()
   // Collapse all arguments into the map of vectors of all arguments that do
   // the same thing.
   CommandLineArguments::Internal::CallbacksMap::iterator it;
-  typedef std::map<CommandLineArguments::Internal::String,
-                   CommandLineArguments::Internal::SetOfStrings>
-    MapArgs;
+  using MapArgs = std::map<CommandLineArguments::Internal::String,
+                           CommandLineArguments::Internal::SetOfStrings>;
   MapArgs mp;
   MapArgs::iterator mpit, smpit;
   for (it = this->Internals->Callbacks.begin();

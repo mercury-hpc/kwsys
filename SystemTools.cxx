@@ -368,7 +368,7 @@ double SystemTools::GetTime()
 #if defined(_WIN32)
 typedef wchar_t envchar;
 #else
-typedef char envchar;
+using envchar = char;
 #endif
 
 /* Order by environment key only (VAR from VAR=VALUE).  */
@@ -452,7 +452,7 @@ struct SystemToolsPathCaseCmp
 class SystemToolsStatic
 {
 public:
-  typedef std::map<std::string, std::string> StringMap;
+  using StringMap = std::map<std::string, std::string>;
 #if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
   /**
    * Path translation table from dir to refdir
