@@ -743,16 +743,16 @@ static bool CheckGetPath()
   const char* registryPath = "[HKEY_LOCAL_MACHINE\\SOFTWARE\\MyApp; MyKey]";
 
   std::vector<std::string> originalPaths;
-  originalPaths.push_back(registryPath);
+  originalPaths.emplace_back(registryPath);
 
   std::vector<std::string> expectedPaths;
-  expectedPaths.push_back(registryPath);
+  expectedPaths.emplace_back(registryPath);
 #ifdef _WIN32
   expectedPaths.push_back("C:/Somewhere/something");
   expectedPaths.push_back("D:/Temp");
 #else
-  expectedPaths.push_back("/Somewhere/something");
-  expectedPaths.push_back("/tmp");
+  expectedPaths.emplace_back("/Somewhere/something");
+  expectedPaths.emplace_back("/tmp");
 #endif
 
   bool res = true;
@@ -817,7 +817,7 @@ static bool CheckFind()
   }
 
   std::vector<std::string> searchPaths;
-  searchPaths.push_back(TEST_SYSTEMTOOLS_BINARY_DIR);
+  searchPaths.emplace_back(TEST_SYSTEMTOOLS_BINARY_DIR);
   if (kwsys::SystemTools::FindFile(testFindFileName, searchPaths, true)
         .empty()) {
     std::cerr << "Problem with FindFile without system paths for: "

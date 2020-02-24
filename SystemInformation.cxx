@@ -928,7 +928,7 @@ int LoadLines(FILE* file, std::vector<std::string>& lines)
         *pBuf = '\0';
       pBuf += 1;
     }
-    lines.push_back(buf);
+    lines.emplace_back(buf);
     ++nRead;
   }
   if (ferror(file)) {

@@ -208,7 +208,7 @@ bool Directory::Load(const std::string& name)
   }
 
   for (kwsys_dirent* d = readdir(dir); d; d = readdir(dir)) {
-    this->Internal->Files.push_back(d->d_name);
+    this->Internal->Files.emplace_back(d->d_name);
   }
   this->Internal->Path = name;
   closedir(dir);

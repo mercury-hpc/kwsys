@@ -1893,7 +1893,7 @@ std::vector<std::string> SystemTools::SplitString(const std::string& p,
   }
   if (isPath && path[0] == '/') {
     path.erase(path.begin());
-    paths.push_back("/");
+    paths.emplace_back("/");
   }
   std::string::size_type pos1 = 0;
   std::string::size_type pos2 = path.find(sep, pos1 + 1);
@@ -3571,14 +3571,14 @@ void SystemTools::SplitPath(const std::string& p,
   for (; *last; ++last) {
     if (*last == '/' || *last == '\\') {
       // End of a component.  Save it.
-      components.push_back(std::string(first, last));
+      components.emplace_back(first, last);
       first = last + 1;
     }
   }
 
   // Save the last component unless there were no components.
   if (last != c) {
-    components.push_back(std::string(first, last));
+    components.emplace_back(first, last);
   }
 }
 
