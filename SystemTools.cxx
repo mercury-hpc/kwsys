@@ -421,7 +421,7 @@ public:
   const envchar* Release(const envchar* env)
   {
     const envchar* old = nullptr;
-    iterator i = this->find(env);
+    auto i = this->find(env);
     if (i != this->end()) {
       old = *i;
       this->erase(i);
@@ -613,8 +613,7 @@ void SystemTools::GetPath(std::vector<std::string>& path, const char* env)
       done = true;
     }
   }
-  for (std::vector<std::string>::iterator i = path.begin() + old_size;
-       i != path.end(); ++i) {
+  for (auto i = path.begin() + old_size; i != path.end(); ++i) {
     SystemTools::ConvertToUnixSlashes(*i);
   }
 }
@@ -3594,7 +3593,7 @@ std::string SystemTools::JoinPath(
   // Construct result in a single string.
   std::string result;
   size_t len = 0;
-  for (std::vector<std::string>::const_iterator i = first; i != last; ++i) {
+  for (auto i = first; i != last; ++i) {
     len += 1 + i->size();
   }
   result.reserve(len);
@@ -3828,7 +3827,7 @@ SystemTools::FileTypeEnum SystemTools::DetectFileType(const char* filename,
 
   // Allocate buffer and read bytes
 
-  unsigned char* buffer = new unsigned char[length];
+  auto* buffer = new unsigned char[length];
   size_t read_length = fread(buffer, 1, length, fp);
   fclose(fp);
   if (read_length == 0) {

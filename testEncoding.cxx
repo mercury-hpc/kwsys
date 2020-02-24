@@ -140,8 +140,7 @@ static int testWithNulls()
   strings.push_back(std::string("k") + '\0' + '\0');
   strings.push_back(std::string("\0\0\0\0", 4) + "lmn" +
                     std::string("\0\0\0\0", 4));
-  for (std::vector<std::string>::iterator it = strings.begin();
-       it != strings.end(); ++it) {
+  for (auto it = strings.begin(); it != strings.end(); ++it) {
     std::wstring wstr = kwsys::Encoding::ToWide(*it);
     std::string str = kwsys::Encoding::ToNarrow(wstr);
     std::string s(*it);

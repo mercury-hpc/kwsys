@@ -721,8 +721,7 @@ static std::string StringVectorToString(const std::vector<std::string>& vec)
 {
   std::stringstream ss;
   ss << "vector(";
-  for (std::vector<std::string>::const_iterator i = vec.begin();
-       i != vec.end(); ++i) {
+  for (auto i = vec.begin(); i != vec.end(); ++i) {
     if (i != vec.begin()) {
       ss << ", ";
     }

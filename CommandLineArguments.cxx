@@ -419,8 +419,7 @@ void CommandLineArguments::SetUnknownArgumentCallback(
 
 const char* CommandLineArguments::GetHelp(const char* arg)
 {
-  CommandLineArguments::Internal::CallbacksMap::iterator it =
-    this->Internals->Callbacks.find(arg);
+  auto it = this->Internals->Callbacks.find(arg);
   if (it == this->Internals->Callbacks.end()) {
     return nullptr;
   }
@@ -429,8 +428,7 @@ const char* CommandLineArguments::GetHelp(const char* arg)
   // one point to if this one is pointing to another argument.
   CommandLineArgumentsCallbackStructure* cs = &(it->second);
   for (;;) {
-    CommandLineArguments::Internal::CallbacksMap::iterator hit =
-      this->Internals->Callbacks.find(cs->Help);
+    auto hit = this->Internals->Callbacks.find(cs->Help);
     if (hit == this->Internals->Callbacks.end()) {
       break;
     }
