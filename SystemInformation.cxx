@@ -356,7 +356,7 @@ public:
 
   // Retrieve memory information in KiB.
   LongLong GetHostMemoryTotal();
-  LongLong GetHostMemoryAvailable(const char* envVarName);
+  LongLong GetHostMemoryAvailable(const char* hostLimitEnvVarName);
   LongLong GetHostMemoryUsed();
 
   LongLong GetProcMemoryAvailable(const char* hostLimitEnvVarName,
