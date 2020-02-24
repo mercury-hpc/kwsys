@@ -85,7 +85,7 @@ static int testRobustEncoding()
   std::wstring wstr = kwsys::Encoding::ToWide(cstr);
 
   wstr = kwsys::Encoding::ToWide(nullptr);
-  if (wstr != L"") {
+  if (!wstr.empty()) {
     const wchar_t* wcstr = wstr.c_str();
     std::cout << "ToWide(NULL) returned";
     for (size_t i = 0; i < wstr.size(); i++) {
@@ -95,7 +95,7 @@ static int testRobustEncoding()
     ret++;
   }
   wstr = kwsys::Encoding::ToWide("");
-  if (wstr != L"") {
+  if (!wstr.empty()) {
     const wchar_t* wcstr = wstr.c_str();
     std::cout << "ToWide(\"\") returned";
     for (size_t i = 0; i < wstr.size(); i++) {
@@ -113,13 +113,13 @@ static int testRobustEncoding()
 #endif
 
   std::string str = kwsys::Encoding::ToNarrow(nullptr);
-  if (str != "") {
+  if (!str.empty()) {
     std::cout << "ToNarrow(NULL) returned " << str << std::endl;
     ret++;
   }
 
   str = kwsys::Encoding::ToNarrow(L"");
-  if (wstr != L"") {
+  if (!wstr.empty()) {
     std::cout << "ToNarrow(\"\") returned " << str << std::endl;
     ret++;
   }

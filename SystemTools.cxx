@@ -1858,7 +1858,7 @@ char* SystemTools::DuplicateString(const char* str)
 // Return a cropped string
 std::string SystemTools::CropString(const std::string& s, size_t max_len)
 {
-  if (!s.size() || max_len == 0 || max_len >= s.size()) {
+  if (s.empty() || max_len == 0 || max_len >= s.size()) {
     return s;
   }
 
