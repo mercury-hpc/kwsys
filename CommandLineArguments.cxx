@@ -66,7 +66,7 @@ class CommandLineArgumentsMapOfStrucs
 class CommandLineArgumentsInternal
 {
 public:
-  CommandLineArgumentsInternal() {}
+  CommandLineArgumentsInternal() = default;
 
   using VectorOfStrings = CommandLineArgumentsVectorOfStrings;
   using CallbacksMap = CommandLineArgumentsMapOfStrucs;
