@@ -912,11 +912,14 @@ bool SystemTools::MakeDirectory(const std::string& path, const mode_t* mode)
   std::string::size_type pos = 0;
   std::string topdir;
   while ((pos = dir.find('/', pos)) != std::string::npos) {
-    topdir = dir.substr(0, pos);
+    // all underlying functions use C strings, so temporarily
+    // end the string here
+    dir[pos] = '\0';
 
-    if (Mkdir(topdir) == 0 && mode != nullptr) {
-      SystemTools::SetPermissions(topdir, *mode);
+    if (Mkdir(dir) == 0 && mode != nullptr) {
+      SystemTools::SetPermissions(dir, *mode);
     }
+    dir[pos] = '/';
 
     ++pos;
   }
@@ -1867,7 +1870,7 @@ std::string SystemTools::CropString(const std::string& s, size_t max_len)
 
   size_t middle = max_len / 2;
 
-  n += s.substr(0, middle);
+  n.assign(s, 0, middle);
   n += s.substr(s.size() - (max_len - middle));
 
   if (max_len > 2) {
@@ -2065,8 +2068,10 @@ void SystemTools::ConvertToUnixSlashes(std::string& path)
 #ifdef HAVE_GETPWNAM
   else if (pathCString[0] == '~') {
     std::string::size_type idx = path.find_first_of("/\0");
-    std::string user = path.substr(1, idx - 1);
-    passwd* pw = getpwnam(user.c_str());
+    char oldch = path[idx];
+    path[idx] = '\0';
+    passwd* pw = getpwnam(path.c_str() + 1);
+    path[idx] = oldch;
     if (pw) {
       path.replace(0, idx, pw->pw_dir);
     }
@@ -3139,7 +3144,7 @@ bool SystemTools::SplitProgramPath(const std::string& in_name,
     std::string::size_type slashPos = dir.rfind("/");
     if (slashPos != std::string::npos) {
       file = dir.substr(slashPos + 1);
-      dir = dir.substr(0, slashPos);
+      dir.resize(slashPos);
     } else {
       file = dir;
       dir.clear();
@@ -3541,7 +3546,7 @@ void SystemTools::SplitPath(const std::string& p,
     // Expand home directory references if requested.
     if (expand_home_dir && !root.empty() && root[0] == '~') {
       std::string homedir;
-      root = root.substr(0, root.size() - 1);
+      root.resize(root.size() - 1);
       if (root.size() == 1) {
 #if defined(_WIN32) && !defined(__CYGWIN__)
         if (!SystemTools::GetEnv("USERPROFILE", homedir))
@@ -3686,18 +3691,19 @@ std::string SystemTools::GetFilenamePath(const std::string& filename)
   SystemTools::ConvertToUnixSlashes(fn);
 
   std::string::size_type slash_pos = fn.rfind("/");
-  if (slash_pos != std::string::npos) {
-    std::string ret = fn.substr(0, slash_pos);
-    if (ret.size() == 2 && ret[1] == ':') {
-      return ret + '/';
-    }
-    if (ret.empty()) {
-      return "/";
-    }
-    return ret;
-  } else {
+  if (slash_pos == 0) {
+    return "/";
+  }
+  if (slash_pos == 2 && fn[1] == ':') {
+    // keep the / after a drive letter
+    fn.resize(3);
+    return fn;
+  }
+  if (slash_pos == std::string::npos) {
     return "";
   }
+  fn.resize(slash_pos);
+  return fn;
 }
 
 /**
@@ -3727,7 +3733,8 @@ std::string SystemTools::GetFilenameExtension(const std::string& filename)
   std::string name = SystemTools::GetFilenameName(filename);
   std::string::size_type dot_pos = name.find('.');
   if (dot_pos != std::string::npos) {
-    return name.substr(dot_pos);
+    name.erase(0, dot_pos);
+    return name;
   } else {
     return "";
   }
@@ -3742,7 +3749,8 @@ std::string SystemTools::GetFilenameLastExtension(const std::string& filename)
   std::string name = SystemTools::GetFilenameName(filename);
   std::string::size_type dot_pos = name.rfind('.');
   if (dot_pos != std::string::npos) {
-    return name.substr(dot_pos);
+    name.erase(0, dot_pos);
+    return name;
   } else {
     return "";
   }
@@ -3758,10 +3766,9 @@ std::string SystemTools::GetFilenameWithoutExtension(
   std::string name = SystemTools::GetFilenameName(filename);
   std::string::size_type dot_pos = name.find('.');
   if (dot_pos != std::string::npos) {
-    return name.substr(0, dot_pos);
-  } else {
-    return name;
+    name.resize(dot_pos);
   }
+  return name;
 }
 
 /**
@@ -3775,10 +3782,9 @@ std::string SystemTools::GetFilenameWithoutLastExtension(
   std::string name = SystemTools::GetFilenameName(filename);
   std::string::size_type dot_pos = name.rfind('.');
   if (dot_pos != std::string::npos) {
-    return name.substr(0, dot_pos);
-  } else {
-    return name;
+    name.resize(dot_pos);
   }
+  return name;
 }
 
 bool SystemTools::FileHasSignature(const char* filename, const char* signature,
@@ -4000,7 +4006,8 @@ bool SystemTools::GetShortPath(const std::string& path, std::string& shortPath)
 
   // if the path passed in has quotes around it, first remove the quotes
   if (!path.empty() && path[0] == '"' && path.back() == '"') {
-    tempPath = path.substr(1, path.length() - 2);
+    tempPath.resize(path.length() - 1);
+    tempPath.erase(0, 1);
   }
 
   std::wstring wtempPath = Encoding::ToWide(tempPath);
@@ -4219,8 +4226,8 @@ bool SystemTools::IsSubDirectory(const std::string& cSubdir,
   if (subdir[expectedSlashPosition] != '/') {
     return false;
   }
-  std::string s = subdir.substr(0, dir.size());
-  return SystemTools::ComparePath(s, dir);
+  subdir.resize(dir.size());
+  return SystemTools::ComparePath(subdir, dir);
 }
 
 void SystemTools::Delay(unsigned int msec)
@@ -4581,8 +4588,8 @@ std::string SystemTools::DecodeURL(const std::string& url)
   std::string ret;
   for (size_t i = 0; i < url.length(); i++) {
     if (urlByteRe.find(url.substr(i, 3))) {
-      ret +=
-        static_cast<char>(strtoul(url.substr(i + 1, 2).c_str(), nullptr, 16));
+      char bytes[] = { url[i + 1], url[i + 2], '\0' };
+      ret += static_cast<char>(strtoul(bytes, nullptr, 16));
       i += 2;
     } else {
       ret += url[i];
