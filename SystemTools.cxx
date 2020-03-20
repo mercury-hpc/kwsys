@@ -3276,7 +3276,7 @@ void SystemTools::CheckTranslationPath(std::string& path)
   // Now convert any path found in the table back to the one desired:
   for (auto const& pair : SystemTools::Statics->TranslationMap) {
     // We need to check of the path is a substring of the other path
-    if (path.find(pair.first) == 0) {
+    if (path.compare(0, pair.first.size(), pair.first) == 0) {
       path = path.replace(0, pair.first.size(), pair.second);
     }
   }
