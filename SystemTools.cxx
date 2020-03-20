@@ -221,11 +221,17 @@ static time_t windows_filetime_to_posix_time(const FILETIME& ft)
 
 #ifdef KWSYS_WINDOWS_DIRS
 #  include <wctype.h>
+#  ifdef _MSC_VER
+typedef KWSYS_NAMESPACE::SystemTools::mode_t mode_t;
+#  endif
 
-inline int Mkdir(const std::string& dir)
+inline int Mkdir(const std::string& dir, const mode_t* mode)
 {
-  return _wmkdir(
-    KWSYS_NAMESPACE::Encoding::ToWindowsExtendedPath(dir).c_str());
+  int ret =
+    _wmkdir(KWSYS_NAMESPACE::Encoding::ToWindowsExtendedPath(dir).c_str());
+  if (ret == 0 && mode)
+    KWSYS_NAMESPACE::SystemTools::SetPermissions(dir, *mode);
+  return ret;
 }
 inline int Rmdir(const std::string& dir)
 {
@@ -295,9 +301,9 @@ inline void Realpath(const std::string& path, std::string& resolved_path,
 
 #  include <fcntl.h>
 #  include <unistd.h>
-inline int Mkdir(const std::string& dir)
+inline int Mkdir(const std::string& dir, const mode_t* mode)
 {
-  return mkdir(dir.c_str(), 00777);
+  return mkdir(dir.c_str(), mode ? *mode : 00777);
 }
 inline int Rmdir(const std::string& dir)
 {
@@ -916,15 +922,13 @@ bool SystemTools::MakeDirectory(const std::string& path, const mode_t* mode)
     // end the string here
     dir[pos] = '\0';
 
-    if (Mkdir(dir) == 0 && mode != nullptr) {
-      SystemTools::SetPermissions(dir, *mode);
-    }
+    Mkdir(dir, mode);
     dir[pos] = '/';
 
     ++pos;
   }
   topdir = dir;
-  if (Mkdir(topdir) != 0) {
+  if (Mkdir(topdir, mode) != 0) {
     // There is a bug in the Borland Run time library which makes MKDIR
     // return EACCES when it should return EEXISTS
     // if it is some other error besides directory exists
@@ -936,8 +940,6 @@ bool SystemTools::MakeDirectory(const std::string& path, const mode_t* mode)
     ) {
       return false;
     }
-  } else if (mode != nullptr) {
-    SystemTools::SetPermissions(topdir, *mode);
   }
 
   return true;
