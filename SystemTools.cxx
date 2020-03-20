@@ -1010,38 +1010,40 @@ void SystemToolsStatic::ReplaceString(std::string& source, const char* replace,
 #    define KWSYS_ST_KEY_WOW64_64KEY 0x0100
 #  endif
 
-static bool SystemToolsParseRegistryKey(const std::string& key,
-                                        HKEY& primaryKey, std::string& second,
-                                        std::string& valuename)
+static bool hasPrefix(const std::string& s, const char* pattern,
+                      std::string::size_type spos)
 {
-  std::string primary = key;
+  size_t plen = strlen(pattern);
+  if (spos != plen)
+    return false;
+  return s.compare(0, plen, pattern) == 0;
+}
 
-  size_t start = primary.find('\\');
+static bool SystemToolsParseRegistryKey(const std::string& key,
+                                        HKEY& primaryKey, std::wstring& second,
+                                        std::string* valuename)
+{
+  size_t start = key.find('\\');
   if (start == std::string::npos) {
     return false;
   }
 
-  size_t valuenamepos = primary.find(';');
-  if (valuenamepos != std::string::npos) {
-    valuename = primary.substr(valuenamepos + 1);
+  size_t valuenamepos = key.find(';');
+  if (valuenamepos != std::string::npos && valuename) {
+    *valuename = key.substr(valuenamepos + 1);
   }
 
-  second = primary.substr(start + 1, valuenamepos - start - 1);
-  primary = primary.substr(0, start);
+  second = Encoding::ToWide(key.substr(start + 1, valuenamepos - start - 1));
 
-  if (primary == "HKEY_CURRENT_USER") {
+  if (hasPrefix(key, "HKEY_CURRENT_USER", start)) {
     primaryKey = HKEY_CURRENT_USER;
-  }
-  if (primary == "HKEY_CURRENT_CONFIG") {
+  } else if (hasPrefix(key, "HKEY_CURRENT_CONFIG", start)) {
     primaryKey = HKEY_CURRENT_CONFIG;
-  }
-  if (primary == "HKEY_CLASSES_ROOT") {
+  } else if (hasPrefix(key, "HKEY_CLASSES_ROOT", start)) {
     primaryKey = HKEY_CLASSES_ROOT;
-  }
-  if (primary == "HKEY_LOCAL_MACHINE") {
+  } else if (hasPrefix(key, "HKEY_LOCAL_MACHINE", start)) {
     primaryKey = HKEY_LOCAL_MACHINE;
-  }
-  if (primary == "HKEY_USERS") {
+  } else if (hasPrefix(key, "HKEY_USERS", start)) {
     primaryKey = HKEY_USERS;
   }
 
@@ -1073,14 +1075,13 @@ bool SystemTools::GetRegistrySubKeys(const std::string& key,
                                      KeyWOW64 view)
 {
   HKEY primaryKey = HKEY_CURRENT_USER;
-  std::string second;
-  std::string valuename;
-  if (!SystemToolsParseRegistryKey(key, primaryKey, second, valuename)) {
+  std::wstring second;
+  if (!SystemToolsParseRegistryKey(key, primaryKey, second, nullptr)) {
     return false;
   }
 
   HKEY hKey;
-  if (RegOpenKeyExW(primaryKey, Encoding::ToWide(second).c_str(), 0,
+  if (RegOpenKeyExW(primaryKey, second.c_str(), 0,
                     SystemToolsMakeRegistryMode(KEY_READ, view),
                     &hKey) != ERROR_SUCCESS) {
     return false;
@@ -1120,14 +1121,14 @@ bool SystemTools::ReadRegistryValue(const std::string& key, std::string& value,
 {
   bool valueset = false;
   HKEY primaryKey = HKEY_CURRENT_USER;
-  std::string second;
+  std::wstring second;
   std::string valuename;
-  if (!SystemToolsParseRegistryKey(key, primaryKey, second, valuename)) {
+  if (!SystemToolsParseRegistryKey(key, primaryKey, second, &valuename)) {
     return false;
   }
 
   HKEY hKey;
-  if (RegOpenKeyExW(primaryKey, Encoding::ToWide(second).c_str(), 0,
+  if (RegOpenKeyExW(primaryKey, second.c_str(), 0,
                     SystemToolsMakeRegistryMode(KEY_READ, view),
                     &hKey) != ERROR_SUCCESS) {
     return false;
@@ -1174,16 +1175,16 @@ bool SystemTools::WriteRegistryValue(const std::string& key,
                                      const std::string& value, KeyWOW64 view)
 {
   HKEY primaryKey = HKEY_CURRENT_USER;
-  std::string second;
+  std::wstring second;
   std::string valuename;
-  if (!SystemToolsParseRegistryKey(key, primaryKey, second, valuename)) {
+  if (!SystemToolsParseRegistryKey(key, primaryKey, second, &valuename)) {
     return false;
   }
 
   HKEY hKey;
   DWORD dwDummy;
   wchar_t lpClass[] = L"";
-  if (RegCreateKeyExW(primaryKey, Encoding::ToWide(second).c_str(), 0, lpClass,
+  if (RegCreateKeyExW(primaryKey, second.c_str(), 0, lpClass,
                       REG_OPTION_NON_VOLATILE,
                       SystemToolsMakeRegistryMode(KEY_WRITE, view), nullptr,
                       &hKey, &dwDummy) != ERROR_SUCCESS) {
@@ -1218,14 +1219,14 @@ bool SystemTools::WriteRegistryValue(const std::string&, const std::string&,
 bool SystemTools::DeleteRegistryValue(const std::string& key, KeyWOW64 view)
 {
   HKEY primaryKey = HKEY_CURRENT_USER;
-  std::string second;
+  std::wstring second;
   std::string valuename;
-  if (!SystemToolsParseRegistryKey(key, primaryKey, second, valuename)) {
+  if (!SystemToolsParseRegistryKey(key, primaryKey, second, &valuename)) {
     return false;
   }
 
   HKEY hKey;
-  if (RegOpenKeyExW(primaryKey, Encoding::ToWide(second).c_str(), 0,
+  if (RegOpenKeyExW(primaryKey, second.c_str(), 0,
                     SystemToolsMakeRegistryMode(KEY_WRITE, view),
                     &hKey) != ERROR_SUCCESS) {
     return false;
