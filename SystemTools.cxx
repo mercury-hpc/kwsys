@@ -3132,7 +3132,7 @@ bool SystemTools::SplitProgramPath(const std::string& in_name,
                                    std::string& dir, std::string& file, bool)
 {
   dir = in_name;
-  file = "";
+  file.clear();
   SystemTools::ConvertToUnixSlashes(dir);
 
   if (!SystemTools::FileIsDirectory(dir)) {
@@ -3142,7 +3142,7 @@ bool SystemTools::SplitProgramPath(const std::string& in_name,
       dir = dir.substr(0, slashPos);
     } else {
       file = dir;
-      dir = "";
+      dir.clear();
     }
   }
   if (!(dir.empty()) && !SystemTools::FileIsDirectory(dir)) {
