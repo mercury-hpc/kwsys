@@ -3215,11 +3215,6 @@ bool SystemTools::FindProgramPath(const char* argv0, std::string& pathOut,
   return true;
 }
 
-std::string SystemTools::CollapseFullPath(const std::string& in_relative)
-{
-  return SystemTools::CollapseFullPath(in_relative, nullptr);
-}
-
 #if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
 void SystemTools::AddTranslationPath(const std::string& a,
                                      const std::string& b)
@@ -3309,25 +3304,10 @@ static void SystemToolsAppendComponents(
   }
 }
 
-std::string SystemTools::CollapseFullPath(const std::string& in_path,
-                                          const char* in_base)
-{
-  // Use the current working directory as a base path.
-  char buf[2048];
-  const char* res_in_base = in_base;
-  if (!res_in_base) {
-    if (const char* cwd = Getcwd(buf, 2048)) {
-      res_in_base = cwd;
-    } else {
-      res_in_base = "";
-    }
-  }
+namespace {
 
-  return SystemTools::CollapseFullPath(in_path, std::string(res_in_base));
-}
-
-std::string SystemTools::CollapseFullPath(const std::string& in_path,
-                                          const std::string& in_base)
+std::string CollapseFullPathImpl(std::string const& in_path,
+                                 std::string const* in_base)
 {
   // Collect the output path components.
   std::vector<std::string> out_components;
@@ -3340,8 +3320,15 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   // If the input path is relative, start with a base path.
   if (path_components[0].empty()) {
     std::vector<std::string> base_components;
-    // Use the given base path.
-    SystemTools::SplitPath(in_base, base_components);
+
+    if (in_base) {
+      // Use the given base path.
+      SystemTools::SplitPath(*in_base, base_components);
+    } else {
+      // Use the current working directory as a base path.
+      std::string cwd = SystemTools::GetCurrentWorkingDirectory();
+      SystemTools::SplitPath(cwd, base_components);
+    }
 
     // Append base path components to the output path.
     out_components.push_back(base_components[0]);
@@ -3379,6 +3366,28 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
 #endif
   // Return the reconstructed path.
   return newPath;
+}
+}
+
+std::string SystemTools::CollapseFullPath(std::string const& in_path)
+{
+  return CollapseFullPathImpl(in_path, nullptr);
+}
+
+std::string SystemTools::CollapseFullPath(std::string const& in_path,
+                                          const char* in_base)
+{
+  if (!in_base) {
+    return CollapseFullPathImpl(in_path, nullptr);
+  }
+  std::string tmp_base = in_base;
+  return CollapseFullPathImpl(in_path, &tmp_base);
+}
+
+std::string SystemTools::CollapseFullPath(std::string const& in_path,
+                                          std::string const& in_base)
+{
+  return CollapseFullPathImpl(in_path, &in_base);
 }
 
 // compute the relative path from here to there

@@ -411,11 +411,11 @@ public:
    * (which defaults to the current working directory).  The full path
    * is returned.
    */
-  static std::string CollapseFullPath(const std::string& in_relative);
-  static std::string CollapseFullPath(const std::string& in_relative,
+  static std::string CollapseFullPath(std::string const& in_path);
+  static std::string CollapseFullPath(std::string const& in_path,
                                       const char* in_base);
-  static std::string CollapseFullPath(const std::string& in_relative,
-                                      const std::string& in_base);
+  static std::string CollapseFullPath(std::string const& in_path,
+                                      std::string const& in_base);
 
   /**
    * Get the real path for a given path, removing all symlinks.  In
