@@ -869,7 +869,7 @@ public:
   /**
    * Get current working directory CWD
    */
-  static std::string GetCurrentWorkingDirectory(bool collapse = true);
+  static std::string GetCurrentWorkingDirectory();
 
   /**
    * Change directory to the directory specified

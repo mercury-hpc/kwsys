@@ -3117,16 +3117,13 @@ int SystemTools::ChangeDirectory(const std::string& dir)
   return Chdir(dir);
 }
 
-std::string SystemTools::GetCurrentWorkingDirectory(bool collapse)
+std::string SystemTools::GetCurrentWorkingDirectory()
 {
   char buf[2048];
   const char* cwd = Getcwd(buf, 2048);
   std::string path;
   if (cwd) {
     path = cwd;
-  }
-  if (collapse) {
-    return SystemTools::CollapseFullPath(path);
   }
   return path;
 }
