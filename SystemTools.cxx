@@ -498,6 +498,9 @@ public:
     bool no_system_path = false);
 };
 
+// Do NOT initialize.  Default initialization to zero is necessary.
+static SystemToolsStatic* SystemToolsStatics;
+
 #ifdef _WIN32
 std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn)
 {
@@ -572,7 +575,7 @@ std::string SystemToolsStatic::GetActualCaseForPathCached(std::string const& p)
 {
   // Check to see if actual case has already been called
   // for this path, and the result is stored in the PathCaseMap
-  auto& pcm = SystemTools::Statics->PathCaseMap;
+  auto& pcm = SystemToolsStatics->PathCaseMap;
   {
     auto itr = pcm.find(p);
     if (itr != pcm.end()) {
@@ -629,7 +632,7 @@ const char* SystemToolsStatic::GetEnvBuffered(const char* key)
 {
   std::string env;
   if (SystemTools::GetEnv(key, env)) {
-    std::string& menv = SystemTools::Statics->EnvMap[key];
+    std::string& menv = SystemToolsStatics->EnvMap[key];
     if (menv != env) {
       menv = std::move(env);
     }
@@ -1453,15 +1456,15 @@ int SystemTools::Stat(const std::string& path, SystemTools::Stat_t* buf)
 #ifdef __CYGWIN__
 bool SystemTools::PathCygwinToWin32(const char* path, char* win32_path)
 {
-  auto itr = SystemTools::Statics->Cyg2Win32Map.find(path);
-  if (itr != SystemTools::Statics->Cyg2Win32Map.end()) {
+  auto itr = SystemToolsStatics->Cyg2Win32Map.find(path);
+  if (itr != SystemToolsStatics->Cyg2Win32Map.end()) {
     strncpy(win32_path, itr->second.c_str(), MAX_PATH);
   } else {
     if (cygwin_conv_path(CCP_POSIX_TO_WIN_A, path, win32_path, MAX_PATH) !=
         0) {
       win32_path[0] = 0;
     }
-    SystemTools::Statics->Cyg2Win32Map.insert(
+    SystemToolsStatics->Cyg2Win32Map.insert(
       SystemToolsStatic::StringMap::value_type(path, win32_path));
   }
   return win32_path[0] != 0;
@@ -3244,7 +3247,7 @@ void SystemTools::AddTranslationPath(const std::string& a,
         path_b += '/';
       }
       if (!(path_a == path_b)) {
-        SystemTools::Statics->TranslationMap.insert(
+        SystemToolsStatics->TranslationMap.insert(
           SystemToolsStatic::StringMap::value_type(std::move(path_a),
                                                    std::move(path_b)));
       }
@@ -3274,7 +3277,7 @@ void SystemTools::CheckTranslationPath(std::string& path)
 
   // In case a file was specified we still have to go through this:
   // Now convert any path found in the table back to the one desired:
-  for (auto const& pair : SystemTools::Statics->TranslationMap) {
+  for (auto const& pair : SystemToolsStatics->TranslationMap) {
     // We need to check of the path is a substring of the other path
     if (path.compare(0, pair.first.size(), pair.first) == 0) {
       path = path.replace(0, pair.first.size(), pair.second);
@@ -3374,7 +3377,7 @@ std::string SystemTools::CollapseFullPath(const std::string& in_path,
   SystemTools::CheckTranslationPath(newPath);
 #endif
 #ifdef _WIN32
-  newPath = SystemTools::Statics->GetActualCaseForPathCached(newPath);
+  newPath = SystemToolsStatics->GetActualCaseForPathCached(newPath);
   SystemTools::ConvertToUnixSlashes(newPath);
 #endif
   // Return the reconstructed path.
@@ -4601,10 +4604,8 @@ std::string SystemTools::DecodeURL(const std::string& url)
 }
 
 // ----------------------------------------------------------------------
-// These must NOT be initialized.  Default initialization to zero is
-// necessary.
+// Do NOT initialize.  Default initialization to zero is necessary.
 static unsigned int SystemToolsManagerCount;
-SystemToolsStatic* SystemTools::Statics;
 
 // SystemToolsManager manages the SystemTools singleton.
 // SystemToolsManager should be included in any translation unit
@@ -4647,7 +4648,7 @@ void SystemTools::ClassInitialize()
 #endif
 
   // Create statics singleton instance
-  SystemTools::Statics = new SystemToolsStatic;
+  SystemToolsStatics = new SystemToolsStatic;
 
 #if KWSYS_SYSTEMTOOLS_USE_TRANSLATION_MAP
 // Add some special translation paths for unix.  These are not added
@@ -4697,7 +4698,7 @@ void SystemTools::ClassInitialize()
 
 void SystemTools::ClassFinalize()
 {
-  delete SystemTools::Statics;
+  delete SystemToolsStatics;
 }
 
 } // namespace KWSYS_NAMESPACE
