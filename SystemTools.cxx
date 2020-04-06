@@ -3124,6 +3124,7 @@ std::string SystemTools::GetCurrentWorkingDirectory()
   std::string path;
   if (cwd) {
     path = cwd;
+    SystemTools::ConvertToUnixSlashes(path);
   }
   return path;
 }
