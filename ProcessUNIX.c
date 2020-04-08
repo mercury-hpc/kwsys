@@ -685,7 +685,8 @@ const char* kwsysProcess_GetErrorString(kwsysProcess* cp)
 {
   if (!cp) {
     return "Process management structure could not be allocated";
-  } else if (cp->State == kwsysProcess_State_Error) {
+  }
+  if (cp->State == kwsysProcess_State_Error) {
     return cp->ErrorMessage;
   }
   return "Success";
@@ -695,7 +696,8 @@ const char* kwsysProcess_GetExceptionString(kwsysProcess* cp)
 {
   if (!(cp && cp->ProcessResults && (cp->NumberOfCommands > 0))) {
     return "GetExceptionString called with NULL process management structure";
-  } else if (cp->State == kwsysProcess_State_Exception) {
+  }
+  if (cp->State == kwsysProcess_State_Exception) {
     return cp->ProcessResults[cp->NumberOfCommands - 1].ExitExceptionString;
   }
   return "No exception";
@@ -1100,22 +1102,22 @@ int kwsysProcess_WaitForData(kwsysProcess* cp, char** data, int* length,
   if (wd.PipeId) {
     /* Data are ready on a pipe.  */
     return wd.PipeId;
-  } else if (wd.Expired) {
+  }
+  if (wd.Expired) {
     /* A timeout has expired.  */
     if (wd.User) {
       /* The user timeout has expired.  It has no time left.  */
       return kwsysProcess_Pipe_Timeout;
-    } else {
-      /* The process timeout has expired.  Kill the children now.  */
-      kwsysProcess_Kill(cp);
-      cp->Killed = 0;
-      cp->TimeoutExpired = 1;
-      return kwsysProcess_Pipe_None;
     }
-  } else {
-    /* No pipes are left open.  */
+
+    /* The process timeout has expired.  Kill the children now.  */
+    kwsysProcess_Kill(cp);
+    cp->Killed = 0;
+    cp->TimeoutExpired = 1;
     return kwsysProcess_Pipe_None;
   }
+  /* No pipes are left open.  */
+  return kwsysProcess_Pipe_None;
 }
 
 static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
@@ -1227,7 +1229,8 @@ static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
     /* Select's timeout expired.  */
     wd->Expired = 1;
     return 1;
-  } else if (numReady < 0) {
+  }
+  if (numReady < 0) {
     /* Select returned an error.  Leave the error description in the
        pipe buffer.  */
     strncpy(cp->ErrorMessage, strerror(errno), KWSYSPE_PIPE_BUFFER_SIZE);
@@ -2001,28 +2004,26 @@ static int kwsysProcessGetTimeoutLeft(kwsysProcessTime* timeoutTime,
   if (timeoutTime->tv_sec < 0) {
     /* No timeout time has been requested.  */
     return 0;
-  } else {
-    /* Calculate the remaining time.  */
-    kwsysProcessTime currentTime = kwsysProcessTimeGetCurrent();
-    kwsysProcessTime timeLeft =
-      kwsysProcessTimeSubtract(*timeoutTime, currentTime);
-    if (timeLeft.tv_sec < 0 && userTimeout && *userTimeout <= 0) {
-      /* Caller has explicitly requested a zero timeout.  */
-      timeLeft.tv_sec = 0;
-      timeLeft.tv_usec = 0;
-    }
-
-    if (timeLeft.tv_sec < 0 ||
-        (timeLeft.tv_sec == 0 && timeLeft.tv_usec == 0 && zeroIsExpired)) {
-      /* Timeout has already expired.  */
-      return 1;
-    } else {
-      /* There is some time left.  */
-      timeoutLength->tv_sec = timeLeft.tv_sec;
-      timeoutLength->tv_usec = timeLeft.tv_usec;
-      return 0;
-    }
   }
+  /* Calculate the remaining time.  */
+  kwsysProcessTime currentTime = kwsysProcessTimeGetCurrent();
+  kwsysProcessTime timeLeft =
+    kwsysProcessTimeSubtract(*timeoutTime, currentTime);
+  if (timeLeft.tv_sec < 0 && userTimeout && *userTimeout <= 0) {
+    /* Caller has explicitly requested a zero timeout.  */
+    timeLeft.tv_sec = 0;
+    timeLeft.tv_usec = 0;
+  }
+
+  if (timeLeft.tv_sec < 0 ||
+      (timeLeft.tv_sec == 0 && timeLeft.tv_usec == 0 && zeroIsExpired)) {
+    /* Timeout has already expired.  */
+    return 1;
+  }
+  /* There is some time left.  */
+  timeoutLength->tv_sec = timeLeft.tv_sec;
+  timeoutLength->tv_usec = timeLeft.tv_usec;
+  return 0;
 }
 
 static kwsysProcessTime kwsysProcessTimeGetCurrent(void)
@@ -2427,41 +2428,39 @@ static pid_t kwsysProcessFork(kwsysProcess* cp,
     if (middle_pid < 0) {
       /* Fork failed.  Return as if we were not detaching.  */
       return middle_pid;
-    } else if (middle_pid == 0) {
+    }
+    if (middle_pid == 0) {
       /* This is the intermediate process.  Create the real child.  */
       pid_t child_pid = fork();
       if (child_pid == 0) {
         /* This is the real child process.  There is nothing to do here.  */
         return 0;
-      } else {
-        /* Use the error pipe to report the pid to the real parent.  */
-        while ((write(si->ErrorPipe[1], &child_pid, sizeof(child_pid)) < 0) &&
-               (errno == EINTR)) {
-        }
-
-        /* Exit without cleanup.  The parent holds all resources.  */
-        kwsysProcessExit();
-        return 0; /* Never reached, but avoids SunCC warning.  */
       }
-    } else {
-      /* This is the original parent process.  The intermediate
-         process will use the error pipe to report the pid of the
-         detached child.  */
-      pid_t child_pid;
-      int status;
-      while ((read(si->ErrorPipe[0], &child_pid, sizeof(child_pid)) < 0) &&
+      /* Use the error pipe to report the pid to the real parent.  */
+      while ((write(si->ErrorPipe[1], &child_pid, sizeof(child_pid)) < 0) &&
              (errno == EINTR)) {
       }
 
-      /* Wait for the intermediate process to exit and clean it up.  */
-      while ((waitpid(middle_pid, &status, 0) < 0) && (errno == EINTR)) {
-      }
-      return child_pid;
+      /* Exit without cleanup.  The parent holds all resources.  */
+      kwsysProcessExit();
+      return 0; /* Never reached, but avoids SunCC warning.  */
     }
-  } else {
-    /* Not creating a detached process.  Use normal fork.  */
-    return fork();
+    /* This is the original parent process.  The intermediate
+        process will use the error pipe to report the pid of the
+        detached child.  */
+    pid_t child_pid;
+    int status;
+    while ((read(si->ErrorPipe[0], &child_pid, sizeof(child_pid)) < 0) &&
+           (errno == EINTR)) {
+    }
+
+    /* Wait for the intermediate process to exit and clean it up.  */
+    while ((waitpid(middle_pid, &status, 0) < 0) && (errno == EINTR)) {
+    }
+    return child_pid;
   }
+  /* Not creating a detached process.  Use normal fork.  */
+  return fork();
 }
 #endif
 
