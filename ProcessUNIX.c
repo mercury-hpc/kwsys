@@ -1184,7 +1184,7 @@ static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
 
   /* Make sure the set is empty (it should always be empty here
      anyway).  */
-  FD_ZERO(&cp->PipeSet);
+  FD_ZERO(&cp->PipeSet); // NOLINT(readability-isolate-declaration)
 
   /* Setup a timeout if required.  */
   if (wd->TimeoutTime.tv_sec < 0) {
@@ -1502,7 +1502,7 @@ static int kwsysProcessInitialize(kwsysProcess* cp)
   cp->PipesLeft = 0;
   cp->CommandsLeft = 0;
 #if KWSYSPE_USE_SELECT
-  FD_ZERO(&cp->PipeSet);
+  FD_ZERO(&cp->PipeSet); // NOLINT(readability-isolate-declaration)
 #endif
   cp->State = kwsysProcess_State_Starting;
   cp->Killed = 0;
@@ -1690,7 +1690,8 @@ int decc$set_child_standard_streams(int fd1, int fd2, int fd3);
 static int kwsysProcessCreate(kwsysProcess* cp, int prIndex,
                               kwsysProcessCreateInformation* si)
 {
-  sigset_t mask, old_mask;
+  sigset_t mask;
+  sigset_t old_mask;
   int pgidPipe[2];
   char tmp;
   ssize_t readRes;
@@ -2808,7 +2809,10 @@ static void kwsysProcessesSignalHandler(int signum
 #endif
 )
 {
-  int i, j, procStatus, old_errno = errno;
+  int i;
+  int j;
+  int procStatus;
+  int old_errno = errno;
 #if KWSYSPE_USE_SIGINFO
   (void)info;
   (void)ucontext;
