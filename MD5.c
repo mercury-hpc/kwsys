@@ -229,9 +229,10 @@ static void md5_process(md5_state_t* pms, const md5_byte_t* data /*[64]*/)
 #  else
 #    define xbuf X /* (static only) */
 #  endif
-      for (i = 0; i < 16; ++i, xp += 4)
+      for (i = 0; i < 16; ++i, xp += 4) {
         xbuf[i] =
           (md5_word_t)(xp[0] + (xp[1] << 8) + (xp[2] << 16) + (xp[3] << 24));
+      }
     }
 #endif
   }
@@ -369,34 +370,39 @@ static void md5_append(md5_state_t* pms, const md5_byte_t* data, size_t nbytes)
   size_t offset = (pms->count[0] >> 3) & 63;
   md5_word_t nbits = (md5_word_t)(nbytes << 3);
 
-  if (nbytes <= 0)
+  if (nbytes <= 0) {
     return;
+  }
 
   /* Update the message length. */
   pms->count[1] += (md5_word_t)(nbytes >> 29);
   pms->count[0] += nbits;
-  if (pms->count[0] < nbits)
+  if (pms->count[0] < nbits) {
     pms->count[1]++;
+  }
 
   /* Process an initial partial block. */
   if (offset) {
     size_t copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
 
     memcpy(pms->buf + offset, p, copy);
-    if (offset + copy < 64)
+    if (offset + copy < 64) {
       return;
+    }
     p += copy;
     left -= copy;
     md5_process(pms, pms->buf);
   }
 
   /* Process full blocks. */
-  for (; left >= 64; p += 64, left -= 64)
+  for (; left >= 64; p += 64, left -= 64) {
     md5_process(pms, p);
+  }
 
   /* Process a final partial block. */
-  if (left)
+  if (left) {
     memcpy(pms->buf, p, left);
+  }
 }
 
 /* Finish the message and return the digest. */

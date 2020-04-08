@@ -432,8 +432,8 @@ int kwsysProcess_AddCommand(kwsysProcess* cp, char const* const* command)
     char const* const* c = command;
     kwsysProcess_ptrdiff_t n = 0;
     kwsysProcess_ptrdiff_t i = 0;
-    while (*c++)
-      ;
+    while (*c++) {
+    }
     n = c - command - 1;
     newCommands[cp->NumberOfCommands] =
       (char**)malloc((size_t)(n + 1) * sizeof(char*));
@@ -787,8 +787,8 @@ void kwsysProcess_Execute(kwsysProcess* cp)
 
     /* Some platforms specify that the chdir call may be
        interrupted.  Repeat the call until it finishes.  */
-    while (((r = chdir(cp->WorkingDirectory)) < 0) && (errno == EINTR))
-      ;
+    while (((r = chdir(cp->WorkingDirectory)) < 0) && (errno == EINTR)) {
+    }
     if (r < 0) {
       kwsysProcessCleanup(cp, 1);
       return;
@@ -1014,8 +1014,8 @@ void kwsysProcess_Execute(kwsysProcess* cp)
   if (cp->RealWorkingDirectory) {
     /* Some platforms specify that the chdir call may be
        interrupted.  Repeat the call until it finishes.  */
-    while ((chdir(cp->RealWorkingDirectory) < 0) && (errno == EINTR))
-      ;
+    while ((chdir(cp->RealWorkingDirectory) < 0) && (errno == EINTR)) {
+    }
     free(cp->RealWorkingDirectory);
     cp->RealWorkingDirectory = 0;
   }
@@ -1450,8 +1450,8 @@ void kwsysProcess_Kill(kwsysProcess* cp)
 
       /* Reap the child.  Keep trying until the call is not
          interrupted.  */
-      while ((waitpid(cp->ForkPIDs[i], &status, 0) < 0) && (errno == EINTR))
-        ;
+      while ((waitpid(cp->ForkPIDs[i], &status, 0) < 0) && (errno == EINTR)) {
+      }
     }
   }
 
@@ -1591,16 +1591,16 @@ static void kwsysProcessCleanup(kwsysProcess* cp, int error)
           /* Reap the child.  Keep trying until the call is not
              interrupted.  */
           while ((waitpid(cp->ForkPIDs[i], &status, 0) < 0) &&
-                 (errno == EINTR))
-            ;
+                 (errno == EINTR)) {
+          }
         }
       }
     }
 
     /* Restore the working directory.  */
     if (cp->RealWorkingDirectory) {
-      while ((chdir(cp->RealWorkingDirectory) < 0) && (errno == EINTR))
-        ;
+      while ((chdir(cp->RealWorkingDirectory) < 0) && (errno == EINTR)) {
+      }
     }
   }
 
@@ -1636,8 +1636,8 @@ static void kwsysProcessCleanupDescriptor(int* pfd)
   if (pfd && *pfd > 2) {
     /* Keep trying to close until it is not interrupted by a
      * signal.  */
-    while ((close(*pfd) < 0) && (errno == EINTR))
-      ;
+    while ((close(*pfd) < 0) && (errno == EINTR)) {
+    }
     *pfd = -1;
   }
 }
@@ -1662,8 +1662,8 @@ static void kwsysProcessClosePipes(kwsysProcess* cp)
            read until the operation is not interrupted.  */
         while ((read(cp->PipeReadEnds[i], cp->PipeBuffer,
                      KWSYSPE_PIPE_BUFFER_SIZE) < 0) &&
-               (errno == EINTR))
-          ;
+               (errno == EINTR)) {
+        }
       }
 #endif
 
@@ -1819,8 +1819,8 @@ static int kwsysProcessCreate(kwsysProcess* cp, int prIndex,
   /* Make sure the child is in the process group before we proceed.  This
      avoids race conditions with calls to the kill function that we make for
      signalling process groups.  */
-  while ((readRes = read(pgidPipe[0], &tmp, 1)) > 0)
-    ;
+  while ((readRes = read(pgidPipe[0], &tmp, 1)) > 0) {
+  }
   if (readRes < 0) {
     sigprocmask(SIG_SETMASK, &old_mask, 0);
     kwsysProcessCleanupDescriptor(&si->ErrorPipe[0]);
@@ -1848,8 +1848,8 @@ static int kwsysProcessCreate(kwsysProcess* cp, int prIndex,
       /* Keep trying to read until the operation is not interrupted.  */
       while (((n = read(si->ErrorPipe[0], cp->ErrorMessage + total,
                         (size_t)(KWSYSPE_PIPE_BUFFER_SIZE - total))) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
       if (n > 0) {
         total += n;
       }
@@ -2436,8 +2436,8 @@ static pid_t kwsysProcessFork(kwsysProcess* cp,
       } else {
         /* Use the error pipe to report the pid to the real parent.  */
         while ((write(si->ErrorPipe[1], &child_pid, sizeof(child_pid)) < 0) &&
-               (errno == EINTR))
-          ;
+               (errno == EINTR)) {
+        }
 
         /* Exit without cleanup.  The parent holds all resources.  */
         kwsysProcessExit();
@@ -2450,12 +2450,12 @@ static pid_t kwsysProcessFork(kwsysProcess* cp,
       pid_t child_pid;
       int status;
       while ((read(si->ErrorPipe[0], &child_pid, sizeof(child_pid)) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
 
       /* Wait for the intermediate process to exit and clean it up.  */
-      while ((waitpid(middle_pid, &status, 0) < 0) && (errno == EINTR))
-        ;
+      while ((waitpid(middle_pid, &status, 0) < 0) && (errno == EINTR)) {
+      }
       return child_pid;
     }
   } else {
@@ -2728,8 +2728,8 @@ static int kwsysProcessesAdd(kwsysProcess* cp)
       sigemptyset(&newSigAction.sa_mask);
       while ((sigaction(SIGCHLD, &newSigAction,
                         &kwsysProcessesOldSigChldAction) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
 
       /* Install our handler for SIGINT / SIGTERM.  Repeat call until
          it is not interrupted.  */
@@ -2737,15 +2737,15 @@ static int kwsysProcessesAdd(kwsysProcess* cp)
       sigaddset(&newSigAction.sa_mask, SIGTERM);
       while ((sigaction(SIGINT, &newSigAction,
                         &kwsysProcessesOldSigIntAction) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
 
       sigemptyset(&newSigAction.sa_mask);
       sigaddset(&newSigAction.sa_mask, SIGINT);
       while ((sigaction(SIGTERM, &newSigAction,
                         &kwsysProcessesOldSigIntAction) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
     }
   }
 
@@ -2776,14 +2776,14 @@ static void kwsysProcessesRemove(kwsysProcess* cp)
         /* Restore the signal handlers.  Repeat call until it is not
            interrupted.  */
         while ((sigaction(SIGCHLD, &kwsysProcessesOldSigChldAction, 0) < 0) &&
-               (errno == EINTR))
-          ;
+               (errno == EINTR)) {
+        }
         while ((sigaction(SIGINT, &kwsysProcessesOldSigIntAction, 0) < 0) &&
-               (errno == EINTR))
-          ;
+               (errno == EINTR)) {
+        }
         while ((sigaction(SIGTERM, &kwsysProcessesOldSigTermAction, 0) < 0) &&
-               (errno == EINTR))
-          ;
+               (errno == EINTR)) {
+        }
 
         /* Free the table of process pointers since it is now empty.
            This is safe because the signal handler has been removed.  */
@@ -2869,8 +2869,8 @@ static void kwsysProcessesSignalHandler(int signum
         memset(&defSigAction, 0, sizeof(defSigAction));
         defSigAction.sa_handler = SIG_DFL;
         sigemptyset(&defSigAction.sa_mask);
-        while ((sigaction(signum, &defSigAction, 0) < 0) && (errno == EINTR))
-          ;
+        while ((sigaction(signum, &defSigAction, 0) < 0) && (errno == EINTR)) {
+        }
         /* Unmask the signal.  */
         sigemptyset(&unblockSet);
         sigaddset(&unblockSet, signum);
