@@ -1879,7 +1879,8 @@ static void kwsysProcessDestroy(kwsysProcess* cp)
   int i;
   /* Temporarily disable signals that access ForkPIDs.  We don't want them to
      read a reaped PID, and writes to ForkPIDs are not atomic.  */
-  sigset_t mask, old_mask;
+  sigset_t mask;
+  sigset_t old_mask;
   sigemptyset(&mask);
   sigaddset(&mask, SIGINT);
   sigaddset(&mask, SIGTERM);
@@ -2567,7 +2568,8 @@ static void kwsysProcessKill(pid_t process_id)
     /* Make sure the process started and provided a valid header.  */
     if (ps && fscanf(ps, "%*[^\n]\n") != EOF) {
       /* Look for processes whose parent is the process being killed.  */
-      int pid, ppid;
+      int pid;
+      int ppid;
       while (fscanf(ps, KWSYSPE_PS_FORMAT, &pid, &ppid) == 2) {
         if (ppid == process_id) {
           /* Recursively kill this child and its children.  */
