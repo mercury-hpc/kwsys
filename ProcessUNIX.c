@@ -1147,8 +1147,8 @@ static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
          read until the operation is not interrupted.  */
       while (((n = read(cp->PipeReadEnds[i], cp->PipeBuffer,
                         KWSYSPE_PIPE_BUFFER_SIZE)) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
       if (n > 0) {
         /* We have data on this pipe.  */
         if (i == KWSYSPE_PIPE_SIGNAL) {
@@ -1221,8 +1221,8 @@ static int kwsysProcessWaitForPipe(kwsysProcess* cp, char** data, int* length,
   /* Run select to block until data are available.  Repeat call
      until it is not interrupted.  */
   while (((numReady = select(max + 1, &cp->PipeSet, 0, 0, timeout)) < 0) &&
-         (errno == EINTR))
-    ;
+         (errno == EINTR)) {
+  }
 
   /* Check result of select.  */
   if (numReady == 0) {
@@ -1892,8 +1892,8 @@ static void kwsysProcessDestroy(kwsysProcess* cp)
       int result;
       while (((result = waitpid(cp->ForkPIDs[i], &cp->CommandExitCodes[i],
                                 WNOHANG)) < 0) &&
-             (errno == EINTR))
-        ;
+             (errno == EINTR)) {
+      }
       if (result > 0) {
         /* This child has termianted.  */
         cp->ForkPIDs[i] = 0;
