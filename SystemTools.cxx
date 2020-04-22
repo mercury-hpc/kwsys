@@ -24,6 +24,7 @@
 #include KWSYS_HEADER(Encoding.h)
 #include KWSYS_HEADER(Encoding.hxx)
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -892,8 +893,12 @@ const char* SystemTools::GetExecutableExtension()
 FILE* SystemTools::Fopen(const std::string& file, const char* mode)
 {
 #ifdef _WIN32
+  // Remove any 'e', which is supported on UNIX, but not Windows.
+  std::wstring trimmedMode = Encoding::ToWide(mode);
+  trimmedMode.erase(std::remove(trimmedMode.begin(), trimmedMode.end(), L'e'),
+                    trimmedMode.end());
   return _wfopen(Encoding::ToWindowsExtendedPath(file).c_str(),
-                 Encoding::ToWide(mode).c_str());
+                 trimmedMode.c_str());
 #else
   return fopen(file.c_str(), mode);
 #endif
