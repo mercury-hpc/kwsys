@@ -2118,7 +2118,7 @@ std::string SystemTools::ConvertToUnixOutputPath(const std::string& path)
     ret.erase(pos, 1);
   }
   // escape spaces and () in the path
-  if (ret.find_first_of(" ") != std::string::npos) {
+  if (ret.find_first_of(' ') != std::string::npos) {
     std::string result;
     char lastch = 1;
     for (const char* ch = ret.c_str(); *ch != '\0'; ++ch) {
@@ -3158,7 +3158,7 @@ bool SystemTools::SplitProgramPath(const std::string& in_name,
   SystemTools::ConvertToUnixSlashes(dir);
 
   if (!SystemTools::FileIsDirectory(dir)) {
-    std::string::size_type slashPos = dir.rfind("/");
+    std::string::size_type slashPos = dir.rfind('/');
     if (slashPos != std::string::npos) {
       file = dir.substr(slashPos + 1);
       dir.resize(slashPos);
@@ -3716,7 +3716,7 @@ std::string SystemTools::GetFilenamePath(const std::string& filename)
   std::string fn = filename;
   SystemTools::ConvertToUnixSlashes(fn);
 
-  std::string::size_type slash_pos = fn.rfind("/");
+  std::string::size_type slash_pos = fn.rfind('/');
   if (slash_pos == 0) {
     return "/";
   }
