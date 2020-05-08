@@ -20,10 +20,10 @@
 // left on disk.
 #include <testSystemTools.h>
 
+#include <cstdlib> /* free */
+#include <cstring> /* strcmp */
 #include <iostream>
 #include <sstream>
-#include <stdlib.h> /* free */
-#include <string.h> /* strcmp */
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #  include <io.h> /* _umask (MSVC) / umask (Borland) */
 #  ifdef _MSC_VER

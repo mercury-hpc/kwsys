@@ -28,8 +28,8 @@
 #  include "RegularExpression.hxx.in"
 #endif
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 namespace KWSYS_NAMESPACE {
 

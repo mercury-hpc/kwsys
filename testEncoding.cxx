@@ -10,10 +10,10 @@
 #include KWSYS_HEADER(Encoding.h)
 
 #include <algorithm>
+#include <clocale>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <locale.h>
-#include <stdlib.h>
-#include <string.h>
 
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.

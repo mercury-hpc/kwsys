@@ -12,8 +12,8 @@
 #include <iostream>
 #include <vector>
 
-#include <assert.h> /* assert */
-#include <string.h> /* strcmp */
+#include <cassert> /* assert */
+#include <cstring> /* strcmp */
 
 int testCommandLineArguments1(int argc, char* argv[])
 {

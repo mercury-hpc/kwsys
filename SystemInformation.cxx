@@ -64,9 +64,9 @@ typedef int siginfo_t;
 #else
 #  include <sys/types.h>
 
-#  include <errno.h> // extern int errno;
+#  include <cerrno> // extern int errno;
+#  include <csignal>
 #  include <fcntl.h>
-#  include <signal.h>
 #  include <sys/resource.h> // getrlimit
 #  include <sys/time.h>
 #  include <sys/utsname.h> // int uname(struct utsname *buf);
@@ -163,11 +163,11 @@ typedef struct rlimit ResourceLimitType;
 #  undef KWSYS_SYSTEMINFORMATION_HAS_SYMBOL_LOOKUP
 #endif
 
-#include <ctype.h> // int isdigit(int c);
+#include <cctype> // int isdigit(int c);
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <memory.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #if defined(KWSYS_USE_LONG_LONG)
 #  if defined(KWSYS_IOS_HAS_OSTREAM_LONG_LONG)
