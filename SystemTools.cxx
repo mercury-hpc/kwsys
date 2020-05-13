@@ -50,15 +50,15 @@
 #  pragma set woff 1375 /* base class destructor not virtual */
 #endif
 
-#include <ctype.h>
-#include <errno.h>
+#include <cctype>
+#include <cerrno>
 #ifdef __QNX__
 #  include <malloc.h> /* for malloc/free on QNX */
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #if defined(_WIN32) && !defined(_MSC_VER) && defined(__GNUC__)
 #  include <strings.h> /* for strcasecmp */
@@ -70,7 +70,7 @@
 
 // support for realpath call
 #ifndef _WIN32
-#  include <limits.h>
+#  include <climits>
 #  include <pwd.h>
 #  include <sys/ioctl.h>
 #  include <sys/time.h>
@@ -81,7 +81,7 @@
 #    include <sys/param.h>
 #    include <termios.h>
 #  endif
-#  include <signal.h> /* sigprocmask */
+#  include <csignal> /* sigprocmask */
 #endif
 
 #ifdef __linux
@@ -2118,7 +2118,7 @@ std::string SystemTools::ConvertToUnixOutputPath(const std::string& path)
     ret.erase(pos, 1);
   }
   // escape spaces and () in the path
-  if (ret.find_first_of(" ") != std::string::npos) {
+  if (ret.find_first_of(' ') != std::string::npos) {
     std::string result;
     char lastch = 1;
     for (const char* ch = ret.c_str(); *ch != '\0'; ++ch) {
@@ -2516,8 +2516,8 @@ bool SystemTools::CopyADirectory(const std::string& source,
     return false;
   }
   for (fileNum = 0; fileNum < dir.GetNumberOfFiles(); ++fileNum) {
-    if (strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), ".") &&
-        strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), "..")) {
+    if (strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), ".") != 0 &&
+        strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), "..") != 0) {
       std::string fullPath = source;
       fullPath += "/";
       fullPath += dir.GetFile(static_cast<unsigned long>(fileNum));
@@ -2679,8 +2679,8 @@ bool SystemTools::RemoveADirectory(const std::string& source)
   dir.Load(source);
   size_t fileNum;
   for (fileNum = 0; fileNum < dir.GetNumberOfFiles(); ++fileNum) {
-    if (strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), ".") &&
-        strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), "..")) {
+    if (strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), ".") != 0 &&
+        strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), "..") != 0) {
       std::string fullPath = source;
       fullPath += "/";
       fullPath += dir.GetFile(static_cast<unsigned long>(fileNum));
@@ -3158,7 +3158,7 @@ bool SystemTools::SplitProgramPath(const std::string& in_name,
   SystemTools::ConvertToUnixSlashes(dir);
 
   if (!SystemTools::FileIsDirectory(dir)) {
-    std::string::size_type slashPos = dir.rfind("/");
+    std::string::size_type slashPos = dir.rfind('/');
     if (slashPos != std::string::npos) {
       file = dir.substr(slashPos + 1);
       dir.resize(slashPos);
@@ -3716,7 +3716,7 @@ std::string SystemTools::GetFilenamePath(const std::string& filename)
   std::string fn = filename;
   SystemTools::ConvertToUnixSlashes(fn);
 
-  std::string::size_type slash_pos = fn.rfind("/");
+  std::string::size_type slash_pos = fn.rfind('/');
   if (slash_pos == 0) {
     return "/";
   }
