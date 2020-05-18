@@ -182,7 +182,13 @@ bool Glob::RecurseDirectory(std::string::size_type start,
                             const std::string& dir, GlobMessages* messages)
 {
   kwsys::Directory d;
-  if (!d.Load(dir)) {
+  std::string errorMessage;
+  if (!d.Load(dir, &errorMessage)) {
+    if (!errorMessage.empty()) {
+      messages->push_back(Message(Glob::warning,
+                                  "Error listing directory '" + dir +
+                                    "'! Reason: '" + errorMessage + "'"));
+    }
     return true;
   }
   unsigned long cc;
