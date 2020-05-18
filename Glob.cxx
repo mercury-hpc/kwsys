@@ -286,7 +286,9 @@ void Glob::ProcessDirectory(std::string::size_type start,
   // std::cout << "ProcessDirectory: " << dir << std::endl;
   bool last = (start == this->Internals->Expressions.size() - 1);
   if (last && this->Recurse) {
-    this->RecurseDirectory(start, dir, messages);
+    if (kwsys::SystemTools::FileIsDirectory(dir)) {
+      this->RecurseDirectory(start, dir, messages);
+    }
     return;
   }
 
