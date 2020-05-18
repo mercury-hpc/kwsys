@@ -184,10 +184,12 @@ bool Glob::RecurseDirectory(std::string::size_type start,
   kwsys::Directory d;
   std::string errorMessage;
   if (!d.Load(dir, &errorMessage)) {
-    if (!errorMessage.empty()) {
-      messages->push_back(Message(Glob::warning,
-                                  "Error listing directory '" + dir +
-                                    "'! Reason: '" + errorMessage + "'"));
+    if (messages) {
+      if (!errorMessage.empty()) {
+        messages->push_back(Message(Glob::warning,
+                                    "Error listing directory '" + dir +
+                                      "'! Reason: '" + errorMessage + "'"));
+      }
     }
     return true;
   }
