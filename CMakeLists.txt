@@ -576,20 +576,6 @@ if(KWSYS_USE_SystemInformation)
       endif()
     endif()
   endif()
-  if(BORLAND)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_BORLAND_ASM
-      "Checking whether Borland CXX compiler supports assembler instructions" DIRECT)
-    if(KWSYS_CXX_HAS_BORLAND_ASM)
-      set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
-        COMPILE_DEFINITIONS KWSYS_CXX_HAS_BORLAND_ASM=1)
-      KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_BORLAND_ASM_CPUID
-        "Checking whether Borland CXX compiler supports CPUID assembler instruction" DIRECT)
-      if(KWSYS_CXX_HAS_BORLAND_ASM_CPUID)
-        set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
-          COMPILE_DEFINITIONS KWSYS_CXX_HAS_BORLAND_ASM_CPUID=1)
-      endif()
-    endif()
-  endif()
   if(KWSYS_BUILD_SHARED)
     set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
       COMPILE_DEFINITIONS KWSYS_BUILD_SHARED=1)
