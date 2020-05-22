@@ -546,24 +546,6 @@ if(KWSYS_USE_SystemInformation)
     set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
       COMPILE_DEFINITIONS KWSYS_CXX_HAS_RLIMIT64=1)
   endif()
-  KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_ATOL
-    "Checking whether CXX compiler has atol" DIRECT)
-  if(KWSYS_CXX_HAS_ATOL)
-    set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_CXX_HAS_ATOL=1)
-  endif()
-  KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_ATOLL
-    "Checking whether CXX compiler has atoll" DIRECT)
-  if(KWSYS_CXX_HAS_ATOLL)
-    set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_CXX_HAS_ATOLL=1)
-  endif()
-  KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS__ATOI64
-    "Checking whether CXX compiler has _atoi64" DIRECT)
-  if(KWSYS_CXX_HAS__ATOI64)
-    set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_CXX_HAS__ATOI64=1)
-  endif()
   if(UNIX)
     include(CheckIncludeFileCXX)
     # check for simple stack trace

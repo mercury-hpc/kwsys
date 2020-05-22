@@ -132,33 +132,6 @@ int main()
 }
 #endif
 
-#ifdef TEST_KWSYS_CXX_HAS_ATOLL
-#  include <stdlib.h>
-int main()
-{
-  const char* str = "1024";
-  return static_cast<int>(atoll(str));
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_HAS_ATOL
-#  include <stdlib.h>
-int main()
-{
-  const char* str = "1024";
-  return static_cast<int>(atol(str));
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_HAS__ATOI64
-#  include <stdlib.h>
-int main()
-{
-  const char* str = "1024";
-  return static_cast<int>(_atoi64(str));
-}
-#endif
-
 #ifdef TEST_KWSYS_CXX_HAS_UTIMES
 #  include <sys/time.h>
 int main()
