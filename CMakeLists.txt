@@ -359,39 +359,6 @@ endif()
 # capabilities and parent project's request.  Enforce 0/1 as only
 # possible values for configuration into Configure.hxx.
 
-# Check existence and uniqueness of long long and __int64.
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS_LONG_LONG
-  "Checking whether C++ compiler has 'long long'" DIRECT)
-KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_HAS___INT64
-  "Checking whether C++ compiler has '__int64'" DIRECT)
-if(KWSYS_CXX_HAS___INT64)
-  KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_SAME_LONG_AND___INT64
-    "Checking whether long and __int64 are the same type" DIRECT)
-  if(KWSYS_CXX_HAS_LONG_LONG)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_CXX_SAME_LONG_LONG_AND___INT64
-      "Checking whether long long and __int64 are the same type" DIRECT)
-  endif()
-endif()
-
-# Enable the "long long" type if it is available.  It is standard in
-# C99 and C++03 but not in earlier standards.
-if(KWSYS_CXX_HAS_LONG_LONG)
-  set(KWSYS_USE_LONG_LONG 1)
-else()
-  set(KWSYS_USE_LONG_LONG 0)
-endif()
-
-# Enable the "__int64" type if it is available and unique.  It is not
-# standard.
-set(KWSYS_USE___INT64 0)
-if(KWSYS_CXX_HAS___INT64)
-  if(NOT KWSYS_CXX_SAME_LONG_AND___INT64)
-    if(NOT KWSYS_CXX_SAME_LONG_LONG_AND___INT64)
-      set(KWSYS_USE___INT64 1)
-    endif()
-  endif()
-endif()
-
 if(KWSYS_USE_Encoding)
   # Look for type size helper macros.
   KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAS_WSTRING
@@ -622,14 +589,6 @@ if(KWSYS_USE_SystemInformation)
           COMPILE_DEFINITIONS KWSYS_CXX_HAS_BORLAND_ASM_CPUID=1)
       endif()
     endif()
-  endif()
-  if(KWSYS_USE___INT64)
-    set_property(SOURCE SystemInformation.cxx testSystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_USE___INT64=1)
-  endif()
-  if(KWSYS_USE_LONG_LONG)
-    set_property(SOURCE SystemInformation.cxx testSystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_USE_LONG_LONG=1)
   endif()
   if(KWSYS_BUILD_SHARED)
     set_property(SOURCE SystemInformation.cxx APPEND PROPERTY

@@ -8,30 +8,6 @@ int main()
 }
 #endif
 
-#ifdef TEST_KWSYS_CXX_HAS_LONG_LONG
-long long f(long long n)
-{
-  return n;
-}
-int main()
-{
-  long long n = 0;
-  return static_cast<int>(f(n));
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_HAS___INT64
-__int64 f(__int64 n)
-{
-  return n;
-}
-int main()
-{
-  __int64 n = 0;
-  return static_cast<int>(f(n));
-}
-#endif
-
 #ifdef TEST_KWSYS_CXX_STAT_HAS_ST_MTIM
 #  include <sys/types.h>
 
@@ -56,30 +32,6 @@ int main()
   struct stat stat1;
   (void)stat1.st_mtimespec.tv_sec;
   (void)stat1.st_mtimespec.tv_nsec;
-  return 0;
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_SAME_LONG_AND___INT64
-void function(long**)
-{
-}
-int main()
-{
-  __int64** p = 0;
-  function(p);
-  return 0;
-}
-#endif
-
-#ifdef TEST_KWSYS_CXX_SAME_LONG_LONG_AND___INT64
-void function(long long**)
-{
-}
-int main()
-{
-  __int64** p = 0;
-  function(p);
   return 0;
 }
 #endif
