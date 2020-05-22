@@ -731,12 +731,6 @@ set(KWSYS_CLASSES)
 set(KWSYS_H_FILES Configure SharedForward)
 set(KWSYS_HXX_FILES Configure String)
 
-if(NOT CMake_SOURCE_DIR)
-  set(KWSYS_HXX_FILES ${KWSYS_HXX_FILES}
-    hashtable hash_fun hash_map hash_set
-    )
-endif()
-
 # Add selected C++ classes.
 set(cppclasses
   Directory DynamicLoader Encoding Glob RegularExpression SystemTools
@@ -1071,11 +1065,6 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
     endforeach()
 
     # C++ tests
-    if(NOT WATCOM AND NOT CMake_SOURCE_DIR)
-      set(KWSYS_CXX_TESTS
-        testHashSTL.cxx
-        )
-    endif()
     set(KWSYS_CXX_TESTS ${KWSYS_CXX_TESTS}
       testConfigure.cxx
       testSystemTools.cxx
