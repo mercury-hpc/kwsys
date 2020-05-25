@@ -169,22 +169,6 @@ typedef struct rlimit ResourceLimitType;
 #include <cstring>
 #include <memory.h>
 
-#if defined(KWSYS_USE_LONG_LONG)
-#  if defined(KWSYS_IOS_HAS_OSTREAM_LONG_LONG)
-#    define iostreamLongLong(x) (x)
-#  else
-#    define iostreamLongLong(x) ((long)(x))
-#  endif
-#elif defined(KWSYS_USE___INT64)
-#  if defined(KWSYS_IOS_HAS_OSTREAM___INT64)
-#    define iostreamLongLong(x) (x)
-#  else
-#    define iostreamLongLong(x) ((long)(x))
-#  endif
-#else
-#  error "No Long Long"
-#endif
-
 #if defined(KWSYS_CXX_HAS_ATOLL)
 #  define atoLongLong atoll
 #else
@@ -812,12 +796,11 @@ std::string SystemInformation::GetMemoryDescription(
   const char* hostLimitEnvVarName, const char* procLimitEnvVarName)
 {
   std::ostringstream oss;
-  oss << "Host Total: " << iostreamLongLong(this->GetHostMemoryTotal())
+  oss << "Host Total: " << this->GetHostMemoryTotal()
       << " KiB, Host Available: "
-      << iostreamLongLong(this->GetHostMemoryAvailable(hostLimitEnvVarName))
+      << this->GetHostMemoryAvailable(hostLimitEnvVarName)
       << " KiB, Process Available: "
-      << iostreamLongLong(this->GetProcMemoryAvailable(hostLimitEnvVarName,
-                                                       procLimitEnvVarName))
+      << this->GetProcMemoryAvailable(hostLimitEnvVarName, procLimitEnvVarName)
       << " KiB";
   return oss.str();
 }

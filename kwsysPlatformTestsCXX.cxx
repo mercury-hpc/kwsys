@@ -84,58 +84,6 @@ int main()
 }
 #endif
 
-#ifdef TEST_KWSYS_IOS_HAS_ISTREAM_LONG_LONG
-#  include <iostream>
-int test_istream(std::istream& is, long long& x)
-{
-  return (is >> x) ? 1 : 0;
-}
-int main()
-{
-  long long x = 0;
-  return test_istream(std::cin, x);
-}
-#endif
-
-#ifdef TEST_KWSYS_IOS_HAS_OSTREAM_LONG_LONG
-#  include <iostream>
-int test_ostream(std::ostream& os, long long x)
-{
-  return (os << x) ? 1 : 0;
-}
-int main()
-{
-  long long x = 0;
-  return test_ostream(std::cout, x);
-}
-#endif
-
-#ifdef TEST_KWSYS_IOS_HAS_ISTREAM___INT64
-#  include <iostream>
-int test_istream(std::istream& is, __int64& x)
-{
-  return (is >> x) ? 1 : 0;
-}
-int main()
-{
-  __int64 x = 0;
-  return test_istream(std::cin, x);
-}
-#endif
-
-#ifdef TEST_KWSYS_IOS_HAS_OSTREAM___INT64
-#  include <iostream>
-int test_ostream(std::ostream& os, __int64 x)
-{
-  return (os << x) ? 1 : 0;
-}
-int main()
-{
-  __int64 x = 0;
-  return test_ostream(std::cout, x);
-}
-#endif
-
 #ifdef TEST_KWSYS_CXX_HAS_SETENV
 #  include <stdlib.h>
 int main()

@@ -146,7 +146,6 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
   set(KWSYS_USE_SystemTools 1)
   set(KWSYS_USE_CommandLineArguments 1)
   set(KWSYS_USE_Terminal 1)
-  set(KWSYS_USE_IOStream 1)
   set(KWSYS_USE_FStream 1)
   set(KWSYS_USE_String 1)
   set(KWSYS_USE_SystemInformation 1)
@@ -397,28 +396,6 @@ if(KWSYS_USE_Encoding)
   # Look for type size helper macros.
   KWSYS_PLATFORM_CXX_TEST(KWSYS_STL_HAS_WSTRING
     "Checking whether wstring is available" DIRECT)
-endif()
-
-if(KWSYS_USE_IOStream)
-  # Determine whether iostreams support long long.
-  if(KWSYS_CXX_HAS_LONG_LONG)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_IOS_HAS_ISTREAM_LONG_LONG
-      "Checking if istream supports long long" DIRECT)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_IOS_HAS_OSTREAM_LONG_LONG
-      "Checking if ostream supports long long" DIRECT)
-  else()
-    set(KWSYS_IOS_HAS_ISTREAM_LONG_LONG 0)
-    set(KWSYS_IOS_HAS_OSTREAM_LONG_LONG 0)
-  endif()
-  if(KWSYS_CXX_HAS___INT64)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_IOS_HAS_ISTREAM___INT64
-      "Checking if istream supports __int64" DIRECT)
-    KWSYS_PLATFORM_CXX_TEST(KWSYS_IOS_HAS_OSTREAM___INT64
-      "Checking if ostream supports __int64" DIRECT)
-  else()
-    set(KWSYS_IOS_HAS_ISTREAM___INT64 0)
-    set(KWSYS_IOS_HAS_OSTREAM___INT64 0)
-  endif()
 endif()
 
 if(KWSYS_NAMESPACE MATCHES "^kwsys$")
@@ -672,14 +649,6 @@ if(KWSYS_USE_SystemInformation)
     set_property(SOURCE SystemInformation.cxx testSystemInformation.cxx APPEND PROPERTY
       COMPILE_DEFINITIONS KWSYS_USE_LONG_LONG=1)
   endif()
-  if(KWSYS_IOS_HAS_OSTREAM_LONG_LONG)
-    set_property(SOURCE SystemInformation.cxx testSystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_IOS_HAS_OSTREAM_LONG_LONG=1)
-  endif()
-  if(KWSYS_IOS_HAS_OSTREAM___INT64)
-    set_property(SOURCE SystemInformation.cxx testSystemInformation.cxx APPEND PROPERTY
-      COMPILE_DEFINITIONS KWSYS_IOS_HAS_OSTREAM___INT64=1)
-  endif()
   if(KWSYS_BUILD_SHARED)
     set_property(SOURCE SystemInformation.cxx APPEND PROPERTY
       COMPILE_DEFINITIONS KWSYS_BUILD_SHARED=1)
@@ -734,7 +703,7 @@ set(KWSYS_HXX_FILES Configure String)
 # Add selected C++ classes.
 set(cppclasses
   Directory DynamicLoader Encoding Glob RegularExpression SystemTools
-  CommandLineArguments IOStream FStream SystemInformation ConsoleBuf
+  CommandLineArguments FStream SystemInformation ConsoleBuf
   )
 foreach(cpp ${cppclasses})
   if(KWSYS_USE_${cpp})
