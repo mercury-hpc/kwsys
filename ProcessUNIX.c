@@ -51,6 +51,7 @@ do.
 #include <signal.h>    /* sigaction */
 #include <stddef.h>    /* ptrdiff_t */
 #include <stdio.h>     /* snprintf */
+#include <stdint.h>    /* uintptr_t */
 #include <stdlib.h>    /* malloc, free */
 #include <string.h>    /* strdup, strerror, memset */
 #include <sys/stat.h>  /* open mode */
@@ -1474,7 +1475,7 @@ static void kwsysProcessVolatileFree(volatile void* p)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-qual"
 #endif
-  free((void*)p); /* The cast will silence most compilers, but not clang.  */
+  free((void*)(uintptr_t)p); /* The cast will silence most compilers, but not clang.  */
 #if defined(__clang__) && !defined(__INTEL_COMPILER)
 #pragma clang diagnostic pop
 #endif
