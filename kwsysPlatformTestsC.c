@@ -29,7 +29,7 @@
 
 #ifdef TEST_KWSYS_C_HAS_PTRDIFF_T
 #  include <stddef.h>
-int f(ptrdiff_t n)
+static int f(ptrdiff_t n)
 {
   return n > 0;
 }
@@ -44,7 +44,7 @@ int KWSYS_PLATFORM_TEST_C_MAIN()
 
 #ifdef TEST_KWSYS_C_HAS_SSIZE_T
 #  include <unistd.h>
-int f(ssize_t n)
+static int f(ssize_t n)
 {
   return (int)n;
 }
