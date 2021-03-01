@@ -121,7 +121,7 @@ bool Directory::Load(const std::string& name, std::string* errorMessage)
   delete[] buf;
 
   if (srchHandle == -1) {
-    return 0;
+    return false;
   }
 
   // Loop through names
