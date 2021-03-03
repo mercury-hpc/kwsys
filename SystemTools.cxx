@@ -244,7 +244,7 @@ inline int Chdir(const std::string& dir)
   return _wchdir(KWSYS_NAMESPACE::Encoding::ToWide(dir).c_str());
 }
 inline void Realpath(const std::string& path, std::string& resolved_path,
-                     std::string* errorMessage = 0)
+                     std::string* errorMessage = nullptr)
 {
   std::wstring tmp = KWSYS_NAMESPACE::Encoding::ToWide(path);
   wchar_t* ptemp;
