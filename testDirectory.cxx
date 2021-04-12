@@ -88,7 +88,7 @@ int _nonExistentDirectoryTest()
 
   errorMessage = "foo";
   // Increment res failure if directory lists
-  res += testdir.Load(testdirpath, &errorMessage);
+  res += testdir.Load(testdirpath, &errorMessage) ? 1 : 0;
 #if !defined(_WIN32) || defined(__CYGWIN__)
   // Increment res failure if errorMessage is unmodified
   res += (errorMessage == "foo");

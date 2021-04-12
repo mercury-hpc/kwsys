@@ -2440,7 +2440,7 @@ bool SystemTools::CopyADirectory(const std::string& source,
                                  const std::string& destination, bool always)
 {
   Directory dir;
-  if (dir.Load(source) == 0) {
+  if (!dir.Load(source)) {
     return false;
   }
   size_t fileNum;
