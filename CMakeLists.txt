@@ -142,6 +142,7 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
   set(KWSYS_USE_MD5 1)
   set(KWSYS_USE_Process 1)
   set(KWSYS_USE_RegularExpression 1)
+  set(KWSYS_USE_Status 1)
   set(KWSYS_USE_System 1)
   set(KWSYS_USE_SystemTools 1)
   set(KWSYS_USE_CommandLineArguments 1)
@@ -630,7 +631,7 @@ set(KWSYS_HXX_FILES Configure String)
 # Add selected C++ classes.
 set(cppclasses
   Directory DynamicLoader Encoding Glob RegularExpression SystemTools
-  CommandLineArguments FStream SystemInformation ConsoleBuf
+  CommandLineArguments FStream SystemInformation ConsoleBuf Status
   )
 foreach(cpp ${cppclasses})
   if(KWSYS_USE_${cpp})
@@ -963,6 +964,7 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
     # C++ tests
     set(KWSYS_CXX_TESTS ${KWSYS_CXX_TESTS}
       testConfigure.cxx
+      testStatus.cxx
       testSystemTools.cxx
       testCommandLineArguments.cxx
       testCommandLineArguments1.cxx
