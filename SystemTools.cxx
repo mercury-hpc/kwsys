@@ -2550,26 +2550,26 @@ std::string SystemTools::GetLastSystemError()
   return strerror(e);
 }
 
-bool SystemTools::RemoveFile(const std::string& source)
+Status SystemTools::RemoveFile(std::string const& source)
 {
 #ifdef _WIN32
   std::wstring const& ws = Encoding::ToWindowsExtendedPath(source);
   if (DeleteFileW(ws.c_str())) {
-    return true;
+    return Status::Success();
   }
   DWORD err = GetLastError();
   if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND) {
-    return true;
+    return Status::Success();
   }
   if (err != ERROR_ACCESS_DENIED) {
-    return false;
+    return Status::Windows(err);
   }
   /* The file may be read-only.  Try adding write permission.  */
   mode_t mode;
   if (!SystemTools::GetPermissions(source, mode) ||
       !SystemTools::SetPermissions(source, S_IWRITE)) {
     SetLastError(err);
-    return false;
+    return Status::Windows(err);
   }
 
   const DWORD DIRECTORY_SOFT_LINK_ATTRS =
@@ -2578,26 +2578,29 @@ bool SystemTools::RemoveFile(const std::string& source)
   if (attrs != INVALID_FILE_ATTRIBUTES &&
       (attrs & DIRECTORY_SOFT_LINK_ATTRS) == DIRECTORY_SOFT_LINK_ATTRS &&
       RemoveDirectoryW(ws.c_str())) {
-    return true;
+    return Status::Success();
   }
   if (DeleteFileW(ws.c_str()) || GetLastError() == ERROR_FILE_NOT_FOUND ||
       GetLastError() == ERROR_PATH_NOT_FOUND) {
-    return true;
+    return Status::Success();
   }
   /* Try to restore the original permissions.  */
   SystemTools::SetPermissions(source, mode);
   SetLastError(err);
-  return false;
+  return Status::Windows(err);
 #else
-  return unlink(source.c_str()) == 0 || errno == ENOENT;
+  if (unlink(source.c_str()) != 0 && errno != ENOENT) {
+    return Status::POSIX_errno();
+  }
+  return Status::Success();
 #endif
 }
 
-bool SystemTools::RemoveADirectory(const std::string& source)
+Status SystemTools::RemoveADirectory(std::string const& source)
 {
   // Add write permission to the directory so we can modify its
   // content to remove files and directories from it.
-  mode_t mode;
+  mode_t mode = 0;
   if (SystemTools::GetPermissions(source, mode)) {
 #if defined(_WIN32) && !defined(__CYGWIN__)
     mode |= S_IWRITE;
@@ -2607,8 +2610,13 @@ bool SystemTools::RemoveADirectory(const std::string& source)
     SystemTools::SetPermissions(source, mode);
   }
 
+  Status status;
   Directory dir;
-  dir.Load(source);
+  status = dir.Load(source);
+  if (!status) {
+    return status;
+  }
+
   size_t fileNum;
   for (fileNum = 0; fileNum < dir.GetNumberOfFiles(); ++fileNum) {
     if (strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), ".") != 0 &&
@@ -2618,18 +2626,23 @@ bool SystemTools::RemoveADirectory(const std::string& source)
       fullPath += dir.GetFile(static_cast<unsigned long>(fileNum));
       if (SystemTools::FileIsDirectory(fullPath) &&
           !SystemTools::FileIsSymlink(fullPath)) {
-        if (!SystemTools::RemoveADirectory(fullPath)) {
-          return false;
+        status = SystemTools::RemoveADirectory(fullPath);
+        if (!status) {
+          return status;
         }
       } else {
-        if (!SystemTools::RemoveFile(fullPath)) {
-          return false;
+        status = SystemTools::RemoveFile(fullPath);
+        if (!status) {
+          return status;
         }
       }
     }
   }
 
-  return (Rmdir(source) == 0);
+  if (Rmdir(source) != 0) {
+    status = Status::POSIX_errno();
+  }
+  return status;
 }
 
 /**
