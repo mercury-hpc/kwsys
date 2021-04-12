@@ -2129,8 +2129,8 @@ static std::string FileInDir(const std::string& source, const std::string& dir)
   return new_destination + '/' + SystemTools::GetFilenameName(source);
 }
 
-bool SystemTools::CopyFileIfDifferent(const std::string& source,
-                                      const std::string& destination)
+Status SystemTools::CopyFileIfDifferent(std::string const& source,
+                                        std::string const& destination)
 {
   // special check for a destination that is a directory
   // FilesDiffer does not handle file to directory compare
@@ -2147,7 +2147,7 @@ bool SystemTools::CopyFileIfDifferent(const std::string& source,
     }
   }
   // at this point the files must be the same so return true
-  return true;
+  return Status::Success();
 }
 
 #define KWSYS_ST_BUFFER 4096
@@ -2273,13 +2273,13 @@ bool SystemTools::TextFilesDiffer(const std::string& path1,
   return false;
 }
 
-bool SystemTools::CopyFileContentBlockwise(const std::string& source,
-                                           const std::string& destination)
+Status SystemTools::CopyFileContentBlockwise(std::string const& source,
+                                             std::string const& destination)
 {
   // Open files
   kwsys::ifstream fin(source.c_str(), std::ios::in | std::ios::binary);
   if (!fin) {
-    return false;
+    return Status::POSIX_errno();
   }
 
   // try and remove the destination file so that read only destination files
@@ -2291,7 +2291,7 @@ bool SystemTools::CopyFileContentBlockwise(const std::string& source,
   kwsys::ofstream fout(destination.c_str(),
                        std::ios::out | std::ios::trunc | std::ios::binary);
   if (!fout) {
-    return false;
+    return Status::POSIX_errno();
   }
 
   // This copy loop is very sensitive on certain platforms with
@@ -2320,10 +2320,10 @@ bool SystemTools::CopyFileContentBlockwise(const std::string& source,
   fout.close();
 
   if (!fout) {
-    return false;
+    return Status::POSIX_errno();
   }
 
-  return true;
+  return Status::Success();
 }
 
 /**
@@ -2338,13 +2338,13 @@ bool SystemTools::CopyFileContentBlockwise(const std::string& source,
  * - The underlying filesystem does not support file cloning
  * - An unspecified error occurred
  */
-bool SystemTools::CloneFileContent(const std::string& source,
-                                   const std::string& destination)
+Status SystemTools::CloneFileContent(std::string const& source,
+                                     std::string const& destination)
 {
 #if defined(__linux) && defined(FICLONE)
   int in = open(source.c_str(), O_RDONLY);
   if (in < 0) {
-    return false;
+    return Status::POSIX_errno();
   }
 
   SystemTools::RemoveFile(destination);
@@ -2352,38 +2352,42 @@ bool SystemTools::CloneFileContent(const std::string& source,
   int out =
     open(destination.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
   if (out < 0) {
+    Status status = Status::POSIX_errno();
     close(in);
-    return false;
+    return status;
   }
 
-  int result = ioctl(out, FICLONE, in);
+  Status status = Status::Success();
+  if (ioctl(out, FICLONE, in) < 0) {
+    status = Status::POSIX_errno();
+  }
   close(in);
   close(out);
 
-  if (result < 0) {
-    return false;
-  }
-
-  return true;
+  return status;
 #else
   (void)source;
   (void)destination;
-  return false;
+  return Status::POSIX(ENOSYS);
 #endif
 }
 
 /**
  * Copy a file named by "source" to the file named by "destination".
  */
-bool SystemTools::CopyFileAlways(const std::string& source,
-                                 const std::string& destination)
+Status SystemTools::CopyFileAlways(std::string const& source,
+                                   std::string const& destination)
 {
+  Status status;
   mode_t perm = 0;
   Status perms = SystemTools::GetPermissions(source, perm);
   std::string real_destination = destination;
 
   if (SystemTools::FileIsDirectory(source)) {
-    SystemTools::MakeDirectory(destination);
+    status = SystemTools::MakeDirectory(destination);
+    if (!status) {
+      return status;
+    }
   } else {
     // If destination is a directory, try to create a file with the same
     // name as the source in that directory.
@@ -2400,30 +2404,34 @@ bool SystemTools::CopyFileAlways(const std::string& source,
     }
     // If files are the same do not copy
     if (SystemTools::SameFile(source, real_destination)) {
-      return true;
+      return status;
     }
 
     // Create destination directory
-
-    SystemTools::MakeDirectory(destination_dir);
-
-    if (!SystemTools::CloneFileContent(source, real_destination)) {
-      // if cloning did not succeed, fall back to blockwise copy
-      if (!SystemTools::CopyFileContentBlockwise(source, real_destination)) {
-        return false;
+    if (!destination_dir.empty()) {
+      status = SystemTools::MakeDirectory(destination_dir);
+      if (!status) {
+        return status;
       }
+    }
+
+    status = SystemTools::CloneFileContent(source, real_destination);
+    // if cloning did not succeed, fall back to blockwise copy
+    if (!status) {
+      status = SystemTools::CopyFileContentBlockwise(source, real_destination);
+    }
+    if (!status) {
+      return status;
     }
   }
   if (perms) {
-    if (!SystemTools::SetPermissions(real_destination, perm)) {
-      return false;
-    }
+    status = SystemTools::SetPermissions(real_destination, perm);
   }
-  return true;
+  return status;
 }
 
-bool SystemTools::CopyAFile(const std::string& source,
-                            const std::string& destination, bool always)
+Status SystemTools::CopyAFile(std::string const& source,
+                              std::string const& destination, bool always)
 {
   if (always) {
     return SystemTools::CopyFileAlways(source, destination);
@@ -2436,18 +2444,21 @@ bool SystemTools::CopyAFile(const std::string& source,
  * Copy a directory content from "source" directory to the directory named by
  * "destination".
  */
-bool SystemTools::CopyADirectory(const std::string& source,
-                                 const std::string& destination, bool always)
+Status SystemTools::CopyADirectory(std::string const& source,
+                                   std::string const& destination, bool always)
 {
+  Status status;
   Directory dir;
-  if (!dir.Load(source)) {
-    return false;
+  status = dir.Load(source);
+  if (!status) {
+    return status;
   }
-  size_t fileNum;
-  if (!SystemTools::MakeDirectory(destination)) {
-    return false;
+  status = SystemTools::MakeDirectory(destination);
+  if (!status) {
+    return status;
   }
-  for (fileNum = 0; fileNum < dir.GetNumberOfFiles(); ++fileNum) {
+
+  for (size_t fileNum = 0; fileNum < dir.GetNumberOfFiles(); ++fileNum) {
     if (strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), ".") != 0 &&
         strcmp(dir.GetFile(static_cast<unsigned long>(fileNum)), "..") != 0) {
       std::string fullPath = source;
@@ -2457,18 +2468,20 @@ bool SystemTools::CopyADirectory(const std::string& source,
         std::string fullDestPath = destination;
         fullDestPath += "/";
         fullDestPath += dir.GetFile(static_cast<unsigned long>(fileNum));
-        if (!SystemTools::CopyADirectory(fullPath, fullDestPath, always)) {
-          return false;
+        status = SystemTools::CopyADirectory(fullPath, fullDestPath, always);
+        if (!status) {
+          return status;
         }
       } else {
-        if (!SystemTools::CopyAFile(fullPath, destination, always)) {
-          return false;
+        status = SystemTools::CopyAFile(fullPath, destination, always);
+        if (!status) {
+          return status;
         }
       }
     }
   }
 
-  return true;
+  return status;
 }
 
 // return size of file; also returns zero if no file exists

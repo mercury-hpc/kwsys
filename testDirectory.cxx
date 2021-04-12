@@ -120,7 +120,7 @@ int _copyDirectoryTest()
     std::cerr << destination << " shouldn't exist before test" << std::endl;
     return 2;
   }
-  const bool copysuccess = SystemTools::CopyADirectory(source, destination);
+  const Status copysuccess = SystemTools::CopyADirectory(source, destination);
   const bool destinationexists = SystemTools::PathExists(destination);
   if (copysuccess) {
     std::cerr << "CopyADirectory should have returned false" << std::endl;

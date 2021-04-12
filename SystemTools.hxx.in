@@ -562,8 +562,8 @@ public:
    * Copy the source file to the destination file only
    * if the two files differ.
    */
-  static bool CopyFileIfDifferent(const std::string& source,
-                                  const std::string& destination);
+  static Status CopyFileIfDifferent(std::string const& source,
+                                    std::string const& destination);
 
   /**
    * Compare the contents of two files.  Return true if different
@@ -581,13 +581,13 @@ public:
   /**
    * Blockwise copy source to destination file
    */
-  static bool CopyFileContentBlockwise(const std::string& source,
-                                       const std::string& destination);
+  static Status CopyFileContentBlockwise(std::string const& source,
+                                         std::string const& destination);
   /**
    * Clone the source file to the destination file
    */
-  static bool CloneFileContent(const std::string& source,
-                               const std::string& destination);
+  static Status CloneFileContent(std::string const& source,
+                                 std::string const& destination);
 
   /**
    * Return true if the two files are the same file
@@ -597,16 +597,16 @@ public:
   /**
    * Copy a file.
    */
-  static bool CopyFileAlways(const std::string& source,
-                             const std::string& destination);
+  static Status CopyFileAlways(std::string const& source,
+                               std::string const& destination);
 
   /**
    * Copy a file.  If the "always" argument is true the file is always
    * copied.  If it is false, the file is copied only if it is new or
    * has changed.
    */
-  static bool CopyAFile(const std::string& source,
-                        const std::string& destination, bool always = true);
+  static Status CopyAFile(std::string const& source,
+                          std::string const& destination, bool always = true);
 
   /**
    * Copy content directory to another directory with all files and
@@ -614,9 +614,9 @@ public:
    * always copied.  If it is false, only files that have changed or
    * are new are copied.
    */
-  static bool CopyADirectory(const std::string& source,
-                             const std::string& destination,
-                             bool always = true);
+  static Status CopyADirectory(std::string const& source,
+                               std::string const& destination,
+                               bool always = true);
 
   /**
    * Remove a file
