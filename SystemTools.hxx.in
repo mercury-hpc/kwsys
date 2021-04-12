@@ -340,7 +340,7 @@ public:
   /**
      Change the modification time or create a file
   */
-  static bool Touch(const std::string& filename, bool create);
+  static Status Touch(std::string const& filename, bool create);
 
   /**
    *  Compare file modification times.

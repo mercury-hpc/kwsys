@@ -1411,18 +1411,18 @@ int SystemTools::Stat(const std::string& path, SystemTools::Stat_t* buf)
 #endif
 }
 
-bool SystemTools::Touch(const std::string& filename, bool create)
+Status SystemTools::Touch(std::string const& filename, bool create)
 {
   if (!SystemTools::FileExists(filename)) {
     if (create) {
       FILE* file = Fopen(filename, "a+b");
       if (file) {
         fclose(file);
-        return true;
+        return Status::Success();
       }
-      return false;
+      return Status::POSIX_errno();
     } else {
-      return true;
+      return Status::Success();
     }
   }
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -1430,27 +1430,28 @@ bool SystemTools::Touch(const std::string& filename, bool create)
                          FILE_WRITE_ATTRIBUTES, FILE_SHARE_WRITE, 0,
                          OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0);
   if (!h) {
-    return false;
+    return Status::Windows_GetLastError();
   }
   FILETIME mtime;
   GetSystemTimeAsFileTime(&mtime);
   if (!SetFileTime(h, 0, 0, &mtime)) {
+    Status status = Status::Windows_GetLastError();
     CloseHandle(h);
-    return false;
+    return status;
   }
   CloseHandle(h);
 #elif KWSYS_CXX_HAS_UTIMENSAT
   // utimensat is only available on newer Unixes and macOS 10.13+
   if (utimensat(AT_FDCWD, filename.c_str(), nullptr, 0) < 0) {
-    return false;
+    return Status::POSIX_errno();
   }
 #else
   // fall back to utimes
   if (utimes(filename.c_str(), nullptr) < 0) {
-    return false;
+    return Status::POSIX_errno();
   }
 #endif
-  return true;
+  return Status::Success();
 }
 
 bool SystemTools::FileTimeCompare(const std::string& f1, const std::string& f2,
