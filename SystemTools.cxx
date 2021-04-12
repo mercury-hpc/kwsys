@@ -3071,9 +3071,12 @@ bool SystemTools::ReadSymlink(const std::string& newName,
 }
 #endif
 
-int SystemTools::ChangeDirectory(const std::string& dir)
+Status SystemTools::ChangeDirectory(std::string const& dir)
 {
-  return Chdir(dir);
+  if (Chdir(dir) < 0) {
+    return Status::POSIX_errno();
+  }
+  return Status::Success();
 }
 
 std::string SystemTools::GetCurrentWorkingDirectory()

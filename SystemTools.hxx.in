@@ -879,7 +879,7 @@ public:
   /**
    * Change directory to the directory specified
    */
-  static int ChangeDirectory(const std::string& dir);
+  static Status ChangeDirectory(std::string const& dir);
 
   /**
    * Get the result of strerror(errno)
