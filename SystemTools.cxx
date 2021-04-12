@@ -1454,8 +1454,8 @@ Status SystemTools::Touch(std::string const& filename, bool create)
   return Status::Success();
 }
 
-bool SystemTools::FileTimeCompare(const std::string& f1, const std::string& f2,
-                                  int* result)
+Status SystemTools::FileTimeCompare(std::string const& f1,
+                                    std::string const& f2, int* result)
 {
   // Default to same time.
   *result = 0;
@@ -1463,11 +1463,11 @@ bool SystemTools::FileTimeCompare(const std::string& f1, const std::string& f2,
   // POSIX version.  Use stat function to get file modification time.
   struct stat s1;
   if (stat(f1.c_str(), &s1) != 0) {
-    return false;
+    return Status::POSIX_errno();
   }
   struct stat s2;
   if (stat(f2.c_str(), &s2) != 0) {
-    return false;
+    return Status::POSIX_errno();
   }
 #  if KWSYS_CXX_STAT_HAS_ST_MTIM
   // Compare using nanosecond resolution.
@@ -1505,17 +1505,17 @@ bool SystemTools::FileTimeCompare(const std::string& f1, const std::string& f2,
   WIN32_FILE_ATTRIBUTE_DATA f2d;
   if (!GetFileAttributesExW(Encoding::ToWindowsExtendedPath(f1).c_str(),
                             GetFileExInfoStandard, &f1d)) {
-    return false;
+    return Status::Windows_GetLastError();
   }
   if (!GetFileAttributesExW(Encoding::ToWindowsExtendedPath(f2).c_str(),
                             GetFileExInfoStandard, &f2d)) {
-    return false;
+    return Status::Windows_GetLastError();
   }
 
   // Compare the file times using resolution provided by system call.
   *result = (int)CompareFileTime(&f1d.ftLastWriteTime, &f2d.ftLastWriteTime);
 #endif
-  return true;
+  return Status::Success();
 }
 
 // Return a capitalized string (i.e the first letter is uppercased, all other
