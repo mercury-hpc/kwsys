@@ -882,21 +882,24 @@ FILE* SystemTools::Fopen(const std::string& file, const char* mode)
 #endif
 }
 
-bool SystemTools::MakeDirectory(const char* path, const mode_t* mode)
+Status SystemTools::MakeDirectory(const char* path, const mode_t* mode)
 {
   if (!path) {
-    return false;
+    return Status::POSIX(EINVAL);
   }
   return SystemTools::MakeDirectory(std::string(path), mode);
 }
 
-bool SystemTools::MakeDirectory(const std::string& path, const mode_t* mode)
+Status SystemTools::MakeDirectory(std::string const& path, const mode_t* mode)
 {
-  if (SystemTools::PathExists(path)) {
-    return SystemTools::FileIsDirectory(path);
-  }
   if (path.empty()) {
-    return false;
+    return Status::POSIX(EINVAL);
+  }
+  if (SystemTools::PathExists(path)) {
+    if (SystemTools::FileIsDirectory(path)) {
+      return Status::Success();
+    }
+    return Status::POSIX(EEXIST);
   }
   std::string dir = path;
   SystemTools::ConvertToUnixSlashes(dir);
@@ -914,15 +917,11 @@ bool SystemTools::MakeDirectory(const std::string& path, const mode_t* mode)
     ++pos;
   }
   topdir = dir;
-  if (Mkdir(topdir, mode) != 0) {
-    // if it is some other error besides directory exists
-    // then return false
-    if (errno != EEXIST) {
-      return false;
-    }
+  if (Mkdir(topdir, mode) != 0 && errno != EEXIST) {
+    return Status::POSIX_errno();
   }
 
-  return true;
+  return Status::Success();
 }
 
 // replace replace with with as many times as it shows up in source.

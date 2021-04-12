@@ -554,9 +554,9 @@ public:
    * can make a full path even if none of the directories existed
    * prior to calling this function.
    */
-  static bool MakeDirectory(const char* path, const mode_t* mode = nullptr);
-  static bool MakeDirectory(const std::string& path,
-                            const mode_t* mode = nullptr);
+  static Status MakeDirectory(const char* path, const mode_t* mode = nullptr);
+  static Status MakeDirectory(std::string const& path,
+                              const mode_t* mode = nullptr);
 
   /**
    * Copy the source file to the destination file only
