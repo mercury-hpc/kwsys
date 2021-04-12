@@ -3971,7 +3971,8 @@ bool SystemToolsStatic::FileIsFullPath(const char* in_name, size_t len)
   return false;
 }
 
-bool SystemTools::GetShortPath(const std::string& path, std::string& shortPath)
+Status SystemTools::GetShortPath(std::string const& path,
+                                 std::string& shortPath)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
   std::string tempPath = path; // create a buffer
@@ -3991,14 +3992,14 @@ bool SystemTools::GetShortPath(const std::string& path, std::string& shortPath)
   }
 
   if (ret == 0) {
-    return false;
+    return Status::Windows_GetLastError();
   } else {
     shortPath = Encoding::ToNarrow(&buffer[0]);
-    return true;
+    return Status::Success();
   }
 #else
   shortPath = path;
-  return true;
+  return Status::Success();
 #endif
 }
 

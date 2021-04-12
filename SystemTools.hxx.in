@@ -508,7 +508,7 @@ public:
    * For windows return the short path for the given path,
    * Unix just a pass through
    */
-  static bool GetShortPath(const std::string& path, std::string& result);
+  static Status GetShortPath(std::string const& path, std::string& result);
 
   /**
    * Read line from file. Make sure to read a full line and truncates it if
