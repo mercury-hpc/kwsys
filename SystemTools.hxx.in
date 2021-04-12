@@ -777,12 +777,12 @@ public:
    * WARNING:  A non-thread-safe method is currently used to get the umask
    * if a honor_umask parameter is set to true.
    */
-  static bool GetPermissions(const char* file, mode_t& mode);
-  static bool GetPermissions(const std::string& file, mode_t& mode);
-  static bool SetPermissions(const char* file, mode_t mode,
-                             bool honor_umask = false);
-  static bool SetPermissions(const std::string& file, mode_t mode,
-                             bool honor_umask = false);
+  static Status GetPermissions(const char* file, mode_t& mode);
+  static Status GetPermissions(std::string const& file, mode_t& mode);
+  static Status SetPermissions(const char* file, mode_t mode,
+                               bool honor_umask = false);
+  static Status SetPermissions(std::string const& file, mode_t mode,
+                               bool honor_umask = false);
 
   /** -----------------------------------------------------------------
    *               Time Manipulation Routines

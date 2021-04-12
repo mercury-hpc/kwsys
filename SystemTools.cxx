@@ -2379,7 +2379,7 @@ bool SystemTools::CopyFileAlways(const std::string& source,
                                  const std::string& destination)
 {
   mode_t perm = 0;
-  bool perms = SystemTools::GetPermissions(source, perm);
+  Status perms = SystemTools::GetPermissions(source, perm);
   std::string real_destination = destination;
 
   if (SystemTools::FileIsDirectory(source)) {
@@ -4098,21 +4098,21 @@ int SystemTools::GetTerminalWidth()
   return width;
 }
 
-bool SystemTools::GetPermissions(const char* file, mode_t& mode)
+Status SystemTools::GetPermissions(const char* file, mode_t& mode)
 {
   if (!file) {
-    return false;
+    return Status::POSIX(EINVAL);
   }
   return SystemTools::GetPermissions(std::string(file), mode);
 }
 
-bool SystemTools::GetPermissions(const std::string& file, mode_t& mode)
+Status SystemTools::GetPermissions(std::string const& file, mode_t& mode)
 {
 #if defined(_WIN32)
   DWORD attr =
     GetFileAttributesW(Encoding::ToWindowsExtendedPath(file).c_str());
   if (attr == INVALID_FILE_ATTRIBUTES) {
-    return false;
+    return Status::Windows_GetLastError();
   }
   if ((attr & FILE_ATTRIBUTE_READONLY) != 0) {
     mode = (_S_IREAD | (_S_IREAD >> 3) | (_S_IREAD >> 6));
@@ -4135,27 +4135,27 @@ bool SystemTools::GetPermissions(const std::string& file, mode_t& mode)
 #else
   struct stat st;
   if (stat(file.c_str(), &st) < 0) {
-    return false;
+    return Status::POSIX_errno();
   }
   mode = st.st_mode;
 #endif
-  return true;
+  return Status::Success();
 }
 
-bool SystemTools::SetPermissions(const char* file, mode_t mode,
-                                 bool honor_umask)
+Status SystemTools::SetPermissions(const char* file, mode_t mode,
+                                   bool honor_umask)
 {
   if (!file) {
-    return false;
+    return Status::POSIX(EINVAL);
   }
   return SystemTools::SetPermissions(std::string(file), mode, honor_umask);
 }
 
-bool SystemTools::SetPermissions(const std::string& file, mode_t mode,
-                                 bool honor_umask)
+Status SystemTools::SetPermissions(std::string const& file, mode_t mode,
+                                   bool honor_umask)
 {
   if (!SystemTools::PathExists(file)) {
-    return false;
+    return Status::POSIX(ENOENT);
   }
   if (honor_umask) {
     mode_t currentMask = umask(0);
@@ -4168,10 +4168,10 @@ bool SystemTools::SetPermissions(const std::string& file, mode_t mode,
   if (chmod(file.c_str(), mode) < 0)
 #endif
   {
-    return false;
+    return Status::POSIX_errno();
   }
 
-  return true;
+  return Status::Success();
 }
 
 std::string SystemTools::GetParentDirectory(const std::string& fileOrDir)
