@@ -3049,38 +3049,40 @@ bool SystemTools::FileIsFIFO(const std::string& name)
 }
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::CreateSymlink(const std::string&, const std::string&)
+Status SystemTools::CreateSymlink(std::string const&, std::string const&)
 {
-  return false;
+  return Status::Windows(ERROR_NOT_SUPPORTED);
 }
 #else
-bool SystemTools::CreateSymlink(const std::string& origName,
-                                const std::string& newName)
+Status SystemTools::CreateSymlink(std::string const& origName,
+                                  std::string const& newName)
 {
-  return symlink(origName.c_str(), newName.c_str()) >= 0;
+  if (symlink(origName.c_str(), newName.c_str()) < 0) {
+    return Status::POSIX_errno();
+  }
+  return Status::Success();
 }
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-bool SystemTools::ReadSymlink(const std::string&, std::string&)
+Status SystemTools::ReadSymlink(std::string const&, std::string&)
 {
-  return false;
+  return Status::Windows(ERROR_NOT_SUPPORTED);
 }
 #else
-bool SystemTools::ReadSymlink(const std::string& newName,
-                              std::string& origName)
+Status SystemTools::ReadSymlink(std::string const& newName,
+                                std::string& origName)
 {
   char buf[KWSYS_SYSTEMTOOLS_MAXPATH + 1];
   int count = static_cast<int>(
     readlink(newName.c_str(), buf, KWSYS_SYSTEMTOOLS_MAXPATH));
-  if (count >= 0) {
-    // Add null-terminator.
-    buf[count] = 0;
-    origName = buf;
-    return true;
-  } else {
-    return false;
+  if (count < 0) {
+    return Status::POSIX_errno();
   }
+  // Add null-terminator.
+  buf[count] = 0;
+  origName = buf;
+  return Status::Success();
 }
 #endif
 
