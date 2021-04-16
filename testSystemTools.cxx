@@ -1095,7 +1095,7 @@ static bool CheckCopyFileIfDifferent()
       ret = false;
       continue;
     }
-    std::string bdata = readFile("file_b");
+    std::string bdata = readFile(cptarget);
     if (diff_test_cases[i].a != bdata) {
       std::cerr << "Incorrect CopyFileIfDifferent file contents in test case "
                 << i + 1 << "." << std::endl;
