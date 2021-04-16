@@ -290,6 +290,7 @@ static bool CheckFileOperations()
     res = false;
   }
 
+  std::cerr << std::oct;
 // Reset umask
 #if defined(_WIN32) && !defined(__CYGWIN__)
   // NOTE:  Windows doesn't support toggling _S_IREAD.
@@ -496,6 +497,7 @@ static bool CheckFileOperations()
   }
 #endif
 
+  std::cerr << std::dec;
   return res;
 }
 
