@@ -16,6 +16,10 @@
 // Will define LIBDL_SO macro on systems with glibc.
 #ifdef __GLIBC__
 #  include <gnu/lib-names.h>
+// Define to LIBC_SO, if not defined by above header.
+#  ifndef LIBDL_SO
+#    define LIBDL_SO LIBC_SO
+#  endif
 #endif
 
 // Define the LIBDL_SO macro, if not defined above.
