@@ -2419,7 +2419,7 @@ Status SystemTools::CopyFileAlways(std::string const& source,
 
   if (SystemTools::FileIsDirectory(source)) {
     status = SystemTools::MakeDirectory(destination);
-    if (!status) {
+    if (!status.IsSuccess()) {
       return status;
     }
   } else {
@@ -2444,17 +2444,17 @@ Status SystemTools::CopyFileAlways(std::string const& source,
     // Create destination directory
     if (!destination_dir.empty()) {
       status = SystemTools::MakeDirectory(destination_dir);
-      if (!status) {
+      if (!status.IsSuccess()) {
         return status;
       }
     }
 
     status = SystemTools::CloneFileContent(source, real_destination);
     // if cloning did not succeed, fall back to blockwise copy
-    if (!status) {
+    if (!status.IsSuccess()) {
       status = SystemTools::CopyFileContentBlockwise(source, real_destination);
     }
-    if (!status) {
+    if (!status.IsSuccess()) {
       return status;
     }
   }
@@ -2484,11 +2484,11 @@ Status SystemTools::CopyADirectory(std::string const& source,
   Status status;
   Directory dir;
   status = dir.Load(source);
-  if (!status) {
+  if (!status.IsSuccess()) {
     return status;
   }
   status = SystemTools::MakeDirectory(destination);
-  if (!status) {
+  if (!status.IsSuccess()) {
     return status;
   }
 
@@ -2503,12 +2503,12 @@ Status SystemTools::CopyADirectory(std::string const& source,
         fullDestPath += "/";
         fullDestPath += dir.GetFile(static_cast<unsigned long>(fileNum));
         status = SystemTools::CopyADirectory(fullPath, fullDestPath, always);
-        if (!status) {
+        if (!status.IsSuccess()) {
           return status;
         }
       } else {
         status = SystemTools::CopyAFile(fullPath, destination, always);
-        if (!status) {
+        if (!status.IsSuccess()) {
           return status;
         }
       }
@@ -2660,7 +2660,7 @@ Status SystemTools::RemoveADirectory(std::string const& source)
   Status status;
   Directory dir;
   status = dir.Load(source);
-  if (!status) {
+  if (!status.IsSuccess()) {
     return status;
   }
 
@@ -2674,12 +2674,12 @@ Status SystemTools::RemoveADirectory(std::string const& source)
       if (SystemTools::FileIsDirectory(fullPath) &&
           !SystemTools::FileIsSymlink(fullPath)) {
         status = SystemTools::RemoveADirectory(fullPath);
-        if (!status) {
+        if (!status.IsSuccess()) {
           return status;
         }
       } else {
         status = SystemTools::RemoveFile(fullPath);
-        if (!status) {
+        if (!status.IsSuccess()) {
           return status;
         }
       }
@@ -3143,7 +3143,7 @@ Status SystemTools::ReadSymlink(std::string const& newName,
     status = Status::Windows_GetLastError();
   }
   CloseHandle(hFile);
-  if (!status) {
+  if (!status.IsSuccess()) {
     return status;
   }
   PREPARSE_DATA_BUFFER data =
