@@ -40,6 +40,10 @@
 // left on disk.
 #include <testSystemTools.h>
 
+// For TestDynamicLoaderData, which, though not referenced literally,
+// is referenced semantically.
+#include "testDynload.h"
+
 static std::string GetLibName(const char* lname, const char* subdir = nullptr)
 {
   // Construct proper name of lib
