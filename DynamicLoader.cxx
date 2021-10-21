@@ -276,8 +276,8 @@ const char* DynamicLoader::LastError()
   if (length < 1) {
     /* FormatMessage failed.  Use a default message.  */
     snprintf(str, DYNLOAD_ERROR_BUFFER_SIZE,
-             "DynamicLoader encountered error 0x%X.  "
-             "FormatMessage failed with error 0x%X",
+             "DynamicLoader encountered error 0x%lX.  "
+             "FormatMessage failed with error 0x%lX",
              error, GetLastError());
     return str;
   }
@@ -286,8 +286,8 @@ const char* DynamicLoader::LastError()
                            DYNLOAD_ERROR_BUFFER_SIZE, nullptr, nullptr)) {
     /* WideCharToMultiByte failed.  Use a default message.  */
     snprintf(str, DYNLOAD_ERROR_BUFFER_SIZE,
-             "DynamicLoader encountered error 0x%X.  "
-             "WideCharToMultiByte failed with error 0x%X",
+             "DynamicLoader encountered error 0x%lX.  "
+             "WideCharToMultiByte failed with error 0x%lX",
              error, GetLastError());
   }
 
