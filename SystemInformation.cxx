@@ -2789,19 +2789,20 @@ bool SystemInformationImplementation::RetrieveProcessorSerialNumber()
   //    ;        ecx: middle 32 bits are the processor signature bits
   //    ;        edx: bottom 32 bits are the processor signature bits
   char sn[128];
-  sprintf(sn, "%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x",
-          ((SerialNumber[1] & 0xff000000) >> 24),
-          ((SerialNumber[1] & 0x00ff0000) >> 16),
-          ((SerialNumber[1] & 0x0000ff00) >> 8),
-          ((SerialNumber[1] & 0x000000ff) >> 0),
-          ((SerialNumber[2] & 0xff000000) >> 24),
-          ((SerialNumber[2] & 0x00ff0000) >> 16),
-          ((SerialNumber[2] & 0x0000ff00) >> 8),
-          ((SerialNumber[2] & 0x000000ff) >> 0),
-          ((SerialNumber[3] & 0xff000000) >> 24),
-          ((SerialNumber[3] & 0x00ff0000) >> 16),
-          ((SerialNumber[3] & 0x0000ff00) >> 8),
-          ((SerialNumber[3] & 0x000000ff) >> 0));
+  snprintf(sn, sizeof(sn),
+           "%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x-%.2x%.2x",
+           ((SerialNumber[1] & 0xff000000) >> 24),
+           ((SerialNumber[1] & 0x00ff0000) >> 16),
+           ((SerialNumber[1] & 0x0000ff00) >> 8),
+           ((SerialNumber[1] & 0x000000ff) >> 0),
+           ((SerialNumber[2] & 0xff000000) >> 24),
+           ((SerialNumber[2] & 0x00ff0000) >> 16),
+           ((SerialNumber[2] & 0x0000ff00) >> 8),
+           ((SerialNumber[2] & 0x000000ff) >> 0),
+           ((SerialNumber[3] & 0xff000000) >> 24),
+           ((SerialNumber[3] & 0x00ff0000) >> 16),
+           ((SerialNumber[3] & 0x0000ff00) >> 8),
+           ((SerialNumber[3] & 0x000000ff) >> 0));
   this->ChipID.SerialNumber = sn;
   return true;
 
@@ -5395,8 +5396,8 @@ bool SystemInformationImplementation::QueryOSInformation()
           }
         }
 
-        sprintf(operatingSystem, "%ls (Build %ld)", osvi.szCSDVersion,
-                osvi.dwBuildNumber & 0xFFFF);
+        snprintf(operatingSystem, sizeof(operatingSystem), "%ls (Build %ld)",
+                 osvi.szCSDVersion, osvi.dwBuildNumber & 0xFFFF);
         this->OSVersion = operatingSystem;
       } else
 #  endif // VER_NT_WORKSTATION
@@ -5439,9 +5440,10 @@ bool SystemInformationImplementation::QueryOSInformation()
       // Display version, service pack (if any), and build number.
       if (osvi.dwMajorVersion <= 4) {
         // NB: NT 4.0 and earlier.
-        sprintf(operatingSystem, "version %ld.%ld %ls (Build %ld)",
-                osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.szCSDVersion,
-                osvi.dwBuildNumber & 0xFFFF);
+        snprintf(operatingSystem, sizeof(operatingSystem),
+                 "version %ld.%ld %ls (Build %ld)", osvi.dwMajorVersion,
+                 osvi.dwMinorVersion, osvi.szCSDVersion,
+                 osvi.dwBuildNumber & 0xFFFF);
         this->OSVersion = operatingSystem;
       } else if (osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1) {
         // Windows XP and .NET server.
@@ -5467,8 +5469,8 @@ bool SystemInformationImplementation::QueryOSInformation()
         }
       } else {
         // Windows 2000 and everything else.
-        sprintf(operatingSystem, "%ls (Build %ld)", osvi.szCSDVersion,
-                osvi.dwBuildNumber & 0xFFFF);
+        snprintf(operatingSystem, sizeof(operatingSystem), "%ls (Build %ld)",
+                 osvi.szCSDVersion, osvi.dwBuildNumber & 0xFFFF);
         this->OSVersion = operatingSystem;
       }
       break;
