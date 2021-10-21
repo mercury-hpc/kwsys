@@ -1267,7 +1267,9 @@ public:
 private:
   void* GetRealAddress() const
   {
-    return (void*)((char*)this->Address - (char*)this->BinaryBaseAddress);
+    return reinterpret_cast<void*>(
+      static_cast<char*>(this->Address) -
+      static_cast<char*>(this->BinaryBaseAddress));
   }
 
   std::string GetFileName(const std::string& path) const;
@@ -3750,24 +3752,24 @@ long long SystemInformationImplementation::GetProcMemoryAvailable(
   ResourceLimitType rlim;
   ierr = GetResourceLimit(RLIMIT_DATA, &rlim);
   if ((ierr == 0) && (rlim.rlim_cur != RLIM_INFINITY)) {
-    memAvail = min((long long)rlim.rlim_cur / 1024, memAvail);
+    memAvail = min(static_cast<long long>(rlim.rlim_cur) / 1024, memAvail);
   }
 
   ierr = GetResourceLimit(RLIMIT_AS, &rlim);
   if ((ierr == 0) && (rlim.rlim_cur != RLIM_INFINITY)) {
-    memAvail = min((long long)rlim.rlim_cur / 1024, memAvail);
+    memAvail = min(static_cast<long long>(rlim.rlim_cur) / 1024, memAvail);
   }
 #elif defined(__APPLE__)
   struct rlimit rlim;
   int ierr;
   ierr = getrlimit(RLIMIT_DATA, &rlim);
   if ((ierr == 0) && (rlim.rlim_cur != RLIM_INFINITY)) {
-    memAvail = min((long long)rlim.rlim_cur / 1024, memAvail);
+    memAvail = min(static_cast<long long>(rlim.rlim_cur) / 1024, memAvail);
   }
 
   ierr = getrlimit(RLIMIT_RSS, &rlim);
   if ((ierr == 0) && (rlim.rlim_cur != RLIM_INFINITY)) {
-    memAvail = min((long long)rlim.rlim_cur / 1024, memAvail);
+    memAvail = min(static_cast<long long>(rlim.rlim_cur) / 1024, memAvail);
   }
 #endif
 
@@ -4069,7 +4071,7 @@ void SystemInformationImplementation::SetStackTraceOnError(int enable)
 
     // install ours
     struct sigaction sa;
-    sa.sa_sigaction = (SigAction)StacktraceSignalHandler;
+    sa.sa_sigaction = static_cast<SigAction>(StacktraceSignalHandler);
     sa.sa_flags = SA_SIGINFO | SA_RESETHAND;
 #  ifdef SA_RESTART
     sa.sa_flags |= SA_RESTART;
@@ -4565,7 +4567,8 @@ bool SystemInformationImplementation::ParseSysCtl()
   this->AvailablePhysicalMemory = 0;
   vm_statistics_data_t vmstat;
   mach_msg_type_number_t count = HOST_VM_INFO_COUNT;
-  if (host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&vmstat,
+  if (host_statistics(mach_host_self(), HOST_VM_INFO,
+                      reinterpret_cast<host_info_t>(&vmstat),
                       &count) == KERN_SUCCESS) {
     err = kw_sysctlbyname_int64("hw.pagesize", &tempInt64);
     if (err == 0) {
