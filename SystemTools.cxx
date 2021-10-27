@@ -103,6 +103,9 @@
 #  if defined(_MSC_VER) && _MSC_VER >= 1800
 #    define KWSYS_WINDOWS_DEPRECATED_GetVersionEx
 #  endif
+#  ifndef IO_REPARSE_TAG_APPEXECLINK
+#    define IO_REPARSE_TAG_APPEXECLINK (0x8000001BL)
+#  endif
 // from ntifs.h, which can only be used by drivers
 typedef struct _REPARSE_DATA_BUFFER
 {
@@ -1343,8 +1346,8 @@ bool SystemTools::FileExists(const std::string& filename)
     return false;
   }
 #if defined(_WIN32)
-  DWORD attr =
-    GetFileAttributesW(Encoding::ToWindowsExtendedPath(filename).c_str());
+  const std::wstring path = Encoding::ToWindowsExtendedPath(filename);
+  DWORD attr = GetFileAttributesW(path.c_str());
   if (attr == INVALID_FILE_ATTRIBUTES) {
     return false;
   }
@@ -1352,12 +1355,38 @@ bool SystemTools::FileExists(const std::string& filename)
   if (attr & FILE_ATTRIBUTE_REPARSE_POINT) {
     // Using 0 instead of GENERIC_READ as it allows reading of file attributes
     // even if we do not have permission to read the file itself
-    HANDLE handle =
-      CreateFileW(Encoding::ToWindowsExtendedPath(filename).c_str(), 0, 0,
-                  nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+    HANDLE handle = CreateFileW(path.c_str(), 0, 0, nullptr, OPEN_EXISTING,
+                                FILE_FLAG_BACKUP_SEMANTICS, nullptr);
 
     if (handle == INVALID_HANDLE_VALUE) {
-      return false;
+      // A reparse point may be an execution alias (Windows Store app), which
+      // is similar to a symlink but it cannot be opened as a regular file.
+      // We must look at the reparse point data explicitly.
+      handle = CreateFileW(
+        path.c_str(), 0, 0, nullptr, OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+
+      if (handle == INVALID_HANDLE_VALUE) {
+        return false;
+      }
+
+      byte buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+      DWORD bytesReturned = 0;
+
+      if (!DeviceIoControl(handle, FSCTL_GET_REPARSE_POINT, nullptr, 0, buffer,
+                           MAXIMUM_REPARSE_DATA_BUFFER_SIZE, &bytesReturned,
+                           nullptr)) {
+        CloseHandle(handle);
+        return false;
+      }
+
+      CloseHandle(handle);
+
+      PREPARSE_DATA_BUFFER data =
+        reinterpret_cast<PREPARSE_DATA_BUFFER>(&buffer[0]);
+
+      // Assume that file exists if it is an execution alias.
+      return data->ReparseTag == IO_REPARSE_TAG_APPEXECLINK;
     }
 
     CloseHandle(handle);
