@@ -34,6 +34,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef _WIN32
+#  include <cwchar>
+#endif
+
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
@@ -135,8 +139,37 @@ typedef struct _REPARSE_DATA_BUFFER
     {
       UCHAR DataBuffer[1];
     } GenericReparseBuffer;
+    struct
+    {
+      ULONG StringCount;
+      WCHAR StringList[1];
+    } AppExecLinkReparseBuffer;
   } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
+
+namespace {
+WCHAR* GetAppExecLink(PREPARSE_DATA_BUFFER data, size_t& len)
+{
+  // The AppExecLink reparse buffer is a list of 0-terminated non-empty
+  // strings, terminated by an empty string (0-0).  We need the third string.
+  if (data->AppExecLinkReparseBuffer.StringCount < 3) {
+    return nullptr;
+  }
+  WCHAR* pstr = data->AppExecLinkReparseBuffer.StringList;
+  for (int i = 0; i < 2; ++i) {
+    len = std::wcslen(pstr);
+    if (len == 0) {
+      return nullptr;
+    }
+    pstr += len + 1;
+  }
+  len = std::wcslen(pstr);
+  if (len == 0) {
+    return nullptr;
+  }
+  return pstr;
+}
+}
 #endif
 
 #if !KWSYS_CXX_HAS_ENVIRON_IN_STDLIB_H
@@ -3193,6 +3226,15 @@ Status SystemTools::ReadSymlink(std::string const& newName,
       data->MountPointReparseBuffer.SubstituteNameLength / sizeof(WCHAR);
     substituteNameData = data->MountPointReparseBuffer.PathBuffer +
       data->MountPointReparseBuffer.SubstituteNameOffset / sizeof(WCHAR);
+  } else if (data->ReparseTag == IO_REPARSE_TAG_APPEXECLINK) {
+    // The reparse buffer is a list of 0-terminated non-empty strings,
+    // terminated by an empty string (0-0).  We need the third string.
+    size_t destLen;
+    substituteNameData = GetAppExecLink(data, destLen);
+    if (substituteNameData == nullptr || destLen == 0) {
+      return Status::Windows(ERROR_SYMLINK_NOT_SUPPORTED);
+    }
+    substituteNameLength = static_cast<USHORT>(destLen);
   } else {
     return Status::Windows(ERROR_REPARSE_TAG_MISMATCH);
   }
