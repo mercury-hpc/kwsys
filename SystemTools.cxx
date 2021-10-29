@@ -141,8 +141,13 @@ typedef struct _REPARSE_DATA_BUFFER
     } GenericReparseBuffer;
     struct
     {
-      ULONG StringCount;
+      ULONG Version;
       WCHAR StringList[1];
+      // In version 3, there are 4 NUL-terminated strings:
+      // * Package ID
+      // * Entry Point
+      // * Executable Path
+      // * Application Type
     } AppExecLinkReparseBuffer;
   } DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
@@ -150,12 +155,14 @@ typedef struct _REPARSE_DATA_BUFFER
 namespace {
 WCHAR* GetAppExecLink(PREPARSE_DATA_BUFFER data, size_t& len)
 {
-  // The AppExecLink reparse buffer is a list of 0-terminated non-empty
-  // strings, terminated by an empty string (0-0).  We need the third string.
-  if (data->AppExecLinkReparseBuffer.StringCount < 3) {
+  // We only know the layout of version 3.
+  if (data->AppExecLinkReparseBuffer.Version != 3) {
     return nullptr;
   }
+
   WCHAR* pstr = data->AppExecLinkReparseBuffer.StringList;
+
+  // Skip the package id and entry point strings.
   for (int i = 0; i < 2; ++i) {
     len = std::wcslen(pstr);
     if (len == 0) {
@@ -163,6 +170,8 @@ WCHAR* GetAppExecLink(PREPARSE_DATA_BUFFER data, size_t& len)
     }
     pstr += len + 1;
   }
+
+  // The third string is the executable path.
   len = std::wcslen(pstr);
   if (len == 0) {
     return nullptr;
