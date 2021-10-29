@@ -3073,11 +3073,7 @@ bool SystemTools::FileIsDirectory(const std::string& inName)
 
 bool SystemTools::FileIsExecutable(const std::string& name)
 {
-#if defined(_WIN32)
-  return SystemTools::FileExists(name, true);
-#else
   return !FileIsDirectory(name) && TestFileAccess(name, TEST_FILE_EXECUTE);
-#endif
 }
 
 bool SystemTools::FileIsSymlink(const std::string& name)
