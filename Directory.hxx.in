@@ -29,6 +29,9 @@ public:
 #if defined(_WIN32) && !defined(__CYGWIN__)
     _wfinddata_t FindData;
 #endif
+
+    bool IsDirectory() const;
+    bool IsSymlink() const;
   };
 
   Directory();

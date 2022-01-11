@@ -7,6 +7,8 @@
 
 #include KWSYS_HEADER(Encoding.hxx)
 
+#include KWSYS_HEADER(SystemTools.hxx)
+
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
@@ -17,6 +19,19 @@
 
 #include <string>
 #include <vector>
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#  include <windows.h>
+
+#  include <ctype.h>
+#  include <fcntl.h>
+#  include <io.h>
+#  include <stdio.h>
+#  include <stdlib.h>
+#  include <string.h>
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#endif
 
 namespace KWSYS_NAMESPACE {
 
@@ -29,6 +44,25 @@ public:
   // Path to Open'ed directory
   std::string Path;
 };
+
+bool Directory::FileData::IsDirectory() const
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return (FindData.attrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+  return kwsys::SystemTools::FileIsDirectory(Name);
+#endif
+}
+
+bool Directory::FileData::IsSymlink() const
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return kwsys::SystemTools::FileIsSymlinkWithAttr(
+    Encoding::ToWindowsExtendedPath(Name), FindData.attrib);
+#else
+  return kwsys::SystemTools::FileIsSymlink(Name);
+#endif
+}
 
 Directory::Directory()
 {
@@ -87,16 +121,6 @@ void Directory::Clear()
 // First Windows platforms
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-#  include <windows.h>
-
-#  include <ctype.h>
-#  include <fcntl.h>
-#  include <io.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <string.h>
-#  include <sys/stat.h>
-#  include <sys/types.h>
 
 namespace KWSYS_NAMESPACE {
 
