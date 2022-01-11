@@ -23,6 +23,14 @@ class DirectoryInternals;
 class @KWSYS_NAMESPACE@_EXPORT Directory
 {
 public:
+  struct FileData
+  {
+    std::string Name;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    _wfinddata_t FindData;
+#endif
+  };
+
   Directory();
   Directory(Directory&& other);
   Directory(const Directory&) = delete;
@@ -53,6 +61,11 @@ public:
    * Return the file at the given index, the indexing is 0 based
    */
   const char* GetFile(unsigned long) const;
+
+  /**
+   * Return the file data at the given index, the indexing is 0 based
+   */
+  FileData* GetFileData(unsigned long) const;
 
   /**
    * Return the path to Open'ed directory

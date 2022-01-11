@@ -24,7 +24,7 @@ class DirectoryInternals
 {
 public:
   // Array of Files
-  std::vector<std::string> Files;
+  std::vector<Directory::FileData> Files;
 
   // Path to Open'ed directory
   std::string Path;
@@ -59,10 +59,16 @@ unsigned long Directory::GetNumberOfFiles() const
 
 const char* Directory::GetFile(unsigned long dindex) const
 {
+  return this->Internal->Files[dindex].Name.c_str();
+}
+
+Directory::FileData* Directory::GetFileData(unsigned long dindex) const
+{
   if (dindex >= this->Internal->Files.size()) {
     return nullptr;
   }
-  return this->Internal->Files[dindex].c_str();
+
+  return this->Internal->Files.data() + dindex;
 }
 
 const char* Directory::GetPath() const
@@ -133,7 +139,7 @@ Status Directory::Load(std::string const& name, std::string* errorMessage)
 
   // Loop through names
   do {
-    this->Internal->Files.push_back(Encoding::ToNarrow(data.name));
+    this->Internal->Files.push_back({ Encoding::ToNarrow(data.name), data });
   } while (_wfindnext(srchHandle, &data) != -1);
   this->Internal->Path = name;
   if (_findclose(srchHandle) == -1) {
@@ -239,7 +245,7 @@ Status Directory::Load(std::string const& name, std::string* errorMessage)
 
   errno = 0;
   for (kwsys_dirent* d = readdir(dir); d; d = readdir(dir)) {
-    this->Internal->Files.emplace_back(d->d_name);
+    this->Internal->Files.push_back({ d->d_name });
   }
   if (errno != 0) {
     if (errorMessage != nullptr) {
