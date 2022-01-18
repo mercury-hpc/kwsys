@@ -213,8 +213,9 @@ bool Glob::RecurseDirectory(std::string::size_type start,
     fname = kwsys::SystemTools::LowerCase(fname);
 #endif
 
-    bool isDir = kwsys::SystemTools::FileIsDirectory(realname);
-    bool isSymLink = kwsys::SystemTools::FileIsSymlink(realname);
+    const auto* fileData = d.GetFileData(cc);
+    bool isDir = fileData->IsDirectory();
+    bool isSymLink = fileData->IsSymlink();
 
     if (isDir && (!isSymLink || this->RecurseThroughSymlinks)) {
       if (isSymLink) {

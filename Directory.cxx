@@ -7,6 +7,8 @@
 
 #include KWSYS_HEADER(Encoding.hxx)
 
+#include KWSYS_HEADER(SystemTools.hxx)
+
 // Work-around CMake dependency scanning limitation.  This must
 // duplicate the above list of headers.
 #if 0
@@ -18,17 +20,49 @@
 #include <string>
 #include <vector>
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#  include <windows.h>
+
+#  include <ctype.h>
+#  include <fcntl.h>
+#  include <io.h>
+#  include <stdio.h>
+#  include <stdlib.h>
+#  include <string.h>
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#endif
+
 namespace KWSYS_NAMESPACE {
 
 class DirectoryInternals
 {
 public:
   // Array of Files
-  std::vector<std::string> Files;
+  std::vector<Directory::FileData> Files;
 
   // Path to Open'ed directory
   std::string Path;
 };
+
+bool Directory::FileData::IsDirectory() const
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return (FindData.attrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+  return kwsys::SystemTools::FileIsDirectory(Name);
+#endif
+}
+
+bool Directory::FileData::IsSymlink() const
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return kwsys::SystemTools::FileIsSymlinkWithAttr(
+    Encoding::ToWindowsExtendedPath(Name), FindData.attrib);
+#else
+  return kwsys::SystemTools::FileIsSymlink(Name);
+#endif
+}
 
 Directory::Directory()
 {
@@ -59,10 +93,16 @@ unsigned long Directory::GetNumberOfFiles() const
 
 const char* Directory::GetFile(unsigned long dindex) const
 {
+  return this->Internal->Files[dindex].Name.c_str();
+}
+
+Directory::FileData* Directory::GetFileData(unsigned long dindex) const
+{
   if (dindex >= this->Internal->Files.size()) {
     return nullptr;
   }
-  return this->Internal->Files[dindex].c_str();
+
+  return this->Internal->Files.data() + dindex;
 }
 
 const char* Directory::GetPath() const
@@ -81,16 +121,6 @@ void Directory::Clear()
 // First Windows platforms
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-#  include <windows.h>
-
-#  include <ctype.h>
-#  include <fcntl.h>
-#  include <io.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <string.h>
-#  include <sys/stat.h>
-#  include <sys/types.h>
 
 namespace KWSYS_NAMESPACE {
 
@@ -133,7 +163,7 @@ Status Directory::Load(std::string const& name, std::string* errorMessage)
 
   // Loop through names
   do {
-    this->Internal->Files.push_back(Encoding::ToNarrow(data.name));
+    this->Internal->Files.push_back({ Encoding::ToNarrow(data.name), data });
   } while (_wfindnext(srchHandle, &data) != -1);
   this->Internal->Path = name;
   if (_findclose(srchHandle) == -1) {
@@ -239,7 +269,7 @@ Status Directory::Load(std::string const& name, std::string* errorMessage)
 
   errno = 0;
   for (kwsys_dirent* d = readdir(dir); d; d = readdir(dir)) {
-    this->Internal->Files.emplace_back(d->d_name);
+    this->Internal->Files.push_back({ d->d_name });
   }
   if (errno != 0) {
     if (errorMessage != nullptr) {
