@@ -2287,7 +2287,7 @@ bool SystemTools::FilesDiffer(const std::string& source,
   if (statSource.nFileSizeHigh == 0 && statSource.nFileSizeLow == 0) {
     return false;
   }
-  off_t nleft =
+  auto nleft =
     ((__int64)statSource.nFileSizeHigh << 32) + statSource.nFileSizeLow;
 
 #else
