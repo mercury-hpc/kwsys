@@ -18,6 +18,7 @@
 #endif
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -38,31 +39,31 @@ namespace KWSYS_NAMESPACE {
 class DirectoryInternals
 {
 public:
+  struct FileData
+  {
+    std::string Name;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    _wfinddata_t FindData;
+#endif
+    FileData(std::string name
+#if defined(_WIN32) && !defined(__CYGWIN__)
+             ,
+             _wfinddata_t data
+#endif
+             )
+      : Name(std::move(name))
+#if defined(_WIN32) && !defined(__CYGWIN__)
+      , FindData(std::move(data))
+#endif
+    {
+    }
+  };
   // Array of Files
-  std::vector<Directory::FileData> Files;
+  std::vector<FileData> Files;
 
   // Path to Open'ed directory
   std::string Path;
 };
-
-bool Directory::FileData::IsDirectory() const
-{
-#if defined(_WIN32) && !defined(__CYGWIN__)
-  return (FindData.attrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
-#else
-  return kwsys::SystemTools::FileIsDirectory(Name);
-#endif
-}
-
-bool Directory::FileData::IsSymlink() const
-{
-#if defined(_WIN32) && !defined(__CYGWIN__)
-  return kwsys::SystemTools::FileIsSymlinkWithAttr(
-    Encoding::ToWindowsExtendedPath(Name), FindData.attrib);
-#else
-  return kwsys::SystemTools::FileIsSymlink(Name);
-#endif
-}
 
 Directory::Directory()
 {
@@ -96,13 +97,42 @@ const char* Directory::GetFile(unsigned long dindex) const
   return this->Internal->Files[dindex].Name.c_str();
 }
 
-Directory::FileData* Directory::GetFileData(unsigned long dindex) const
+std::string const& Directory::GetFileName(std::size_t i) const
 {
-  if (dindex >= this->Internal->Files.size()) {
-    return nullptr;
-  }
+  return this->Internal->Files[i].Name;
+}
 
-  return this->Internal->Files.data() + dindex;
+std::string Directory::GetFilePath(std::size_t i) const
+{
+  std::string abs = this->Internal->Path;
+  if (!abs.empty() && abs.back() != '/') {
+    abs += '/';
+  }
+  abs += this->Internal->Files[i].Name;
+  return abs;
+}
+
+bool Directory::FileIsDirectory(std::size_t i) const
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  _wfinddata_t const& data = this->Internal->Files[i].FindData;
+  return (data.attrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+  std::string const& path = this->GetFilePath(i);
+  return kwsys::SystemTools::FileIsDirectory(path);
+#endif
+}
+
+bool Directory::FileIsSymlink(std::size_t i) const
+{
+  std::string const& path = this->GetFilePath(i);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  _wfinddata_t const& data = this->Internal->Files[i].FindData;
+  return kwsys::SystemTools::FileIsSymlinkWithAttr(
+    Encoding::ToWindowsExtendedPath(path), data.attrib);
+#else
+  return kwsys::SystemTools::FileIsSymlink(path);
+#endif
 }
 
 const char* Directory::GetPath() const
@@ -163,7 +193,7 @@ Status Directory::Load(std::string const& name, std::string* errorMessage)
 
   // Loop through names
   do {
-    this->Internal->Files.push_back({ Encoding::ToNarrow(data.name), data });
+    this->Internal->Files.emplace_back(Encoding::ToNarrow(data.name), data);
   } while (_wfindnext(srchHandle, &data) != -1);
   this->Internal->Path = name;
   if (_findclose(srchHandle) == -1) {
@@ -269,7 +299,7 @@ Status Directory::Load(std::string const& name, std::string* errorMessage)
 
   errno = 0;
   for (kwsys_dirent* d = readdir(dir); d; d = readdir(dir)) {
-    this->Internal->Files.push_back({ d->d_name });
+    this->Internal->Files.emplace_back(d->d_name);
   }
   if (errno != 0) {
     if (errorMessage != nullptr) {
