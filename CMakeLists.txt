@@ -88,17 +88,7 @@
 # any outside mailing list and no documentation of the change will be
 # written.
 
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-foreach(p
-    CMP0056 # CMake 3.2, Honor link flags in try_compile() source-file signature.
-    CMP0063 # CMake 3.3, Honor visibility properties for all target types.
-    CMP0067 # CMake 3.8, Honor language standard in try_compile source-file signature.
-    CMP0069 # CMake 3.9, INTERPROCEDURAL_OPTIMIZATION is enforced when enabled.
-    )
-  if(POLICY ${p})
-    cmake_policy(SET ${p} NEW)
-  endif()
-endforeach()
+cmake_minimum_required(VERSION 3.9...3.22 FATAL_ERROR)
 
 # Some configure checks depend upon the deployment target. Clear checks when
 # the deployment target changes.
