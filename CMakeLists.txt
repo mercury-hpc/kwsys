@@ -1111,7 +1111,7 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
     # Some Apple compilers produce bad optimizations in this source.
     if(APPLE AND CMAKE_C_COMPILER_ID MATCHES "^(GNU|LLVM)$")
       set(testProcess_COMPILE_FLAGS "${testProcess_COMPILE_FLAGS} -O0")
-    elseif(CMAKE_C_COMPILER_ID STREQUAL "XL")
+    elseif(CMAKE_C_COMPILER_ID MATCHES "^(XL|XLClang)$")
       # Tell IBM XL not to warn about our test infinite loop
       if(CMAKE_SYSTEM MATCHES "Linux.*ppc64le"
          AND CMAKE_C_COMPILER_VERSION VERSION_LESS "16.1.0"
