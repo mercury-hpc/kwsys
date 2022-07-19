@@ -536,7 +536,8 @@ public:
   StringMap TranslationMap;
 #endif
 #ifdef _WIN32
-  static std::string GetCasePathName(std::string const& pathIn);
+  static std::string GetCasePathName(std::string const& pathIn,
+                                     bool const cache);
   static std::string GetActualCaseForPathCached(std::string const& path);
   static const char* GetEnvBuffered(const char* key);
   std::map<std::string, std::string, SystemToolsPathCaseCmp> PathCaseMap;
@@ -571,7 +572,8 @@ public:
 static SystemToolsStatic* SystemToolsStatics;
 
 #ifdef _WIN32
-std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn)
+std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn,
+                                               bool const cache)
 {
   std::string casePath;
 
@@ -623,14 +625,31 @@ std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn)
       } else {
         std::string test_str = casePath;
         test_str += path_components[idx];
-        WIN32_FIND_DATAW findData;
-        HANDLE hFind =
-          ::FindFirstFileW(Encoding::ToWide(test_str).c_str(), &findData);
-        if (INVALID_HANDLE_VALUE != hFind) {
-          path_components[idx] = Encoding::ToNarrow(findData.cFileName);
-          ::FindClose(hFind);
-        } else {
-          converting = false;
+
+        bool found_in_cache = false;
+        if (cache) {
+          auto const it = SystemToolsStatics->PathCaseMap.find(test_str);
+          if (it != SystemToolsStatics->PathCaseMap.end()) {
+            path_components[idx] = it->second;
+            found_in_cache = true;
+          }
+        }
+
+        if (!found_in_cache) {
+          WIN32_FIND_DATAW findData;
+          HANDLE hFind =
+            ::FindFirstFileW(Encoding::ToWide(test_str).c_str(), &findData);
+          if (INVALID_HANDLE_VALUE != hFind) {
+            auto case_file_name = Encoding::ToNarrow(findData.cFileName);
+            if (cache) {
+              SystemToolsStatics->PathCaseMap.emplace(test_str,
+                                                      case_file_name);
+            }
+            path_components[idx] = std::move(case_file_name);
+            ::FindClose(hFind);
+          } else {
+            converting = false;
+          }
         }
       }
     }
@@ -642,20 +661,7 @@ std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn)
 
 std::string SystemToolsStatic::GetActualCaseForPathCached(std::string const& p)
 {
-  // Check to see if actual case has already been called
-  // for this path, and the result is stored in the PathCaseMap
-  auto& pcm = SystemToolsStatics->PathCaseMap;
-  {
-    auto itr = pcm.find(p);
-    if (itr != pcm.end()) {
-      return itr->second;
-    }
-  }
-  std::string casePath = SystemToolsStatic::GetCasePathName(p);
-  if (casePath.size() <= MAX_PATH) {
-    pcm[p] = casePath;
-  }
-  return casePath;
+  return SystemToolsStatic::GetCasePathName(p, true);
 }
 #endif
 
@@ -3677,7 +3683,7 @@ std::string SystemTools::RelativePath(const std::string& local,
 std::string SystemTools::GetActualCaseForPath(const std::string& p)
 {
 #ifdef _WIN32
-  return SystemToolsStatic::GetCasePathName(p);
+  return SystemToolsStatic::GetCasePathName(p, false);
 #else
   return p;
 #endif
