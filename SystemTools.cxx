@@ -540,6 +540,7 @@ public:
                                      bool const cache);
   static std::string GetActualCaseForPathCached(std::string const& path);
   static const char* GetEnvBuffered(const char* key);
+  std::map<std::string, std::string, SystemToolsPathCaseCmp> FindFileMap;
   std::map<std::string, std::string, SystemToolsPathCaseCmp> PathCaseMap;
   std::map<std::string, std::string> EnvMap;
 #endif
@@ -628,8 +629,8 @@ std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn,
 
         bool found_in_cache = false;
         if (cache) {
-          auto const it = SystemToolsStatics->PathCaseMap.find(test_str);
-          if (it != SystemToolsStatics->PathCaseMap.end()) {
+          auto const it = SystemToolsStatics->FindFileMap.find(test_str);
+          if (it != SystemToolsStatics->FindFileMap.end()) {
             path_components[idx] = it->second;
             found_in_cache = true;
           }
@@ -642,7 +643,7 @@ std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn,
           if (INVALID_HANDLE_VALUE != hFind) {
             auto case_file_name = Encoding::ToNarrow(findData.cFileName);
             if (cache) {
-              SystemToolsStatics->PathCaseMap.emplace(test_str,
+              SystemToolsStatics->FindFileMap.emplace(test_str,
                                                       case_file_name);
             }
             path_components[idx] = std::move(case_file_name);
@@ -661,7 +662,17 @@ std::string SystemToolsStatic::GetCasePathName(std::string const& pathIn,
 
 std::string SystemToolsStatic::GetActualCaseForPathCached(std::string const& p)
 {
-  return SystemToolsStatic::GetCasePathName(p, true);
+  std::string casePath;
+
+  auto it = SystemToolsStatics->PathCaseMap.find(p);
+  if (it != SystemToolsStatics->PathCaseMap.end()) {
+    casePath = it->second;
+  } else {
+    casePath = SystemToolsStatic::GetCasePathName(p, true);
+    SystemToolsStatics->PathCaseMap.emplace(p, casePath);
+  }
+
+  return casePath;
 }
 #endif
 
