@@ -136,7 +136,7 @@ static int copyDirectoryTest()
   return 0;
 }
 
-int testDirectory(int, char* [])
+int testDirectory(int, char*[])
 {
   return doLongPathTest() + nonExistentDirectoryTest() + copyDirectoryTest();
 }
