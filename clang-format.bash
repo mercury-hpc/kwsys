@@ -40,7 +40,7 @@ Example to format files modified by the most recent commit:
 
     ./clang-format.bash --amend
 
-Example to format all files:
+Example to format all files tracked by Git:
 
     ./clang-format.bash --tracked
 
@@ -117,7 +117,7 @@ list_files() {
 
   # Select sources with our attribute.
   git check-attr --stdin format.clang-format |
-  sed -n '/: format\.clang-format: set$/ {s/:[^:]*:[^:]*$//p}'
+    sed -n '/: format\.clang-format: \(set\|6\.0\)$/ {s/:[^:]*:[^:]*$//p}'
 }
 
 # Transform configured sources to protect @SYMBOLS@.
