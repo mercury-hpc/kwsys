@@ -630,7 +630,7 @@ endif()
 # Build a list of classes and headers we need to implement the
 # selected components.  Initialize with required components.
 set(KWSYS_CLASSES)
-set(KWSYS_H_FILES Configure SharedForward)
+set(KWSYS_H_FILES Configure)
 set(KWSYS_HXX_FILES Configure String)
 
 # Add selected C++ classes.
@@ -1121,16 +1121,6 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
       set(testProcess_COMPILE_FLAGS "${testProcess_COMPILE_FLAGS} -DCRASH_USING_ABORT")
     endif()
     set_property(SOURCE testProcess.c PROPERTY COMPILE_FLAGS "${testProcess_COMPILE_FLAGS}")
-
-    # Test SharedForward
-    configure_file(${PROJECT_SOURCE_DIR}/testSharedForward.c.in
-                   ${PROJECT_BINARY_DIR}/testSharedForward.c @ONLY IMMEDIATE)
-    add_executable(${KWSYS_NAMESPACE}TestSharedForward
-                   ${PROJECT_BINARY_DIR}/testSharedForward.c)
-    set_property(TARGET ${KWSYS_NAMESPACE}TestSharedForward PROPERTY LABELS ${KWSYS_LABELS_EXE})
-    add_dependencies(${KWSYS_NAMESPACE}TestSharedForward ${KWSYS_TARGET_C_LINK})
-    add_test(kwsys.testSharedForward ${EXEC_DIR}/${KWSYS_NAMESPACE}TestSharedForward 1)
-    set_property(TEST kwsys.testSharedForward PROPERTY LABELS ${KWSYS_LABELS_TEST})
 
     # Configure some test properties.
     if(KWSYS_STANDALONE)
