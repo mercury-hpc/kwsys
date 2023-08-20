@@ -958,7 +958,9 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
     target_link_libraries(${KWSYS_NAMESPACE}TestsC ${KWSYS_TARGET_C_LINK})
     foreach(testfile IN LISTS KWSYS_C_TESTS)
       get_filename_component(test "${testfile}" NAME_WE)
-      add_test(kwsys.${test} ${EXEC_DIR}/${KWSYS_NAMESPACE}TestsC ${test} ${KWSYS_TEST_ARGS_${test}})
+      add_test(NAME kwsys.${test}
+        COMMAND ${EXEC_DIR}/${KWSYS_NAMESPACE}TestsC ${test} ${KWSYS_TEST_ARGS_${test}}
+        )
       set_property(TEST kwsys.${test} PROPERTY LABELS ${KWSYS_LABELS_TEST})
     endforeach()
 
@@ -1082,7 +1084,9 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
       )
     foreach(testfile IN LISTS KWSYS_CXX_TESTS)
       get_filename_component(test "${testfile}" NAME_WE)
-      add_test(kwsys.${test} ${EXEC_DIR}/${KWSYS_NAMESPACE}TestsCxx ${test} ${KWSYS_TEST_ARGS_${test}})
+      add_test(NAME kwsys.${test}
+        COMMAND ${EXEC_DIR}/${KWSYS_NAMESPACE}TestsCxx ${test} ${KWSYS_TEST_ARGS_${test}}
+        )
       set_property(TEST kwsys.${test} PROPERTY LABELS ${KWSYS_LABELS_TEST})
     endforeach()
 
@@ -1092,7 +1096,9 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
     target_link_libraries(${KWSYS_NAMESPACE}TestProcess ${KWSYS_TARGET_C_LINK})
     #set(KWSYS_TEST_PROCESS_7 7) # uncomment to run timing-sensitive test locally
     foreach(n IN ITEMS 1 2 3 4 5 6 ${KWSYS_TEST_PROCESS_7} 9 10)
-      add_test(kwsys.testProcess-${n} ${EXEC_DIR}/${KWSYS_NAMESPACE}TestProcess ${n})
+      add_test(NAME kwsys.testProcess-${n}
+        COMMAND ${EXEC_DIR}/${KWSYS_NAMESPACE}TestProcess ${n}
+        )
       set_property(TEST kwsys.testProcess-${n} PROPERTY LABELS ${KWSYS_LABELS_TEST})
       set_tests_properties(kwsys.testProcess-${n} PROPERTIES TIMEOUT 120)
     endforeach()
