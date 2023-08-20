@@ -1100,7 +1100,7 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
         COMMAND ${EXEC_DIR}/${KWSYS_NAMESPACE}TestProcess ${n}
         )
       set_property(TEST kwsys.testProcess-${n} PROPERTY LABELS ${KWSYS_LABELS_TEST})
-      set_tests_properties(kwsys.testProcess-${n} PROPERTIES TIMEOUT 120)
+      set_property(TEST kwsys.testProcess-${n} PROPERTY TIMEOUT 120)
     endforeach()
 
     set(testProcess_COMPILE_FLAGS "")
@@ -1127,9 +1127,9 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
     # Configure some test properties.
     if(KWSYS_STANDALONE)
       # We expect test to fail
-      set_tests_properties(kwsys.testFail PROPERTIES WILL_FAIL ON)
+      set_property(TEST kwsys.testFail PROPERTY WILL_FAIL ON)
       get_test_property(kwsys.testFail WILL_FAIL wfv)
-      set_tests_properties(kwsys.testFail PROPERTIES MEASUREMENT "Some Key=Some Value")
+      set_property(TEST kwsys.testFail PROPERTY MEASUREMENT "Some Key=Some Value")
       message(STATUS "GET_TEST_PROPERTY returned: ${wfv}")
     endif()
 
@@ -1139,7 +1139,7 @@ if(KWSYS_STANDALONE OR CMake_SOURCE_DIR)
 
     # Suppress known consistent failures on buggy systems.
     if(KWSYS_TEST_BOGUS_FAILURES)
-      set_tests_properties(${KWSYS_TEST_BOGUS_FAILURES} PROPERTIES WILL_FAIL ON)
+      set_property(TEST ${KWSYS_TEST_BOGUS_FAILURES} PROPERTY WILL_FAIL ON)
     endif()
 
   endif()
