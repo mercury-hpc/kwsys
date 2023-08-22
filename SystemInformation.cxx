@@ -4472,8 +4472,8 @@ void SystemInformationImplementation::CPUCountWindows()
   typedef BOOL(WINAPI * GetLogicalProcessorInformationType)(
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, PDWORD);
   static GetLogicalProcessorInformationType pGetLogicalProcessorInformation =
-    (GetLogicalProcessorInformationType)GetProcAddress(
-      GetModuleHandleW(L"kernel32"), "GetLogicalProcessorInformation");
+    reinterpret_cast<GetLogicalProcessorInformationType>(GetProcAddress(
+      GetModuleHandleW(L"kernel32"), "GetLogicalProcessorInformation"));
 
   if (!pGetLogicalProcessorInformation) {
     // Fallback to approximate implementation on ancient Windows versions.
