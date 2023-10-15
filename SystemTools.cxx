@@ -412,18 +412,6 @@ inline void Realpath(const std::string& path, std::string& resolved_path,
 }
 #endif
 
-#if !defined(_WIN32) && defined(__COMO__)
-// Hack for como strict mode to avoid defining _SVID_SOURCE or _BSD_SOURCE.
-extern "C" {
-extern FILE* popen(__const char* __command, __const char* __modes) __THROW;
-extern int pclose(FILE* __stream) __THROW;
-extern char* realpath(__const char* __restrict __name,
-                      char* __restrict __resolved) __THROW;
-extern char* strdup(__const char* __s) __THROW;
-extern int putenv(char* __string) __THROW;
-}
-#endif
-
 namespace KWSYS_NAMESPACE {
 
 double SystemTools::GetTime()
