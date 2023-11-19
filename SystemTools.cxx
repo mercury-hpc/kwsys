@@ -765,12 +765,16 @@ const char* SystemTools::GetEnv(const std::string& key)
 bool SystemTools::GetEnv(const char* key, std::string& result)
 {
 #if defined(_WIN32)
-  const std::wstring wkey = Encoding::ToWide(key);
-  const wchar_t* wv = _wgetenv(wkey.c_str());
-  if (wv) {
-    result = Encoding::ToNarrow(wv);
-    return true;
+  auto wide_key = Encoding::ToWide(key);
+  auto result_size = GetEnvironmentVariableW(wide_key.data(), nullptr, 0);
+  if (result_size <= 0) {
+    return false;
   }
+  std::wstring wide_result;
+  wide_result.resize(result_size - 1);
+  GetEnvironmentVariableW(wide_key.data(), &wide_result[0], result_size);
+  result = Encoding::ToNarrow(wide_result);
+  return true;
 #else
   const char* v = getenv(key);
   if (v) {
