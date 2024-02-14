@@ -3152,16 +3152,13 @@ bool SystemTools::FileIsDirectory(const std::string& inName)
 #if defined(_WIN32)
   DWORD attr =
     GetFileAttributesW(Encoding::ToWindowsExtendedPath(name).c_str());
-  if (attr != INVALID_FILE_ATTRIBUTES) {
-    return (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
+  return (attr != INVALID_FILE_ATTRIBUTES) &&
+    (attr & FILE_ATTRIBUTE_DIRECTORY);
 #else
   struct stat fs;
-  if (stat(name, &fs) == 0) {
-    return S_ISDIR(fs.st_mode);
+
+  return (stat(name, &fs) == 0) && S_ISDIR(fs.st_mode);
 #endif
-  } else {
-    return false;
-  }
 }
 
 bool SystemTools::FileIsExecutable(const std::string& inName)
@@ -3226,11 +3223,7 @@ bool SystemTools::FileIsSymlink(const std::string& name)
   return FileIsSymlinkWithAttr(path, GetFileAttributesW(path.c_str()));
 #else
   struct stat fs;
-  if (lstat(name.c_str(), &fs) == 0) {
-    return S_ISLNK(fs.st_mode);
-  } else {
-    return false;
-  }
+  return (lstat(name.c_str(), &fs) == 0) && S_ISLNK(fs.st_mode);
 #endif
 }
 
@@ -3248,11 +3241,7 @@ bool SystemTools::FileIsFIFO(const std::string& name)
   return type == FILE_TYPE_PIPE;
 #else
   struct stat fs;
-  if (lstat(name.c_str(), &fs) == 0) {
-    return S_ISFIFO(fs.st_mode);
-  } else {
-    return false;
-  }
+  return (lstat(name.c_str(), &fs) == 0) && S_ISFIFO(fs.st_mode);
 #endif
 }
 
