@@ -2867,9 +2867,8 @@ std::string SystemToolsStatic::FindName(
   path.reserve(path.size() + userPaths.size());
   path.insert(path.end(), userPaths.begin(), userPaths.end());
   // now look for the file
-  std::string tryPath;
   for (std::string const& p : path) {
-    tryPath = p;
+    std::string tryPath = p;
     if (tryPath.empty() || tryPath.back() != '/') {
       tryPath += '/';
     }
@@ -2938,8 +2937,6 @@ std::string SystemTools::FindProgram(const std::string& name,
                                      const std::vector<std::string>& userPaths,
                                      bool no_system_path)
 {
-  std::string tryPath;
-
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
   std::vector<std::string> extensions;
   // check to see if the name already has a .xxx at
@@ -2951,7 +2948,7 @@ std::string SystemTools::FindProgram(const std::string& name,
 
     // first try with extensions if the os supports them
     for (std::string const& ext : extensions) {
-      tryPath = name;
+      std::string tryPath = name;
       tryPath += ext;
       if (SystemTools::FileIsExecutable(tryPath)) {
         return SystemTools::CollapseFullPath(tryPath);
@@ -2988,7 +2985,7 @@ std::string SystemTools::FindProgram(const std::string& name,
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
     // first try with extensions
     for (std::string const& ext : extensions) {
-      tryPath = p;
+      std::string tryPath = p;
       tryPath += name;
       tryPath += ext;
       if (SystemTools::FileIsExecutable(tryPath)) {
@@ -2997,7 +2994,7 @@ std::string SystemTools::FindProgram(const std::string& name,
     }
 #endif
     // now try it without them
-    tryPath = p;
+    std::string tryPath = p;
     tryPath += name;
     if (SystemTools::FileIsExecutable(tryPath)) {
       return SystemTools::CollapseFullPath(tryPath);
