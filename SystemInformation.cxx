@@ -4664,6 +4664,11 @@ bool SystemInformationImplementation::ParseSysCtl()
         this->ChipID.Vendor = "Apple";
 
         this->FindManufacturer();
+
+        err = kw_sysctlbyname_int32("hw.optional.floatingpoint", &tempInt32);
+        if (err == 0) {
+          this->Features.HasFPU = static_cast<bool>(tempInt32);
+        }
       }
     }
   } else {
